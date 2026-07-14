@@ -382,8 +382,11 @@ local function build_perfdiag_lines(capture, reason)
         -- Process-level memory gauge stands in for catalog residency (P2): the
         -- 34k-line catalog is the dominant fixed allocation, so a spike here
         -- after a lazy-load change is directly visible.
+        -- P2: report whether the big catalog DATA is resident (requiring the
+        -- module no longer loads the 34k-line table thanks to the lazy proxy).
         local ok_cat, catalog = pcall(require, 'bis_catalog')
-        lines[#lines + 1] = string.format("bis_catalog module loaded: %s", tostring(ok_cat and catalog ~= nil))
+        local cat_resident = ok_cat and catalog and catalog.catalog_loaded and catalog.catalog_loaded() or false
+        lines[#lines + 1] = string.format("catalog data resident: %s", tostring(cat_resident))
     end
     lines[#lines + 1] = ""
     -- Swallowed-error tally (always recorded, even with debug off): a dropped

@@ -10,8 +10,27 @@ local SharedSettings, SaveSharedSettings = cfg.SharedSettings, cfg.SaveSharedSet
 
 local M = {}
 
-local ok, catalog = pcall(require, 'catalogs.lazbis')
-if not ok or type(catalog) ~= "table" then catalog = { groups = {}, lists = {} } end
+-- Lazy catalog load (P2): the generated catalog (catalogs/lazbis.lua, ~34k
+-- lines) is only require()'d on first field access, so pure viewers and bg
+-- publishers that never open BiS or evaluate announce-needs don't pay the parse
+-- + resident-memory cost. Access goes through a proxy whose __index materializes
+-- the real table once and then forwards field reads (catalog.groups / .lists /
+-- .default / .zone_map). No code iterates the top-level table, so a proxy is safe.
+local _catalog_real = nil
+local function load_catalog()
+    if _catalog_real == nil then
+        local ok, t = pcall(require, 'catalogs.lazbis')
+        _catalog_real = (ok and type(t) == "table") and t or { groups = {}, lists = {} }
+    end
+    return _catalog_real
+end
+local catalog = setmetatable({}, {
+    __index = function(_, k) return load_catalog()[k] end,
+})
+-- Observability / warm hooks: catalog_loaded() reports whether the big table is
+-- resident (used by perfdiag); warm_catalog() forces the load off the hot path.
+function M.catalog_loaded() return _catalog_real ~= nil end
+function M.warm_catalog() load_catalog(); return true end
 
 -- Forward-declared; used by announce toggles before the announce index block below.
 local static_catalog = {
