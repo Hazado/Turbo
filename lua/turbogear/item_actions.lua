@@ -255,12 +255,12 @@ end
 
 function M.observed_link_for(name, item_id)
     item_id = tonumber(item_id) or 0
-    if item_id > 0 and observed_links.by_id[item_id] then
-        return observed_links.by_id[item_id]
-    end
     local nkey = norm_link_name(name)
     if nkey ~= "" and observed_links.by_name[nkey] then
         return observed_links.by_name[nkey]
+    end
+    if item_id > 0 and observed_links.by_id[item_id] then
+        return observed_links.by_id[item_id]
     end
     return ""
 end
@@ -276,6 +276,8 @@ function M.resolve_announce_link(name, link, item_id)
     -- A link any box put in chat recently beats possession-dependent lookups.
     local seen = M.observed_link_for(name, item_id)
     if seen ~= "" then return seen end
+    local named = M.resolve_item_link(name)
+    if named ~= "" then return named end
     if item_id > 0 then
         local ok, fi = pcall(function() return mq.TLO.FindItem and mq.TLO.FindItem(item_id) end)
         if ok and fi and fi() then
@@ -283,7 +285,7 @@ function M.resolve_announce_link(name, link, item_id)
             if ok2 and looks_like_item_link(got) then return got end
         end
     end
-    return M.resolve_item_link(name)
+    return ""
 end
 
 local function close_item_inspect_windows()

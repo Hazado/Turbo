@@ -53,9 +53,10 @@ check(R.dedupe_key("Srv", "Hez", "anguish", "Blade of War", 0)
 check(R.dedupe_key(nil, nil, nil, "X", nil)
     == "?:?::name:x", 'dedupe: nil-safe')
 
--- grouped_item_key: id > name > link
+-- grouped_item_key: name > id > link
 local is_link = function(s) return tostring(s or ""):find("\18", 1, true) ~= nil end
-check(R.grouped_item_key("Blade", 101, "", is_link) == "id:101", 'group key: id wins')
+check(R.grouped_item_key("Blade", 101, "", is_link) == "name:blade", 'group key: name wins')
+check(R.grouped_item_key("", 101, "", is_link) == "id:101", 'group key: id fallback')
 check(R.grouped_item_key("Blade", 0, "\18link-payload\18", is_link) == "name:blade", 'group key: name beats link')
 check(R.grouped_item_key("", 0, "\18link-payload\18", is_link) == "link:\18link-payload\18", 'group key: link fallback')
 check(R.grouped_item_key("Blade", 0, "not a link", is_link) == "name:blade", 'group key: name fallback')

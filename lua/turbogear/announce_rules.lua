@@ -99,17 +99,17 @@ function M.dedupe_key(server, me_name, list_id, item_name, item_id)
            tostring(list_id or "") .. ":" .. item_key
 end
 
--- Grouping key for the announce-collapse window: id > name > clickable link.
+-- Grouping key for the announce-collapse window: name > id > clickable link.
 -- Raw link payloads can vary across chat/event paths even when the displayed
--- item is the same, so using links before names splits one item's needers into
--- multiple [TG] lines when item id is unavailable.
+-- item is the same. Some MQ link parse paths can also expose non-item ids, so
+-- prefer the stable displayed item name whenever we have one.
 -- is_link is a predicate (string -> boolean) supplied by the caller since link
 -- detection depends on the runtime (item_actions.looks_like_item_link).
 function M.grouped_item_key(item_name, item_id, item_link, is_link)
     item_id = tonumber(item_id) or 0
-    if item_id > 0 then return "id:" .. tostring(math.floor(item_id)) end
     local name = M.normalize_item_name(item_name)
     if name ~= "" then return "name:" .. name end
+    if item_id > 0 then return "id:" .. tostring(math.floor(item_id)) end
     local link = tostring(item_link or "")
     if type(is_link) == "function" and is_link(link) then return "link:" .. link end
     return "name:"

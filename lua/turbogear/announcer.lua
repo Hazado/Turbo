@@ -455,10 +455,10 @@ end
 
 local function item_cooldown_key(item_name, item_id)
     item_id = tonumber(item_id) or 0
-    if item_id > 0 then return "id:" .. tostring(math.floor(item_id)) end
     local name = normalize_item_name(item_name)
-    if name == "" then return "" end
-    return "name:" .. name
+    if name ~= "" then return "name:" .. name end
+    if item_id > 0 then return "id:" .. tostring(math.floor(item_id)) end
+    return ""
 end
 
 local function item_announced_recently(item_name, item_id)
@@ -1042,8 +1042,7 @@ function M.announce_linked_item(id, channel)
             local item_id = tonumber(row.item_id) or 0
             local link = item_actions.resolve_announce_link(item_name, row.item_link, item_id)
             local payload = item_actions.looks_like_item_link(link) and link or item_name
-            local suffix = item_id > 0 and (" (ID: " .. tostring(math.floor(item_id)) .. ")") or ""
-            local msg = "[ANNOUNCE] " .. tostring(payload or "?") .. suffix
+            local msg = "[ANNOUNCE] " .. tostring(payload or "?")
             if item_actions.looks_like_item_link(payload) then
                 mq.cmd(tostring(cmd) .. " " .. msg)
             else
