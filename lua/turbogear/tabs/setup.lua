@@ -1198,6 +1198,19 @@ function M.draw()
             ImGui.SetTooltip("When this UI box unloads TurboGear (/lua stop or /tgear stop), broadcast /lua stop turbogear_bg to peers and clean up legacy turbogear bg responders.")
         end
         ImGui.SameLine()
+        do
+            -- Storage backend selector (Phase 6): cycles auto -> file -> sqlite.
+            -- The backend is chosen at load, so a change applies on restart.
+            local sb = tostring(Settings.storeBackend or "auto")
+            if themed_button("Storage: " .. sb, Theme.blue) then
+                Settings.storeBackend = (sb == "auto" and "file") or (sb == "file" and "sqlite") or "auto"
+                SaveSettings()
+            end
+            if ImGui.IsItemHovered and ImGui.IsItemHovered() and ImGui.SetTooltip then
+                ImGui.SetTooltip("Persistence backend. auto = SQLite when lsqlite3 is available (auto-installed on first use), else the file cache. Restart TurboGear (/lua run turbogear) to apply a change.")
+            end
+        end
+        ImGui.SameLine()
         if toggle_button(Settings.startMinimized and "Start minimized: ON" or "Start minimized: OFF", Settings.startMinimized) then
             Settings.startMinimized = not Settings.startMinimized; SaveSettings()
         end

@@ -617,6 +617,18 @@ local function tgear_command(...)
         require('mystats').probe({ open = false })
     elseif arg == "invstats" or arg == "inventorystats" then
         require('inventory_stats').probe({ open = (args[2] or ""):lower() == "open" })
+    elseif arg == "backend" or arg == "storebackend" then
+        local mode = (args[2] or ""):lower()
+        if mode == "auto" or mode == "file" or mode == "sqlite" then
+            cfg.Settings.storeBackend = mode
+            cfg.SaveSettings()
+            print(string.format("[TurboGear] storeBackend = '%s'. Restart TurboGear (/lua run turbogear) to apply.", mode))
+        else
+            local active = "?"
+            pcall(function() active = tostring((require('store').Store.cache_status() or {}).backend or "?") end)
+            print(string.format("[TurboGear] storeBackend = '%s' (active this session: %s). Usage: /tgear backend auto|file|sqlite",
+                tostring(cfg.Settings.storeBackend or "auto"), active))
+        end
     elseif arg == "resetui" or arg == "safeui" then
         cfg.reset_ui_settings()
         print("[TurboGear] UI settings reset (bis tab, normal density, search cleared). Run /mqoverlay resume then /lua run turbogear")

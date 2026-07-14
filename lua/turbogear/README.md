@@ -31,14 +31,17 @@ it; it never promotes itself. This removes a whole class of two-owners race.
 
 `store.lua` is the in-memory, hybrid (live + cached) source store, keyed by
 `"<server>_<name>"`. It ages sources online → stale → offline and persists them
-through a **pluggable backend** (selected by `Settings.storeBackend`):
+through a **pluggable backend** (`Settings.storeBackend` = `auto` | `file` |
+`sqlite`; change it with `/tgear backend <mode>` or the Setup-tab Storage toggle,
+applied on restart):
 
-- **file** (`store_backend_file.lua`, default) — a single atomic Lua-pickle
-  cache with a read-merge that avoids clobbering concurrent writers.
-- **sqlite** (`store_backend_sqlite.lua`) — an on-disk SQLite DB (WAL) with
-  change-detected upserts and no clobber race. Enable with
-  `storeBackend = "auto"` (or `"sqlite"`); it imports the legacy pickle cache
-  once and falls back to the file backend if `lsqlite3` is unavailable.
+- **sqlite** (`store_backend_sqlite.lua`, **default** via `auto`) — an on-disk
+  SQLite DB (WAL) with change-detected upserts and no clobber race. `lsqlite3`
+  is auto-installed from the MacroQuest LuaRocks server on first use (via
+  `mq/PackageMan`, like LazBis). Imports the legacy pickle cache once.
+- **file** (`store_backend_file.lua`) — the fallback: a single atomic Lua-pickle
+  cache with a read-merge that avoids clobbering concurrent writers. Used when
+  `lsqlite3` is unavailable or `storeBackend = "file"`.
 
 Both expose the same contract: `load / reload / signature / save / status`.
 

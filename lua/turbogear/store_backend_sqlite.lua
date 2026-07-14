@@ -19,6 +19,20 @@
 local cfg = require('config')
 local diag = require('diagnostics')
 
+-- Load lsqlite3, auto-installing it from the MacroQuest LuaRocks server on first
+-- use via mq/PackageMan (plug-and-play, mirroring LazBis). Falls back to a plain
+-- require, and returns nil on any failure so the store uses the file backend.
+local function load_lsqlite3()
+    local ok_pm, PackageMan = pcall(require, 'mq/PackageMan')
+    if ok_pm and type(PackageMan) == "table" and PackageMan.Require then
+        local ok_req, mod = pcall(function() return PackageMan.Require('lsqlite3') end)
+        if ok_req and type(mod) == "table" then return mod end
+    end
+    local ok, mod = pcall(require, 'lsqlite3')
+    if ok and type(mod) == "table" then return mod end
+    return nil
+end
+
 local loader = loadstring or load
 
 -- Deterministic serializer (sorted keys) so an unchanged snapshot always yields
@@ -84,8 +98,8 @@ end
 
 function M.new(opts)
     local self = setmetatable({ kind = "sqlite", row_hash = {}, opts = opts or {} }, Backend)
-    local ok, sqlite3 = pcall(require, 'lsqlite3')
-    if not ok or type(sqlite3) ~= "table" then
+    local sqlite3 = load_lsqlite3()
+    if type(sqlite3) ~= "table" then
         self.unavailable_reason = "lsqlite3 not available"
         return self
     end

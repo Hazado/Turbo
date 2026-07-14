@@ -1,3 +1,11 @@
+1.1.0
+- SQLite storage is now the default (storeBackend = "auto"): the SQLite backend
+  is used automatically when lsqlite3 is available, and lsqlite3 is auto-installed
+  from the MacroQuest LuaRocks server on first use via mq/PackageMan (like LazBis).
+  Falls back to the file cache if lsqlite3 cannot be installed or loaded.
+- Added `/tgear backend auto|file|sqlite` and a Setup-tab "Storage" toggle to
+  switch backends without editing files (applies on restart).
+
 1.0.0
 - Storage: new SQLite backend (WAL) behind a pluggable store backend interface;
   concurrent multi-box writes with no clobber race, change-detected upserts, and

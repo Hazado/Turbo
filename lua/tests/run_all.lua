@@ -29,6 +29,7 @@ local tests = {
     "turbogear_store_test.lua",
     "turbogear_store_save_test.lua",
     "turbogear_store_sqlite_test.lua",
+    "turbogear_sqlite_packageman_test.lua",
     "turbogear_store_sqlite_integration_test.lua",
     "turbogear_bis_catalog_lazy_test.lua",
     "turbogear_announcer_budget_test.lua",

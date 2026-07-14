@@ -35,7 +35,7 @@ M.CFG = {
     script_name  = 'TurboGear',    -- display/settings/cache name
     lua_name     = 'turbogear',     -- folder/module name used by /lua run and /lua stop
     bg_lua_name  = 'turbogear_bg',  -- wrapper responder name; leaves /lua run turbogear free for UI
-    version      = '1.0.0',
+    version      = '1.1.0',
     mailbox      = 'turbogear',     -- shared actor mailbox name across all boxes
     proto        = 1,              -- snapshot protocol version (guards mismatched boxes)
     frame_round  = 5.0,
@@ -160,7 +160,7 @@ M.Settings = {
     headless        = false,       -- legacy setting; bg responder now uses turbogear_bg
     startMinimized  = false,
     performanceMode = "auto",      -- auto=lean when minimized/bg, rich when UI is open
-    storeBackend    = "file",      -- "file" (default; SQLite ships dormant pending in-game smoke test), "auto" = SQLite if lsqlite3 present, or "sqlite"
+    storeBackend    = "auto",      -- "auto" (default): SQLite when lsqlite3 is available (auto-installed via PackageMan), else file. Also "file" / "sqlite".
     autoPeerRefresh = false,        -- when false, open UI uses cached peers until Sync Now/startup
     syncRosterScopeAcrossTabs = false, -- opt-in: changing roster scope in one tab updates matching roster tabs
     hideOrnament    = true,
@@ -547,6 +547,9 @@ function M.sanitize_ui_settings()
     local perf = tostring(M.Settings.performanceMode or "auto"):lower()
     if perf ~= "auto" and perf ~= "lean" and perf ~= "full" then perf = "auto" end
     M.Settings.performanceMode = perf
+    local sb = tostring(M.Settings.storeBackend or "auto"):lower()
+    if sb ~= "auto" and sb ~= "file" and sb ~= "sqlite" then sb = "auto" end
+    M.Settings.storeBackend = sb
     M.Settings.autoPeerRefresh = M.Settings.autoPeerRefresh == true
     if tostring(M.Settings.transportProfile or "") == "" then
         M.Settings.transportProfile = legacy_transport_key_from_idx()
