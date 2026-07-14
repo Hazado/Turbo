@@ -2095,6 +2095,20 @@ function M.tick()
             catalog.ensure_announce_catalog(snap.class, { owner = snap.name })
         end
 
+        -- Single per-frame work budget (P5): the background build steps below
+        -- (catalog warm + needs-index) draw down from ONE deadline so their
+        -- individually-small budgets can't sum into a visible frame spike. The
+        -- time-sensitive announce drains further down are NOT gated by this.
+        local frame_budget_ms
+        if state.bg then
+            frame_budget_ms = tonumber(CFG.frame_work_budget_bg_ms) or 40
+        elseif state.lean and state.lean() then
+            frame_budget_ms = tonumber(CFG.frame_work_budget_lean_ms) or 6
+        else
+            frame_budget_ms = tonumber(CFG.frame_work_budget_ms) or 10
+        end
+        local frame_deadline = os.clock() + (frame_budget_ms / 1000)
+
         if not catalog_ready_for(snap) then
             local budget, max_steps
             if state.bg and not announce_ready then
@@ -2127,7 +2141,14 @@ function M.tick()
             else
                 idx_budget = tonumber(CFG.needs_index_budget_ms) or 4
             end
-            needs_index.tick(idx_budget, { allow_peers = allow_peer_index })
+            -- Draw down from the shared frame budget: subtract whatever the
+            -- catalog warm already spent, and skip this frame if the budget is
+            -- exhausted (the index build is resumable next tick).
+            local remaining_ms = (frame_deadline - os.clock()) * 1000
+            if remaining_ms < idx_budget then idx_budget = remaining_ms end
+            if idx_budget >= 1 then
+                needs_index.tick(idx_budget, { allow_peers = allow_peer_index })
+            end
         end
         diag.time("announce.pending", function()
             drain_pending(CFG.announce_pending_budget_ms, CFG.announce_pending_items_per_tick)

@@ -26,6 +26,7 @@ local tests = {
     "turbogear_spells_index_test.lua",
     "turbogear_store_test.lua",
     "turbogear_bis_catalog_lazy_test.lua",
+    "turbogear_announcer_budget_test.lua",
     "turbogear_engine_dispatch_test.lua",
     "turbogear_suggestions_stats_test.lua",
 }
