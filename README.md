@@ -10,7 +10,7 @@
 
 ## Install in Under a Minute
 
-1. **Download the patcher:** [TurboPatcher (latest release)](https://github.com/drel-git/TurboPatcher/releases/latest). Drop `TurboPatcher.exe` in your MacroQuest folder (any spot works, but that location lets the in-game Turbo Patcher button find it).
+1. **Download the patcher:** [TurboPatcher.exe (direct download)](https://github.com/drel-git/TurboPatcher/releases/latest/download/TurboPatcher.exe). Drop it in your MacroQuest folder (any spot works, but that location lets the in-game Turbo Patcher button find it).
 2. **Run `TurboPatcher.exe`.** It finds your MacroQuest folder automatically (or click Browse and pick the folder that contains `lua` and `Macros`).
 3. **Click Install.** That's it. The patcher shows the patch notes and keeps you updated from then on.
 
