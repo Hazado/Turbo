@@ -157,6 +157,49 @@ local slime_hits = core.text_candidates(slime_merged, "selling Corrosive Slime o
 check(#slime_hits == 1 and slime_hits[1].name == "Corrosive Slime of Suffering",
     'alias: text hit shows the name that appeared in the line')
 
+-- Jonas-hand alias pairs: one entry indexed under BOTH "X" and "Jonas
+-- Dagmire's X" must yield ONE text hit (displayed under the most specific
+-- alias in the line), not a double announce. Regression for the
+-- Triquetrum double-[TG] report.
+local entry_bone = {
+    item = "Triquetrum",
+    names = { "Triquetrum", "Jonas Dagmire's Triquetrum" },
+    ids = { 33166, 33167 },
+}
+local bone_needs = core.build_char_needs(
+    { { entry = entry_bone, item_name = "Triquetrum", list_id = "jonas" } },
+    function() return "missing" end)
+check(bone_needs.by_name["triquetrum"] ~= nil
+    and bone_needs.by_name["jonas dagmire's triquetrum"] ~= nil,
+    'jonas: both alias keys indexed')
+local bone_merged = core.merge({ ["Srv_Eve"] = { name = "Eve", needs = bone_needs } })
+local bone_hits = core.text_candidates(bone_merged, "check out Jonas Dagmire's Triquetrum wow", 8)
+check(#bone_hits == 1, 'jonas: alias pair collapses to one text hit')
+check(bone_hits[1] and bone_hits[1].name == "Jonas Dagmire's Triquetrum",
+    'jonas: hit displays the most specific alias in the line')
+local bone_hits_chars = core.text_candidates_chars(
+    { ["Srv_Eve"] = { name = "Eve", needs = bone_needs } },
+    "check out Jonas Dagmire's Triquetrum wow", 8)
+check(#bone_hits_chars == 1 and bone_hits_chars[1].name == "Jonas Dagmire's Triquetrum",
+    'jonas: per-char scan collapses the alias pair too')
+check(#(bone_hits_chars[1].needers or {}) == 1, 'jonas: needers attached to the single hit')
+
+-- Shared-id hazard: Jonas bone entries share id lists across DIFFERENT bones,
+-- so a name hit must win over an id hit that points at another item.
+local entry_other_bone = {
+    item = "Trapezium",
+    names = { "Trapezium", "Jonas Dagmire's Trapezium" },
+    ids = { 33166, 33167 }, -- same shared ids as Triquetrum
+}
+local two_bone_needs = core.build_char_needs({
+    { entry = entry_other_bone, item_name = "Trapezium", list_id = "jonas" },
+    { entry = entry_bone, item_name = "Triquetrum", list_id = "jonas" },
+}, function() return "missing" end)
+local two_bone_chars = { ["Srv_Fay"] = { name = "Fay", needs = two_bone_needs } }
+local qn = core.query_chars(two_bone_chars, "Triquetrum", 33166)
+check(#qn == 1 and qn[1].display == "Triquetrum",
+    'jonas: name match beats shared-id hit pointing at a different bone')
+
 -- Tombstoned (failed) characters carry no needs and must be invisible to the
 -- merged index (stutter regression: failed rebuilds must not affect merges).
 local with_tombstone = core.merge({

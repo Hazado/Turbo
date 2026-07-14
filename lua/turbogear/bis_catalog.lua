@@ -1480,26 +1480,33 @@ function M.direct_item_candidates_in_text(snap, line, limit)
     local idx = M.direct_catalog_if_ready(snap.class, snap.name)
     if not idx then return {} end
     local lower = line:lower()
-    local hits, seen = {}, {}
+    -- One entry can carry alias pairs where one is a substring of the other
+    -- (Jonas hand: "Triquetrum" / "Jonas Dagmire's Triquetrum"), so a single
+    -- mention matches BOTH name keys. Rank matches longest-key-first, then
+    -- dedupe by the entry's CANONICAL item name so each item yields one
+    -- candidate displayed under the most specific alias in the line.
+    local matches = {}
     for key, recs in pairs(idx.by_name or {}) do
         if key ~= "" and lower:find(key, 1, true) then
-            for _, rec in ipairs(recs or {}) do
-                local item_name = trim(rec.item_name)
-                local hit_key = norm_item_key(item_name)
-                if hit_key ~= "" and not seen[hit_key] then
-                    seen[hit_key] = true
-                    hits[#hits + 1] = {
-                        name = item_name,
-                        id = primary_entry_id(rec.entry),
-                    }
-                end
-                break
-            end
+            local rec = recs and recs[1]
+            if rec then matches[#matches + 1] = { key = key, rec = rec } end
         end
     end
-    table.sort(hits, function(a, b)
-        return #tostring(a.name or "") > #tostring(b.name or "")
-    end)
+    table.sort(matches, function(a, b) return #a.key > #b.key end)
+    local hits, seen = {}, {}
+    for _, m in ipairs(matches) do
+        local rec = m.rec
+        local item_name = trim(rec.item_name)
+        local canonical = norm_item_key(trim(rec.entry and rec.entry.item or ""))
+        if canonical == "" then canonical = norm_item_key(item_name) end
+        if item_name ~= "" and canonical ~= "" and not seen[canonical] then
+            seen[canonical] = true
+            hits[#hits + 1] = {
+                name = item_name,
+                id = primary_entry_id(rec.entry),
+            }
+        end
+    end
     limit = math.max(1, math.floor(tonumber(limit) or 8))
     while #hits > limit do table.remove(hits) end
     return hits

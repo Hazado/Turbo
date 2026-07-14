@@ -193,7 +193,10 @@ end
 
 -- Query per-character needs maps directly (no merged structure needed).
 -- chars: { char_key -> { name, needs } }. Dedupe is inherent (one hit/char).
--- Display precedence per char: id hit (canonical name) > norm alias > strip alias.
+-- Name lookups run BEFORE the id lookup: link-parsed ids are unreliable on
+-- emu servers, and catalog entries can share id lists across distinct items
+-- (Jonas hand bones), so an id-first hit can attribute the wrong item.
+-- Display precedence per char: norm alias > strip alias > id hit (canonical).
 function core.query_chars(chars, item_name, item_id)
     local out = {}
     item_id = tonumber(item_id) or 0
@@ -208,9 +211,9 @@ function core.query_chars(chars, item_name, item_id)
         local rec = chars[char_key]
         local needs = rec and rec.needs
         if needs then
-            local need = (item_id > 0 and needs.by_id[item_id])
-                or (k1 and needs.by_name[k1])
+            local need = (k1 and needs.by_name[k1])
                 or (k2 and needs.by_name[k2])
+                or (item_id > 0 and needs.by_id[item_id])
             if need then
                 out[#out + 1] = {
                     character = rec.name, display = need.display,
@@ -222,40 +225,55 @@ function core.query_chars(chars, item_name, item_id)
     return out
 end
 
+-- Canonical dedupe key for a text-scan hit: the ENTRY's canonical item name,
+-- not the alias that matched. One catalog entry can carry alias pairs where
+-- one is a substring of the other (Jonas hand: "Triquetrum" and "Jonas
+-- Dagmire's Triquetrum"), so a single chat mention matches BOTH name keys;
+-- deduping by alias display announced the same item twice under two names.
+local function text_hit_canonical(entry, display)
+    local canonical = entry and core.strip_key(entry.item) or ""
+    if canonical ~= "" then return canonical end
+    return core.strip_key(display)
+end
+
 -- Text-line scan over per-character needs maps. Same key volume as the old
--- merged scan; runs only on qualifying chat lines.
+-- merged scan; runs only on qualifying chat lines. Matches are ranked
+-- longest-key-first BEFORE deduping so the most specific alias found in the
+-- line ("Jonas Dagmire's Triquetrum", not "Triquetrum") is the one displayed.
 function core.text_candidates_chars(chars, line, limit)
     local out = {}
     line = core.norm_text(line)
     if line == "" then return out end
-    local seen = {}
+    local matches = {}
     for _, rec in pairs(chars or {}) do
         local needs = rec and rec.needs
         if needs then
             for key, need in pairs(needs.by_name or {}) do
                 if key ~= "" and #key >= 3 and line:find(key, 1, true) then
-                    local dedupe = core.strip_key(need.display)
-                    if dedupe ~= "" and not seen[dedupe] then
-                        seen[dedupe] = true
-                        local id = 0
-                        for _, eid in ipairs((need.entry and need.entry.ids) or {}) do
-                            eid = tonumber(eid)
-                            if eid and eid > 0 then id = math.floor(eid); break end
-                        end
-                        out[#out + 1] = { name = need.display, id = id, key = key }
-                    end
+                    matches[#matches + 1] = { key = key, need = need }
                 end
             end
         end
     end
-    table.sort(out, function(a, b)
-        return #tostring(a.key or "") > #tostring(b.key or "")
-    end)
+    table.sort(matches, function(a, b) return #a.key > #b.key end)
+    local seen = {}
+    for _, m in ipairs(matches) do
+        local need = m.need
+        local dedupe = text_hit_canonical(need.entry, need.display)
+        if dedupe ~= "" and not seen[dedupe] then
+            seen[dedupe] = true
+            local id = 0
+            for _, eid in ipairs((need.entry and need.entry.ids) or {}) do
+                eid = tonumber(eid)
+                if eid and eid > 0 then id = math.floor(eid); break end
+            end
+            out[#out + 1] = { name = need.display, id = id }
+        end
+    end
     limit = math.max(1, math.floor(tonumber(limit) or 24))
     while #out > limit do table.remove(out) end
     for _, hit in ipairs(out) do
         hit.needers = core.query_chars(chars, hit.name, hit.id)
-        hit.key = nil
     end
     return out
 end
@@ -276,48 +294,52 @@ function core.query(merged, item_name, item_id)
     end
     item_id = tonumber(item_id) or 0
     if merged then
-        if item_id > 0 then add_all(merged.by_id[item_id]) end
+        -- Name before id, same rationale as query_chars.
         local k1 = core.norm_key(item_name)
         if k1 ~= "" then add_all(merged.by_name[k1]) end
         local k2 = core.strip_key(item_name)
         if k2 ~= "" and k2 ~= k1 then add_all(merged.by_name[k2]) end
+        if item_id > 0 then add_all(merged.by_id[item_id]) end
     end
     return out
 end
 
 -- Find needed item names appearing in a plain-text chat line. Only scans the
--- needed-name keys (a small set), not the whole catalog. Longest names first.
+-- needed-name keys (a small set), not the whole catalog. Longest names first;
+-- alias variants of one entry collapse to a single hit (see text_hit_canonical).
 function core.text_candidates(merged, line, limit)
     local out = {}
     line = core.norm_text(line)
     if line == "" or not merged then return out end
-    local seen = {}
+    local matches = {}
     for key, list in pairs(merged.by_name or {}) do
         if key ~= "" and #key >= 3 and line:find(key, 1, true) then
             local first = list and list[1]
-            local display = first and first.display or key
-            local dedupe = core.strip_key(display)
-            if dedupe ~= "" and not seen[dedupe] then
-                seen[dedupe] = true
-                local id = 0
-                if first and first.entry then
-                    for _, eid in ipairs(first.entry.ids or {}) do
-                        eid = tonumber(eid)
-                        if eid and eid > 0 then id = math.floor(eid); break end
-                    end
-                end
-                out[#out + 1] = { name = display, id = id, key = key }
-            end
+            if first then matches[#matches + 1] = { key = key, first = first } end
         end
     end
-    table.sort(out, function(a, b)
-        return #tostring(a.key or "") > #tostring(b.key or "")
-    end)
+    table.sort(matches, function(a, b) return #a.key > #b.key end)
+    local seen = {}
+    for _, m in ipairs(matches) do
+        local first = m.first
+        local display = first.display or m.key
+        local dedupe = text_hit_canonical(first.entry, display)
+        if dedupe ~= "" and not seen[dedupe] then
+            seen[dedupe] = true
+            local id = 0
+            if first.entry then
+                for _, eid in ipairs(first.entry.ids or {}) do
+                    eid = tonumber(eid)
+                    if eid and eid > 0 then id = math.floor(eid); break end
+                end
+            end
+            out[#out + 1] = { name = display, id = id }
+        end
+    end
     limit = math.max(1, math.floor(tonumber(limit) or 24))
     while #out > limit do table.remove(out) end
     for _, hit in ipairs(out) do
         hit.needers = core.query(merged, hit.name, hit.id)
-        hit.key = nil
     end
     return out
 end
