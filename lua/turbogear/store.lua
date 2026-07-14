@@ -7,31 +7,12 @@ local mq  = require('mq')
 local cfg = require('config')
 local CFG, Settings = cfg.CFG, cfg.Settings
 local diag = require('diagnostics')
-local ok_ffi, ffi = pcall(require, 'ffi')
-if ok_ffi and ffi then
-    pcall(ffi.cdef, [[
-        typedef unsigned long DWORD;
-        typedef int BOOL;
-        typedef struct _FILETIME {
-            DWORD dwLowDateTime;
-            DWORD dwHighDateTime;
-        } FILETIME;
-        typedef struct _WIN32_FILE_ATTRIBUTE_DATA {
-            DWORD dwFileAttributes;
-            FILETIME ftCreationTime;
-            FILETIME ftLastAccessTime;
-            FILETIME ftLastWriteTime;
-            DWORD nFileSizeHigh;
-            DWORD nFileSizeLow;
-        } WIN32_FILE_ATTRIBUTE_DATA;
-        BOOL GetFileAttributesExA(const char* lpFileName, int fInfoLevelId, void* lpFileInformation);
-        BOOL MoveFileExA(const char* lpExistingFileName, const char* lpNewFileName, DWORD dwFlags);
-    ]])
-else
-    ffi = nil
-end
 
 local M = {}
+
+-- Persistence backend (Phase 3). Assigned once the helpers it needs (recency)
+-- exist, below. File backend today; SQLite selected here in a later step.
+local backend
 
 -- sources[key] = snapshot table + { status, last_seen, kind }
 -- version tracks any visible source/status update. content_version only tracks
@@ -51,95 +32,6 @@ local Store = {
 
 local function my_key()
     return (mq.TLO.MacroQuest.Server() or "?") .. "_" .. (mq.TLO.Me.CleanName() or "?")
-end
-
-local function cache_file_signature()
-    local path = tostring(cfg.CacheFile or "")
-    if path == "" then return "missing" end
-    if ffi then
-        local data = ffi.new("WIN32_FILE_ATTRIBUTE_DATA[1]")
-        local ok, rc = pcall(function()
-            return ffi.C.GetFileAttributesExA(path, 0, data)
-        end)
-        if ok and rc ~= 0 and data[0] then
-            local d = data[0]
-            return table.concat({
-                tostring(tonumber(d.nFileSizeHigh) or 0),
-                tostring(tonumber(d.nFileSizeLow) or 0),
-                tostring(tonumber(d.ftLastWriteTime.dwHighDateTime) or 0),
-                tostring(tonumber(d.ftLastWriteTime.dwLowDateTime) or 0),
-            }, ":")
-        end
-    end
-    local f = io.open(path, "rb")
-    if not f then return "missing" end
-    local size = f:seek("end") or 0
-    f:close()
-    return "size:" .. tostring(size)
-end
-
-local function safe_load_lua_table(path)
-    path = tostring(path or "")
-    if path == "" then return false, nil, "missing path" end
-    local chunk, load_err = loadfile(path)
-    if type(chunk) ~= "function" then
-        return false, nil, tostring(load_err or "load failed")
-    end
-    local ok, value = pcall(chunk)
-    if not ok then
-        return false, nil, tostring(value or "run failed")
-    end
-    if type(value) ~= "table" then
-        return false, nil, "not a table"
-    end
-    return true, value, nil
-end
-
-local function replace_file(tmp_path, final_path)
-    tmp_path = tostring(tmp_path or "")
-    final_path = tostring(final_path or "")
-    if tmp_path == "" or final_path == "" then return false end
-    if ffi then
-        local ok, rc = pcall(function()
-            return ffi.C.MoveFileExA(tmp_path, final_path, 0x1 + 0x8) -- replace existing, write through
-        end)
-        if ok and rc ~= 0 then return true end
-    end
-    pcall(function() os.remove(final_path) end)
-    return os.rename(tmp_path, final_path) == true
-end
-
--- Temp-file re-validation is belt-and-suspenders against a corrupt pickle. It is
--- demoted to periodic (CFG.cache_tmp_validate_s) so most saves skip the extra
--- full parse of what we just wrote (P1 interim).
-local last_tmp_validate = 0
-
-local function write_cache_atomic(out)
-    local final_path = tostring(cfg.CacheFile or "")
-    if final_path == "" then return false, "missing cache path" end
-    local suffix = tostring(my_key()):gsub("[^%w_%-]", "_")
-    local tmp_path = string.format("%s.%s.%d.tmp", final_path, suffix, math.floor(os.clock() * 1000000))
-    pcall(function() os.remove(tmp_path) end)
-    local ok_pickle, pickle_err = pcall(function() mq.pickle(tmp_path, out) end)
-    if not ok_pickle then
-        pcall(function() os.remove(tmp_path) end)
-        return false, tostring(pickle_err or "pickle failed")
-    end
-    local now_validate = os.clock()
-    local validate_every = tonumber(CFG.cache_tmp_validate_s) or 30
-    if last_tmp_validate == 0 or (now_validate - last_tmp_validate) >= validate_every then
-        local ok_tmp, _, load_err = safe_load_lua_table(tmp_path)
-        if not ok_tmp then
-            pcall(function() os.remove(tmp_path) end)
-            return false, "temp cache invalid: " .. tostring(load_err or "?")
-        end
-        last_tmp_validate = now_validate
-    end
-    if not replace_file(tmp_path, final_path) then
-        pcall(function() os.remove(tmp_path) end)
-        return false, "replace failed"
-    end
-    return true, "saved"
 end
 
 local function is_invalid_source_key(key, snap)
@@ -275,6 +167,13 @@ local function snapshot_inventory_recency(snap)
     if bank > best then best = bank end
     return best
 end
+
+-- Select the persistence backend now that the recency comparator exists. File
+-- backend today; the SQLite backend is selected here in the next step.
+backend = require('store_backend_file').new({
+    recency = snapshot_inventory_recency,
+    key_fn = my_key,
+})
 
 local function item_match_key(item)
     if type(item) ~= "table" then return "" end
@@ -651,7 +550,7 @@ function Store.save()
     Store.last_save = os.clock(); Store.dirty = false
     local source_count = 0
     for _ in pairs(Store.sources) do source_count = source_count + 1 end
-    diag.context("store.save", string.format("sources=%d cache=%s", source_count, tostring(cfg.CacheFile or "")))
+    diag.context("store.save", string.format("sources=%d backend=%s", source_count, tostring(backend and backend.kind or "?")))
     diag.time("store.save", function()
         -- strip volatile status before persisting; mark loaded ones offline on read
         local out = {}
@@ -667,32 +566,10 @@ function Store.save()
                        lockouts=s.lockouts, spells=s.spells, spells_sig=s.spells_sig,
                        liveStats=s.liveStats }
         end
-        -- P1 interim: the read-merge exists only to avoid clobbering another
-        -- process's newer entries. If the on-disk signature is exactly what WE
-        -- last wrote, no other writer has touched the file since, so the merge
-        -- can be skipped (our in-memory Store already holds every entry we ever
-        -- merged). When the signature differs, another box wrote - merge as before.
-        local disk_sig = cache_file_signature()
-        if Store.cache_signature == nil or disk_sig ~= Store.cache_signature then
-            diag.count("store.save_merge")
-            local ok_existing, existing = safe_load_lua_table(cfg.CacheFile)
-            if ok_existing and type(existing) == "table" then
-                for k, disk in pairs(existing) do
-                    if type(disk) == "table" then
-                        local mem = out[k]
-                        if type(mem) ~= "table" or snapshot_inventory_recency(disk) > snapshot_inventory_recency(mem) then
-                            out[k] = disk
-                        end
-                    end
-                end
-            end
-        else
-            diag.count("store.save_merge_skipped")
-        end
-        local ok_save, save_reason = write_cache_atomic(out)
+        local ok_save, save_reason = backend:save(out)
         Store.cache_last_reload_reason = ok_save and "saved atomically" or ("save failed: " .. tostring(save_reason or "?"))
         if not ok_save then diag.count("store.save_failed") end
-        Store.cache_signature = cache_file_signature()
+        Store.cache_signature = backend:signature()
     end)
 end
 
@@ -751,36 +628,32 @@ local function ingest_cache_table(t, mark_offline)
 end
 
 function Store.load()
-    local ok, t, reason = safe_load_lua_table(cfg.CacheFile)
-    if not (ok and type(t) == "table") then
-        -- one-time warm start from the pre-rename cache, if present
-        ok, t, reason = safe_load_lua_table(cfg.LegacyCacheFile)
-    end
+    local ok, t, reason = backend:load()
     if ok and type(t) == "table" then ingest_cache_table(t, true) end
-    Store.cache_signature = cache_file_signature()
+    Store.cache_signature = backend:signature()
     Store.cache_last_reload_reason = ok and "loaded cache" or ("cache unavailable: " .. tostring(reason or "?"))
 end
 
 function Store.reload_cache()
-    local ok, t, reason = safe_load_lua_table(cfg.CacheFile)
+    local ok, t, reason = backend:reload()
     if not ok or type(t) ~= "table" then
         Store.cache_last_reload_reason = "cache load skipped: " .. tostring(reason or "?")
         diag.count("store.cache_load_skipped")
         return false
     end
     local changed = ingest_cache_table(t, false)
-    Store.cache_signature = cache_file_signature()
+    Store.cache_signature = backend:signature()
     Store.cache_last_reload_reason = changed and "loaded changed inventory" or "loaded unchanged inventory"
     return changed
 end
 
 function Store.reload_cache_if_changed(force)
-    local sig = cache_file_signature()
+    local sig = backend:signature()
     if not force and Store.cache_signature ~= nil and sig == Store.cache_signature then
         Store.cache_last_reload_reason = "cache file unchanged"
         return false, "unchanged"
     end
-    local ok, t, reason = safe_load_lua_table(cfg.CacheFile)
+    local ok, t, reason = backend:reload()
     if not ok or type(t) ~= "table" then
         Store.cache_last_reload_reason = "cache load skipped: " .. tostring(reason or "?")
         diag.count("store.cache_load_skipped")
@@ -793,10 +666,12 @@ function Store.reload_cache_if_changed(force)
 end
 
 function Store.cache_status()
+    local st = (backend and backend:status()) or {}
     return {
         signature = Store.cache_signature,
         reason = Store.cache_last_reload_reason,
-        file = cfg.CacheFile,
+        file = st.file or cfg.CacheFile,
+        backend = st.backend,
     }
 end
 
