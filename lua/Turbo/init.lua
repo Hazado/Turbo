@@ -23,6 +23,7 @@
         /lua run Turbo loot        -- send loot command for nearby corpses
         /lua run Turbo setup [File.ini] [local|driver|noreload]  -- INI hooks + queued /e3reload (~8s); default syncs group via quiet /e3bct hook repair. Use \atsetup driver\ax for this character only; \atnoreload\ax skips autoreload
         /lua run Turbo backup turbo|e3|all -- timestamped .bak copy beside INI
+        /lua run Turbo patcher    -- launch TurboPatcher.exe (same as the More tab button)
         /lua run Turbo diag clean -- remove old Turbo diagnostics bundles only
         /lua run Turbo view full|mini -- layout + save (alias: layout)
         /lua run Turbo doctor     -- print install/profile doctor when UI is closed
@@ -5722,6 +5723,7 @@ local function printHelp()
     printf('\aw      Use \ay/lua run Turbo setup driver\ax \aw(alias: local) for this character only, no group sync.\ax')
     printf('\aw    \ay/lua run Turbo view\ax \atfull\ax|\atslim\ax|\atmini\ax')
     printf('\aw      GUI layout (saved to turbo_settings.lua); also saves looter, Turbo on, combat loot, ALL mode, radius, shared profile\ax')
+    printf('\aw    \ay/lua run Turbo patcher\ax — launch TurboPatcher.exe (aliases: patch, update)\ax')
     printf('\aw    \ay/lua run Turbo doctor\ax — install scan + profile report (versions, files, INIs)\ax')
     printf('\aw    \ay%s\ax — same install report when the Turbo UI is already open\ax', TURBO_DOCTOR_BIND)
     printf('\aw    \ay/turbosnapshot\ax — active turboloot.ini settings, grouped + with descriptions\ax')
@@ -12337,6 +12339,10 @@ if cliMode then
         end
         saveSettings()
         printf('\at[Turbo]\ax Layout saved: \ag%s\ax (\ay/lua run Turbo\ax to open)', v)
+    elseif cmd == 'patcher' or cmd == 'patch' or cmd == 'update' then
+        -- Same path as the More tab's Turbo Patcher button.
+        TG.openTurboPatcherExternal()
+        printf('\at[Turbo]\ax %s', tostring(TG.statusMessage or ''))
     elseif cmd == 'help' then
         printHelp()
     else
