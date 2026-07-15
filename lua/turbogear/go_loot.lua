@@ -4,7 +4,9 @@
 -- as a non-blocking state machine from the main run loop (M.tick()), so it
 -- never stalls sync or the UI.
 --
--- Phases: move -> open -> window -> scan -> pickup -> (report)
+-- Phases: reveal -> move -> open -> window -> scan -> pickup -> (report)
+-- "reveal" mirrors Turbo Reloot: /hidecorpse none so a looter who already hid
+-- corpses can still see the spawn id, then we restore hidecorpse looted.
 -- Outcome notes are single tokens (no spaces) because they travel through
 -- /tgear golootnote argument parsing on the way to the panel.
 --
@@ -20,6 +22,7 @@ local M = {}
 local job = nil
 
 local ARRIVE_DIST = 15.0
+local REVEAL_WAIT_S = 0.45
 
 local function now_s() return os.clock() end
 
@@ -41,6 +44,17 @@ local function corpse_distance(corpse_id)
     local ok, d = pcall(function() return tonumber(s.Distance3D() or 0) end)
     if ok then return d end
     return nil
+end
+
+local function reveal_hidden_corpses()
+    pcall(function() mq.cmd('/squelch /hidecorpse none') end)
+end
+
+-- Restore the common TurboLoot post-loot hide so Reloot-style unhide does not
+-- leave every corpse visible for the rest of the session. Exact INI mode is
+-- not read here; looted matches the default that caused Go-loot "corpse gone".
+local function restore_corpse_hide()
+    pcall(function() mq.cmd('/squelch /hidecorpse looted') end)
 end
 
 local function nav_available()
@@ -117,11 +131,26 @@ end
 -- Pure decision core. ctx carries plain values; returns { action = <string>,
 -- note = <token or nil> }. Actions: "wait", "arrived", "fail", "open_window",
 -- "found", "not_found", "confirm", "accept_quantity", "stash_cursor",
--- "done_looted", "fail_loot".
+-- "done_looted", "fail_loot", "ready", "retry_reveal".
 -- ---------------------------------------------------------------------------
 function M.decide(phase, ctx)
     ctx = ctx or {}
-    if phase == "move" then
+    if phase == "reveal" then
+        if ctx.corpse_exists then
+            local max_dist = tonumber(ctx.max_distance) or 400
+            if (tonumber(ctx.distance) or 0) > max_dist then
+                return { action = "fail", note = "too_far" }
+            end
+            return { action = "ready" }
+        end
+        if ctx.timed_out then
+            if (tonumber(ctx.reveal_retries_left) or 0) > 0 then
+                return { action = "retry_reveal" }
+            end
+            return { action = "fail", note = "corpse_gone" }
+        end
+        return { action = "wait" }
+    elseif phase == "move" then
         if not ctx.corpse_exists then return { action = "fail", note = "corpse_gone" } end
         if (tonumber(ctx.distance) or math.huge) <= (tonumber(ctx.arrive_dist) or ARRIVE_DIST) then
             return { action = "arrived" }
@@ -187,13 +216,30 @@ local function report(j, ok, note)
     end
 end
 
+local function begin_move(j)
+    local used_nav = nav_available()
+    j.used_nav = used_nav
+    j.moving = true
+    j.phase = "move"
+    j.deadline = now_s() + (tonumber(CFG.go_loot_arrive_timeout_s) or 45)
+    if used_nav then
+        mq.cmd(string.format('/squelch /nav id %d distance=%d', j.corpse_id, math.floor(ARRIVE_DIST) - 5))
+    else
+        mq.cmd(string.format('/squelch /moveto id %d', j.corpse_id))
+    end
+    print(string.format("\at[TurboGear]\ax go-loot: heading to corpse %d for %s (%s)",
+        j.corpse_id, j.item_name, used_nav and "nav" or "moveto"))
+end
+
 local function finish(ok, note)
     if not job then return end
     if job.moving then stop_movement(job.used_nav) end
     close_loot_window()
     local was_paused = job.afollow_paused == true
+    local did_reveal = job.revealed_corpses == true
     local j = job
     job = nil
+    if did_reveal then restore_corpse_hide() end
     resume_follow_for_job(was_paused)
     report(j, ok, note)
     -- Inventory may already be updated before the "You have looted" chat line
@@ -214,10 +260,6 @@ function M.request(payload)
     if tostring(payload.item_name or "") == "" then return false, "no_item" end
     local okC, combat = pcall(function() return mq.TLO.Me.Combat() == true end)
     if okC and combat then return false, "in_combat" end
-    local dist = corpse_distance(corpse_id)
-    if dist == nil then return false, "corpse_gone" end
-    local max_dist = tonumber(CFG.go_loot_max_distance) or 400
-    if dist > max_dist then return false, "too_far" end
 
     -- Same prelude as turboloot sell/bank/tribute/loot: stop chase, pause
     -- afollow, clear stick/nav before we issue our own movement.
@@ -226,26 +268,40 @@ function M.request(payload)
     stop_movement(true)
     stop_movement(false)
 
-    local used_nav = nav_available()
-    if used_nav then
-        mq.cmd(string.format('/squelch /nav id %d distance=%d', corpse_id, math.floor(ARRIVE_DIST) - 5))
-    else
-        mq.cmd(string.format('/squelch /moveto id %d', corpse_id))
-    end
+    local max_dist = tonumber(CFG.go_loot_max_distance) or 400
+    local dist = corpse_distance(corpse_id)
     job = {
         item_name = tostring(payload.item_name or ""),
         item_id = tonumber(payload.item_id) or 0,
         corpse_id = corpse_id,
         reply_to = tostring(payload.reply_to or ""),
-        phase = "move",
-        deadline = now_s() + (tonumber(CFG.go_loot_arrive_timeout_s) or 45),
-        used_nav = used_nav,
-        moving = true,
+        used_nav = false,
+        moving = false,
         slot = 0,
         afollow_paused = afollow_paused,
+        max_distance = max_dist,
+        revealed_corpses = false,
+        reveal_retries_left = 1,
     }
-    print(string.format("\at[TurboGear]\ax go-loot: heading to corpse %d for %s (%s)",
-        corpse_id, job.item_name, used_nav and "nav" or "moveto"))
+
+    if dist ~= nil then
+        if dist > max_dist then
+            job = nil
+            resume_follow_for_job(afollow_paused)
+            return false, "too_far"
+        end
+        begin_move(job)
+        return true
+    end
+
+    -- Corpse not in spawn list: usually hidecorpse after TurboLoot. Unhide
+    -- like Reloot, wait a beat for the client, then start nav (or fail).
+    reveal_hidden_corpses()
+    job.revealed_corpses = true
+    job.phase = "reveal"
+    job.deadline = now_s() + REVEAL_WAIT_S
+    print(string.format("\at[TurboGear]\ax go-loot: revealing hidden corpses for id %d (%s)",
+        corpse_id, job.item_name))
     return true
 end
 
@@ -272,7 +328,25 @@ function M.tick()
     local j = job
     local timed_out = now_s() > (tonumber(j.deadline) or 0)
 
-    if j.phase == "move" then
+    if j.phase == "reveal" then
+        local dist = corpse_distance(j.corpse_id)
+        local d = M.decide("reveal", {
+            corpse_exists = dist ~= nil,
+            distance = dist,
+            max_distance = j.max_distance,
+            timed_out = timed_out,
+            reveal_retries_left = j.reveal_retries_left,
+        })
+        if d.action == "ready" then
+            begin_move(j)
+        elseif d.action == "retry_reveal" then
+            j.reveal_retries_left = math.max(0, (tonumber(j.reveal_retries_left) or 0) - 1)
+            reveal_hidden_corpses()
+            j.deadline = now_s() + REVEAL_WAIT_S
+        elseif d.action == "fail" then
+            finish(false, d.note)
+        end
+    elseif j.phase == "move" then
         local dist = corpse_distance(j.corpse_id)
         local d = M.decide("move", {
             corpse_exists = dist ~= nil,

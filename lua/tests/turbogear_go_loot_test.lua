@@ -45,6 +45,22 @@ check(R.corpse_id_from_line("") == nil, 'corpse id: empty line')
 check(R.corpse_id_from_line("You tell the group, 'Sword of Truth'") == nil,
     'corpse id: plain link chat')
 
+-- decide: reveal phase (hidecorpse none before spawn check)
+check(G.decide("reveal", { corpse_exists = false }).action == "wait",
+    'reveal: waits for client refresh')
+check(G.decide("reveal", {
+    corpse_exists = true, distance = 50, max_distance = 400,
+}).action == "ready", 'reveal: visible corpse is ready')
+check(G.decide("reveal", {
+    corpse_exists = true, distance = 500, max_distance = 400,
+}).note == "too_far", 'reveal: too far after unhide')
+check(G.decide("reveal", {
+    corpse_exists = false, timed_out = true, reveal_retries_left = 1,
+}).action == "retry_reveal", 'reveal: one retry when still missing')
+check(G.decide("reveal", {
+    corpse_exists = false, timed_out = true, reveal_retries_left = 0,
+}).note == "corpse_gone", 'reveal: still gone after retries')
+
 -- decide: move phase
 check(G.decide("move", { corpse_exists = false }).note == "corpse_gone", 'move: corpse gone fails')
 check(G.decide("move", { corpse_exists = true, distance = 10, arrive_dist = 15 }).action == "arrived",
