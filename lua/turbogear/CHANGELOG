@@ -6,6 +6,9 @@
 - One version number everywhere: the Turbo hub window now shows the suite
   version from this CHANGELOG (the same number TurboPatcher displays) instead
   of its old internal 3.9.x script version.
+- New /turbopatcher command launches TurboPatcher.exe while Turbo is already
+  running (the /lua run Turbo patcher form only works when Turbo is stopped,
+  since MQ refuses to start a script that is already loaded).
 - Releases: the Linux zip is now built and attached automatically when a
   release is published on GitHub, so it always matches the released source.
 

@@ -24,6 +24,7 @@
         /lua run Turbo setup [File.ini] [local|driver|noreload]  -- INI hooks + queued /e3reload (~8s); default syncs group via quiet /e3bct hook repair. Use \atsetup driver\ax for this character only; \atnoreload\ax skips autoreload
         /lua run Turbo backup turbo|e3|all -- timestamped .bak copy beside INI
         /lua run Turbo patcher    -- launch TurboPatcher.exe (same as the More tab button)
+        /turbopatcher             -- same, while the Turbo UI is already running
         /lua run Turbo diag clean -- remove old Turbo diagnostics bundles only
         /lua run Turbo view full|mini -- layout + save (alias: layout)
         /lua run Turbo doctor     -- print install/profile doctor when UI is closed
@@ -5737,6 +5738,7 @@ local function printHelp()
     printf('\aw    \ay/lua run Turbo view\ax \atfull\ax|\atslim\ax|\atmini\ax')
     printf('\aw      GUI layout (saved to turbo_settings.lua); also saves looter, Turbo on, combat loot, ALL mode, radius, shared profile\ax')
     printf('\aw    \ay/lua run Turbo patcher\ax — launch TurboPatcher.exe (aliases: patch, update)\ax')
+    printf('\aw    \ay/turbopatcher\ax — same, while Turbo is already running\ax')
     printf('\aw    \ay/lua run Turbo doctor\ax — install scan + profile report (versions, files, INIs)\ax')
     printf('\aw    \ay%s\ax — same install report when the Turbo UI is already open\ax', TURBO_DOCTOR_BIND)
     printf('\aw    \ay/turbosnapshot\ax — active turboloot.ini settings, grouped + with descriptions\ax')
@@ -5997,6 +5999,19 @@ local function bindTurboRuntimeCommands()
     if not okSnap then
         printf('\at[Turbo]\ax \ayCould not bind /turbosnapshot: %s\ax', tostring(errSnap))
     end
+    -- /turbopatcher: launch TurboPatcher.exe while Turbo is running. The CLI form
+    -- (/lua run Turbo patcher) only works when Turbo is NOT running, because MQ
+    -- refuses to start a script that is already loaded.
+    local okPatcher, errPatcher = pcall(function()
+        mq.bind('/turbopatcher', function()
+            TG.openTurboPatcherExternal()
+            printf('\at[Turbo]\ax %s', tostring(TG.statusMessage or ''))
+        end)
+    end)
+    TG.patcherBindActive = okPatcher
+    if not okPatcher then
+        printf('\at[Turbo]\ax \ayCould not bind /turbopatcher: %s\ax', tostring(errPatcher))
+    end
     local okMain, errMain = pcall(function()
         mq.bind('/turbomain', function()
             TG.windowOpen = not TG.windowOpen
@@ -6201,6 +6216,10 @@ local function unbindTurboRuntimeCommands()
     if TG.snapshotBindActive then
         pcall(function() mq.unbind('/turbosnapshot') end)
         TG.snapshotBindActive = false
+    end
+    if TG.patcherBindActive then
+        pcall(function() mq.unbind('/turbopatcher') end)
+        TG.patcherBindActive = false
     end
     if TG.mainBindActive then
         pcall(function() mq.unbind('/turbomain') end)
