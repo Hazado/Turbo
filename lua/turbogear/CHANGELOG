@@ -1,3 +1,9 @@
+1.2.14
+- Go loot: wait for Corpse.Items to populate after LootWnd opens (TurboLoot does);
+  find loot slots via Corpse.Item[=name]/partial/id; retry itemnotify with and
+  without /ctrl; mash no-drop confirm while picking up so we do not sit on an
+  open corpse inventory.
+
 1.2.13
 - Go loot: panel no longer regresses opening/looting back to "going"; /loot fires
   immediately on open; lootnodrop always for the pickup; dual yes-button confirm;

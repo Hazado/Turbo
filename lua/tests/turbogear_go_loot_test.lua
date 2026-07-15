@@ -95,6 +95,12 @@ check(G.decide("open", {
 check(G.decide("scan", {
     window_open = true, item_slot = 0, scan_complete = false, timed_out = true,
 }).note == "not_found", 'scan: timeout fails')
+check(G.decide("scan", {
+    window_open = true, item_slot = 0, items_pending = true,
+}).action == "wait", 'scan: waits while Corpse.Items populates')
+check(G.decide("scan", {
+    window_open = true, item_slot = 0, items_pending = true, timed_out = true,
+}).note == "not_found", 'scan: pending populate eventually times out')
 
 -- decide: window phase
 check(G.decide("window", { window_open = true }).action == "found", 'window: open proceeds')

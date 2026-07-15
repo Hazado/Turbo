@@ -232,6 +232,11 @@ function M.decide(phase, ctx)
     elseif phase == "scan" then
         if not ctx.window_open then return { action = "fail", note = "window_closed" } end
         if (tonumber(ctx.item_slot) or 0) > 0 then return { action = "found" } end
+        -- Corpse.Items often lags a few ticks after LootWnd opens (TurboLoot waits).
+        if ctx.items_pending then
+            if ctx.timed_out then return { action = "fail", note = "not_found" } end
+            return { action = "wait" }
+        end
         if ctx.scan_complete then return { action = "not_found", note = "not_found" } end
         if ctx.timed_out then return { action = "fail", note = "not_found" } end
         return { action = "wait" }
@@ -445,19 +450,103 @@ end
 
 function M.busy() return job ~= nil end
 
-local function find_item_slot(j)
-    -- Scan the open corpse for the item by name (case-insensitive exact).
-    local want = tostring(j.item_name or ""):lower()
-    local okN, count = pcall(function() return tonumber(mq.TLO.Corpse.Items() or 0) end)
-    if not okN then return 0, true end
-    count = count or 0
-    for slot = 1, count do
-        local okI, name = pcall(function()
-            return tostring(mq.TLO.Corpse.Item(slot).Name() or "")
-        end)
-        if okI and name ~= "" and name:lower() == want then return slot, true end
+local function loot_window_open()
+    local okW, open = pcall(function() return mq.TLO.Window('LootWnd').Open() == true end)
+    if okW and open then return true end
+    -- Some builds expose the open corpse before LootWnd.Open flips.
+    local okC, corp = pcall(function() return mq.TLO.Corpse.Open() == true end)
+    return okC and corp == true
+end
+
+local function dismiss_loot_dialogs()
+    pcall(function()
+        if mq.TLO.Window('ConfirmationDialogBox').Open() then
+            mq.cmd('/squelch /notify ConfirmationDialogBox Yes_Button leftmouseup')
+            mq.cmd('/squelch /notify ConfirmationDialogBox CD_Yes_Button leftmouseup')
+        end
+        if mq.TLO.Window('QuantityWnd').Open() then
+            mq.cmd('/squelch /notify QuantityWnd AcceptButton leftmouseup')
+        end
+    end)
+end
+
+local function click_loot_slot(slot, use_ctrl)
+    slot = tonumber(slot) or 0
+    if slot <= 0 then return end
+    -- TurboLoot Keep uses /ctrl /itemnotify; classic gallery macros use bare
+    -- /itemnotify. Alternate so one of them works on this client.
+    if use_ctrl then
+        mq.cmd(string.format('/ctrl /itemnotify loot%d rightmouseup', slot))
+    else
+        mq.cmd(string.format('/itemnotify loot%d rightmouseup', slot))
     end
-    return 0, true
+end
+
+-- Returns slot, scan_complete, items_pending.
+-- items_pending: LootWnd is up but Corpse.Items has not populated yet (TurboLoot waits).
+local function find_item_slot(j)
+    local want = tostring(j.item_name or ""):lower()
+    local want_id = tonumber(j.item_id) or 0
+    local okN, count = pcall(function() return tonumber(mq.TLO.Corpse.Items() or 0) end)
+    if not okN then return 0, true, false end
+    count = count or 0
+
+    -- MQ: Corpse.Item[=Name] exact, Corpse.Item[Name] partial — use to find ID then slot.
+    local function slot_for_item_id(id)
+        id = tonumber(id) or 0
+        if id <= 0 then return 0 end
+        local lim = math.max(count, 8)
+        for slot = 1, math.min(lim, 30) do
+            local okI, sid = pcall(function()
+                return tonumber(mq.TLO.Corpse.Item(slot).ID() or 0)
+            end)
+            if okI and (sid or 0) == id then return slot end
+        end
+        return 0
+    end
+
+    if want ~= "" then
+        local okExact, exact_id = pcall(function()
+            return tonumber(mq.TLO.Corpse.Item('=' .. tostring(j.item_name)).ID() or 0)
+        end)
+        if okExact and (exact_id or 0) > 0 then
+            local slot = slot_for_item_id(exact_id)
+            if slot > 0 then return slot, true, false end
+        end
+        local okPart, part_id = pcall(function()
+            return tonumber(mq.TLO.Corpse.Item(tostring(j.item_name)).ID() or 0)
+        end)
+        if okPart and (part_id or 0) > 0 then
+            local slot = slot_for_item_id(part_id)
+            if slot > 0 then return slot, true, false end
+        end
+    end
+
+    if count <= 0 then
+        return 0, false, true
+    end
+
+    -- TurboLoot pads the scan window to at least 8 while the list settles.
+    local lim = math.max(count, 8)
+    for slot = 1, math.min(lim, 30) do
+        local okI, info = pcall(function()
+            local it = mq.TLO.Corpse.Item(slot)
+            return {
+                id = tonumber(it.ID() or 0) or 0,
+                name = tostring(it.Name() or ""),
+            }
+        end)
+        if okI and info then
+            local id, name = info.id or 0, info.name or ""
+            if want_id > 0 and id == want_id then return slot, true, false end
+            local lower = name:lower()
+            if lower ~= "" and lower == want then return slot, true, false end
+            if lower ~= "" and want ~= "" and lower:find(want, 1, true) then
+                return slot, true, false
+            end
+        end
+    end
+    return 0, true, false
 end
 
 local function tick_once()
@@ -465,6 +554,7 @@ local function tick_once()
     if not j then return false end
     local phase_before = j.phase
     local timed_out = now_s() > (tonumber(j.deadline) or 0)
+    dismiss_loot_dialogs()
 
     if j.phase == "reveal" then
         local dist = corpse_distance(j.corpse_id)
@@ -553,33 +643,46 @@ local function tick_once()
             finish(false, d.note)
         end
     elseif j.phase == "window" then
-        local okW, open = pcall(function() return mq.TLO.Window('LootWnd').Open() == true end)
-        local d = M.decide("window", { window_open = okW and open, timed_out = timed_out })
+        local open = loot_window_open()
+        local d = M.decide("window", { window_open = open, timed_out = timed_out })
         if d.action == "found" then
             j.phase = "scan"
-            j.deadline = now_s() + 4
+            j.deadline = now_s() + 8
+            print(string.format("\at[TurboGear]\ax go-loot: loot window open, scanning for %s",
+                j.item_name))
         elseif d.action == "fail" then
             finish(false, d.note)
         elseif d.action == "wait" then
-            -- Keep trying /loot while waiting for the window.
             target_corpse(j.corpse_id)
             mq.cmd('/loot')
         end
     elseif j.phase == "scan" then
-        local okW, open = pcall(function() return mq.TLO.Window('LootWnd').Open() == true end)
-        local slot, complete = find_item_slot(j)
+        local open = loot_window_open()
+        local slot, complete, pending = find_item_slot(j)
         local d = M.decide("scan", {
-            window_open = okW and open,
+            window_open = open,
             item_slot = slot,
             scan_complete = complete,
+            items_pending = pending == true,
             timed_out = timed_out,
         })
         if d.action == "found" then
             j.slot = slot
-            mq.cmd(string.format('/ctrl /itemnotify loot%d rightmouseup', slot))
+            j.click_tries = 0
+            j.last_click_at = 0
+            print(string.format("\at[TurboGear]\ax go-loot: found %s in loot slot %d",
+                j.item_name, slot))
+            click_loot_slot(slot, true)
+            dismiss_loot_dialogs()
             j.phase = "pickup"
-            j.deadline = now_s() + 6
+            j.deadline = now_s() + 12
+            progress(j, "looting")
+        elseif d.action == "wait" then
+            -- still waiting for Corpse.Items to populate
         elseif d.action == "not_found" or d.action == "fail" then
+            local okC, count = pcall(function() return tonumber(mq.TLO.Corpse.Items() or 0) end)
+            print(string.format("\at[TurboGear]\ax go-loot: %s not on corpse (items=%s)",
+                j.item_name, tostring(okC and count or "?")))
             finish(false, d.note)
         end
     elseif j.phase == "pickup" then
@@ -593,8 +696,7 @@ local function tick_once()
         ctx.timed_out = timed_out
         local d = M.decide("pickup", ctx)
         if d.action == "confirm" then
-            mq.cmd('/squelch /notify ConfirmationDialogBox Yes_Button leftmouseup')
-            mq.cmd('/squelch /notify ConfirmationDialogBox CD_Yes_Button leftmouseup')
+            dismiss_loot_dialogs()
         elseif d.action == "accept_quantity" then
             mq.cmd('/squelch /notify QuantityWnd AcceptButton leftmouseup')
         elseif d.action == "stash_cursor" then
@@ -604,6 +706,15 @@ local function tick_once()
             finish(true, d.note)
         elseif d.action == "fail_loot" then
             finish(false, d.note)
+        elseif d.action == "wait" then
+            -- TurboLoot retries the click while waiting for the slot to clear.
+            local now = now_s()
+            if (now - (tonumber(j.last_click_at) or 0)) >= 1.0 then
+                j.last_click_at = now
+                j.click_tries = (tonumber(j.click_tries) or 0) + 1
+                click_loot_slot(j.slot, (j.click_tries % 2) == 1)
+                dismiss_loot_dialogs()
+            end
         end
     else
         finish(false, "bad_phase")
