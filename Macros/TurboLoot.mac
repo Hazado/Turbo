@@ -135,12 +135,24 @@ Sub Main
     | Example: /mac TurboLoot go 141 Wand of Ruptured Reality
     | ---------------------------------------------------------------------
     /if (${mode.Equal[GO]} || ${mode.Equal[GOLOOT]}) {
-        /call InitState
-        /call LoadSettings
+        | Capture Main /mac params HERE — /call Subs replace Param0.. with their
+        | own args (empty → the string NULL), which broke BuildGoItemName.
         /declare goCorpseID int outer ${Int[${Param1}]}
         /declare goItemName string outer
-        /call BuildGoItemName
-        /if (${goCorpseID} <= 0 || !${goItemName.Length}) {
+        /if (${Param2.NotEqual[NULL]}) /varset goItemName ${Param2}
+        /if (${Param3.NotEqual[NULL]}) /varset goItemName ${goItemName} ${Param3}
+        /if (${Param4.NotEqual[NULL]}) /varset goItemName ${goItemName} ${Param4}
+        /if (${Param5.NotEqual[NULL]}) /varset goItemName ${goItemName} ${Param5}
+        /if (${Param6.NotEqual[NULL]}) /varset goItemName ${goItemName} ${Param6}
+        /if (${Param7.NotEqual[NULL]}) /varset goItemName ${goItemName} ${Param7}
+        /if (${Param8.NotEqual[NULL]}) /varset goItemName ${goItemName} ${Param8}
+        /if (${Param9.NotEqual[NULL]}) /varset goItemName ${goItemName} ${Param9}
+        /if (${Param10.NotEqual[NULL]}) /varset goItemName ${goItemName} ${Param10}
+        /if (${Param11.NotEqual[NULL]}) /varset goItemName ${goItemName} ${Param11}
+        /if (${Param12.NotEqual[NULL]}) /varset goItemName ${goItemName} ${Param12}
+        /call InitState
+        /call LoadSettings
+        /if (${goCorpseID} <= 0 || !${goItemName.Length} || ${goItemName.Equal[NULL]}) {
             /echo ${tlTag} [GOLOOT] failed bad_args (ID: ${goCorpseID})
             /echo ${tlTag} Usage: /mac TurboLoot go <corpseId> <Item Name>
             /squelch /tgearbg golootdone failed bad_args ${goCorpseID} ${goItemName}
@@ -149,8 +161,7 @@ Sub Main
         }
         /call PauseE3Logic
         /call StopChaseForUtility
-        | Do not pass goItemName as a Sub string arg — MQ drops/splits multi-word
-        | names. GoLootOneItem reads the outer goItemName directly.
+        | GoLootOneItem reads outer goItemName (do not pass as Sub string arg).
         /call GoLootOneItem ${goCorpseID}
         /call Cleanup
         /return
@@ -5460,28 +5471,11 @@ Sub AutoReclaimDiamondCoinsAfterLoot
 
 
 | ---------------------------------------------------------------------
-| GO LOOT (TurboGear) — join Param2..Param12 into the item name
-| ---------------------------------------------------------------------
-Sub BuildGoItemName
-    /varset goItemName ${Param2}
-    /if (${Param3.Length}) /varset goItemName ${goItemName} ${Param3}
-    /if (${Param4.Length}) /varset goItemName ${goItemName} ${Param4}
-    /if (${Param5.Length}) /varset goItemName ${goItemName} ${Param5}
-    /if (${Param6.Length}) /varset goItemName ${goItemName} ${Param6}
-    /if (${Param7.Length}) /varset goItemName ${goItemName} ${Param7}
-    /if (${Param8.Length}) /varset goItemName ${goItemName} ${Param8}
-    /if (${Param9.Length}) /varset goItemName ${goItemName} ${Param9}
-    /if (${Param10.Length}) /varset goItemName ${goItemName} ${Param10}
-    /if (${Param11.Length}) /varset goItemName ${goItemName} ${Param11}
-    /if (${Param12.Length}) /varset goItemName ${goItemName} ${Param12}
-/return
-
-| ---------------------------------------------------------------------
 | GO LOOT (TurboGear) — navigate to one corpse and loot one item by name.
 | Uses the same pause/nav/loot/confirm primitives as normal TurboLoot so we
 | do not reimplement MQ timing in Lua.
-| Item name lives in outer goItemName (BuildGoItemName); do not pass it as a
-| Sub string parameter — MQ empties/splits multi-word names on /call.
+| Item name lives in outer goItemName (joined from Main /mac Param2.. in Sub
+| Main — never read ParamN here; /call replaces Param0.. with this Sub's args).
 | ---------------------------------------------------------------------
 Sub GoLootOneItem(int corpseId)
     /echo ${tlTag} [GOLOOT] starting ${goItemName} (ID: ${corpseId})

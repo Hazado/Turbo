@@ -1,3 +1,8 @@
+1.2.17
+- Go loot: item name was the literal string NULL — `BuildGoItemName` ran as a
+  Sub so `${Param2}` was that Sub's empty args (MQ NULL), not Main's `/mac`
+  words. Join Param2.. in Sub Main before any `/call`.
+
 1.2.16
 - Go loot: MQ was dropping multi-word item names when passed as a Sub string
   arg (`[GOLOOT] starting (ID: n)` with no name → false not_found / "item gone").
