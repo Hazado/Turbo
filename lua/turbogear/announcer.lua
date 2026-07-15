@@ -1140,6 +1140,12 @@ function M.go_loot_request(id, character)
                     corpse_id = corpse_id,
                     reply_to = "",
                 })
+                if ok then
+                    pcall(function()
+                        local G = require('go_loot')
+                        for _ = 1, 8 do G.tick() end
+                    end)
+                end
                 set_go_status(row.item_name, character, ok and "going" or tostring(err or "busy"))
                 return ok, err
             end
@@ -1198,6 +1204,14 @@ function M.on_go_loot(msg)
         corpse_id = corpse_id,
         reply_to = reply_to,
     })
+    -- Pump a few ticks immediately so reveal/open can advance in the same
+    -- actor callback instead of waiting on the next bg loop delay.
+    if ok then
+        pcall(function()
+            local G = require('go_loot')
+            for _ = 1, 8 do G.tick() end
+        end)
+    end
     pcall(function()
         local Engine = require('engine').Engine
         if not (Engine and Engine.send_go_loot_result) then return end
@@ -2599,6 +2613,9 @@ function M.tick()
 end
 
 function M.loop_delay_ms()
+    -- Go-loot needs a snappy loop on the runner box; bg delay is otherwise 150ms.
+    local okBusy, busy = pcall(function() return require('go_loot').busy() end)
+    if okBusy and busy then return 25 end
     if state.lean and state.lean() then
         if announce_ready and not announce_work_pending() then return 250 end
         return tonumber(CFG.announce_loop_delay_lean_ms) or 50

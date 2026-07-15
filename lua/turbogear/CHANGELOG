@@ -1,3 +1,8 @@
+1.2.12
+- Go loot: trust TurboLoot corpse spawn ids regardless of Type; longer reveal
+  with pulses/target nudges; if Spawn TLO stays empty, blind /nav id then open;
+  faster runner loop + immediate tick pump so reveal does not stall after ack.
+
 1.2.11
 - Go loot: if already in range, skip /nav and open immediately (fixes 8ft "nav
   reached later, never looted"); retarget/face + /loot retries; loot-anyway when

@@ -22,28 +22,33 @@ local M = {}
 local job = nil
 
 local ARRIVE_DIST = 15.0
-local REVEAL_WAIT_S = 1.2
+local REVEAL_WAIT_S = 2.0
 local NAV_REISSUE_S = 4.0
 local JOB_MAX_S = 90.0
 
 local function now_s() return os.clock() end
 
-local function corpse_spawn(corpse_id)
-    local ok, s = pcall(function()
-        local id = tonumber(corpse_id) or 0
-        if id <= 0 then return nil end
-        local sp = mq.TLO.Spawn(id)
+local function spawn_with_id(id)
+    id = tonumber(id) or 0
+    if id <= 0 then return nil end
+    local function accept(sp)
         if not sp or not sp.ID then return nil end
         if (tonumber(sp.ID()) or 0) ~= id then return nil end
-        local typ = tostring(sp.Type() or ""):lower()
-        -- Prefer Corpse; after hidecorpse refresh some builds briefly report oddly.
-        if typ == "corpse" or typ:find("corpse", 1, true) then return sp end
-        local okD, dead = pcall(function() return sp.Dead() == true end)
-        if okD and dead then return sp end
-        -- TurboLoot stamped this spawn id; trust it if the id still resolves.
-        if typ == "" then return sp end
-        return nil
-    end)
+        return sp
+    end
+    -- TurboLoot stamped this spawn id. Trust any resolvable spawn with that id
+    -- (some builds report corpses as NPC/blank Type right after hidecorpse none).
+    local sp = accept(mq.TLO.Spawn(id))
+    if sp then return sp end
+    sp = accept(mq.TLO.Spawn(string.format('id %d', id)))
+    if sp then return sp end
+    sp = accept(mq.TLO.Spawn(string.format('corpse id %d', id)))
+    if sp then return sp end
+    return nil
+end
+
+local function corpse_spawn(corpse_id)
+    local ok, s = pcall(function() return spawn_with_id(corpse_id) end)
     if ok then return s end
     return nil
 end
@@ -52,12 +57,20 @@ local function corpse_distance(corpse_id)
     local s = corpse_spawn(corpse_id)
     if not s then return nil end
     local ok, d = pcall(function()
-        local d3 = tonumber(s.Distance3D() or 0)
-        if d3 and d3 > 0 then return d3 end
+        local d3 = tonumber(s.Distance3D())
+        if d3 ~= nil then return d3 end
         return tonumber(s.Distance() or 0)
     end)
     if ok then return d end
     return nil
+end
+
+local function nav_active()
+    local ok, active = pcall(function()
+        local nav = mq.TLO.Navigation
+        return nav ~= nil and nav.Active ~= nil and nav.Active() == true
+    end)
+    return ok and active == true
 end
 
 local function reveal_hidden_corpses()
@@ -184,12 +197,20 @@ function M.decide(phase, ctx)
         end
         return { action = "wait" }
     elseif phase == "move" then
-        if not ctx.corpse_exists then return { action = "fail", note = "corpse_gone" } end
-        if (tonumber(ctx.distance) or math.huge) <= (tonumber(ctx.arrive_dist) or ARRIVE_DIST) then
-            return { action = "arrived" }
+        if ctx.corpse_exists then
+            if (tonumber(ctx.distance) or math.huge) <= (tonumber(ctx.arrive_dist) or ARRIVE_DIST) then
+                return { action = "arrived" }
+            end
+            if ctx.timed_out then return { action = "fail", note = "timeout_move" } end
+            return { action = "wait" }
         end
-        if ctx.timed_out then return { action = "fail", note = "timeout_move" } end
-        return { action = "wait" }
+        -- Spawn TLO still empty after reveal: keep blind /nav id alive, or give up.
+        if ctx.allow_blind then
+            if ctx.nav_active then return { action = "wait" } end
+            if ctx.timed_out then return { action = "fail", note = "timeout_move" } end
+            return { action = "blind_retry" }
+        end
+        return { action = "fail", note = "corpse_gone" }
     elseif phase == "open" then
         if not ctx.corpse_exists then return { action = "fail", note = "corpse_gone" } end
         if ctx.target_is_corpse then return { action = "open_window" } end
@@ -275,7 +296,8 @@ local function begin_open(j)
         j.corpse_id, j.item_name))
 end
 
-local function begin_move(j)
+local function begin_move(j, opts)
+    opts = opts or {}
     local dist = corpse_distance(j.corpse_id)
     -- Already in loot range: do not fire /nav (Nav "Reached destination" can
     -- arrive long after we should have /loot'd, and left us stuck in move).
@@ -289,6 +311,7 @@ local function begin_move(j)
     j.used_nav = used_nav
     j.moving = true
     j.phase = "move"
+    j.allow_blind = opts.blind == true or dist == nil
     j.deadline = now_s() + (tonumber(CFG.go_loot_arrive_timeout_s) or 45)
     j.last_nav_at = now_s()
     if used_nav then
@@ -297,8 +320,10 @@ local function begin_move(j)
         mq.cmd(string.format('/squelch /moveto id %d', j.corpse_id))
     end
     progress(j, "heading")
+    local how = used_nav and "nav" or "moveto"
+    if j.allow_blind and dist == nil then how = how .. "+blind" end
     print(string.format("\at[TurboGear]\ax go-loot: heading to corpse %d for %s (%s, %.0fft)",
-        j.corpse_id, j.item_name, used_nav and "nav" or "moveto", tonumber(dist) or -1))
+        j.corpse_id, j.item_name, how, tonumber(dist) or -1))
 end
 
 local function finish(ok, note)
@@ -379,8 +404,9 @@ function M.request(payload)
         e3_paused = e3_paused,
         max_distance = max_dist,
         revealed_corpses = false,
-        reveal_retries_left = 2,
+        reveal_retries_left = 4,
         started_at = now_s(),
+        last_reveal_pulse = 0,
     }
 
     if dist ~= nil then
@@ -443,9 +469,23 @@ local function tick_once()
         elseif d.action == "retry_reveal" then
             j.reveal_retries_left = math.max(0, (tonumber(j.reveal_retries_left) or 0) - 1)
             reveal_hidden_corpses()
+            target_corpse(j.corpse_id)
             j.deadline = now_s() + REVEAL_WAIT_S
+            print(string.format("\at[TurboGear]\ax go-loot: reveal retry (%d left) for id %d",
+                j.reveal_retries_left, j.corpse_id))
+        elseif d.action == "wait" then
+            -- Keep pulsing unhide + target while the client refreshes spawns.
+            local now = now_s()
+            if (now - (tonumber(j.last_reveal_pulse) or 0)) >= 1.0 then
+                j.last_reveal_pulse = now
+                reveal_hidden_corpses()
+                target_corpse(j.corpse_id)
+            end
         elseif d.action == "fail" then
-            finish(false, d.note)
+            -- Last chance: /nav by id even when Spawn TLO is still empty.
+            print(string.format("\at[TurboGear]\ax go-loot: spawn TLO empty for id %d - trying blind nav",
+                j.corpse_id))
+            begin_move(j, { blind = true })
         end
     elseif j.phase == "move" then
         local dist = corpse_distance(j.corpse_id)
@@ -454,20 +494,31 @@ local function tick_once()
             distance = dist,
             arrive_dist = ARRIVE_DIST,
             timed_out = timed_out,
+            allow_blind = j.allow_blind == true,
+            nav_active = nav_active(),
         })
         if d.action == "arrived" then
             begin_open(j)
-        elseif d.action == "wait" then
-            -- E3 / follow can cancel nav; re-issue periodically while walking.
+        elseif d.action == "wait" or d.action == "blind_retry" then
             local now = now_s()
             if (now - (tonumber(j.last_nav_at) or 0)) >= NAV_REISSUE_S then
                 j.last_nav_at = now
                 stop_chase_and_stick()
                 pause_follow_for_job()
+                reveal_hidden_corpses()
                 if j.used_nav then
                     mq.cmd(string.format('/squelch /nav id %d distance=%d', j.corpse_id, math.floor(ARRIVE_DIST) - 5))
                 else
                     mq.cmd(string.format('/squelch /moveto id %d', j.corpse_id))
+                end
+            end
+            -- If we somehow got close enough for /loot without a clean TLO read,
+            -- keep trying to target/open while nav settles.
+            if j.allow_blind and not nav_active() then
+                target_corpse(j.corpse_id)
+                local okT, tid = pcall(function() return tonumber(mq.TLO.Target.ID() or 0) end)
+                if okT and (tid or 0) == j.corpse_id then
+                    begin_open(j)
                 end
             end
         elseif d.action == "fail" then

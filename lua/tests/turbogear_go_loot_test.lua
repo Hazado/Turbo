@@ -69,6 +69,15 @@ check(G.decide("move", { corpse_exists = true, distance = 100, arrive_dist = 15,
     'move: timeout fails')
 check(G.decide("move", { corpse_exists = true, distance = 100, arrive_dist = 15 }).action == "wait",
     'move: still walking waits')
+check(G.decide("move", {
+    corpse_exists = false, allow_blind = true, nav_active = true,
+}).action == "wait", 'move: blind nav active waits')
+check(G.decide("move", {
+    corpse_exists = false, allow_blind = true, nav_active = false,
+}).action == "blind_retry", 'move: blind nav idle reissues')
+check(G.decide("move", {
+    corpse_exists = false, allow_blind = true, timed_out = true,
+}).note == "timeout_move", 'move: blind nav timeout')
 
 -- decide: open phase
 check(G.decide("open", { corpse_exists = true, target_is_corpse = true }).action == "open_window",
