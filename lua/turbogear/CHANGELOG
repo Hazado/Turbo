@@ -1,3 +1,8 @@
+1.2.7
+- Hotfix: Clear-all helper is stored on TG instead of a chunk local so Turbo
+  init.lua stays under LuaJIT's 200-local main-function limit (load failure on
+  /lua run turbo after 1.2.6).
+
 1.2.6
 - Linked items: show corpse spawn ID in its own column next to Age so you can
   call out which NPC corpse still has the item (same id TurboLoot prints on

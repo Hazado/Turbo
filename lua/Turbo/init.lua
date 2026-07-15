@@ -6945,7 +6945,8 @@ end
 -- Dismiss every actionable pending skip in one pass. Same filter as the Review
 -- list (leave "expected" skips alone) and same mark_ts revive semantics as a
 -- per-row dismiss — but load each INI's [ItemLimits] once instead of N key reads.
-local function clearActionablePendingSkips()
+-- Stored on TG (not a chunk local) to stay under LuaJIT's 200-local main limit.
+TG.clearActionablePendingSkips = function()
     local cleared = 0
     if not skipTracker or not skipTracker.get_pending then return 0 end
     local pendingItems = skipTracker.get_pending() or {}
@@ -8571,7 +8572,7 @@ local function renderSkipReview(g, skipTracker, tip, thinSep, undoSkipRule, Turb
     local hasTarget = (targetMode ~= 'none')
 
     local function clearActionableSkips()
-        local cleared = clearActionablePendingSkips()
+        local cleared = TG.clearActionablePendingSkips()
         g.skipSelectedKey = nil
         g.skipSelectionSet = nil
         g.skipIniTargetOverride = nil
@@ -9527,7 +9528,7 @@ local function renderSkipReview(g, skipTracker, tip, thinSep, undoSkipRule, Turb
 
     if (not pageMode) and pendingN >= (Theme.layout.skipClearMinCount or 2) then
         local function clearActionableSkips()
-            local cleared = clearActionablePendingSkips()
+            local cleared = TG.clearActionablePendingSkips()
             g.skipSelectedKey = nil
             g.skipSelectionSet = nil
             g.skipIniTargetOverride = nil
@@ -11477,7 +11478,7 @@ function TG.renderWindow()
                 end
 
                 local function quickClearActionableSkips()
-                    local cleared = clearActionablePendingSkips()
+                    local cleared = TG.clearActionablePendingSkips()
                     g.quickReviewSelectedKey = nil
                     g.skipSelectedKey = nil
                     g.skipSelectionSet = nil
