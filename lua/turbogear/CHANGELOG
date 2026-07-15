@@ -1,3 +1,12 @@
+1.2.2
+- Go loot: the BiS tab's linked-items panel now shows a Go button per needer
+  when TurboLoot left the item on a corpse (ANNOUNCE/SKIP rules). Clicking it
+  sends that character to the corpse over the actor bus: they nav (or moveto)
+  there, open the corpse, pick up exactly that item, and report the outcome
+  back into the panel (looted / corpse gone / item gone / couldn't reach).
+  Guards: same-zone only, distance cap, combat check, corpse-age timeout, and
+  one run at a time per character. Buttons hide once the corpse hint is stale.
+
 1.2.1
 - Updates: the patch-lock stop now covers the whole suite. The Turbo hub watches
   for the patcher's lock file itself (and ends any running macro), and TurboGear

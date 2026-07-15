@@ -45,6 +45,8 @@ local MSG = {
     LOOT_REPLAY = 'loot_replay',
     NEED_CONFIRM = 'need_confirm',
     NEED_CONFIRM_REPLY = 'need_confirm_reply',
+    GO_LOOT = 'go_loot',
+    GO_LOOT_RESULT = 'go_loot_result',
 }
 
 local loot_link_dedupe = {}
@@ -289,6 +291,14 @@ local function on_message(message)
         local target = tostring(c.target or "")
         if target ~= "" and clean_text(target) ~= clean_text(this_name()) then return end
         pcall(function() require('announcer').on_need_confirm_reply(c) end)
+    elseif c.type == MSG.GO_LOOT then
+        local target = tostring(c.target or "")
+        if target == "" or clean_text(target) ~= clean_text(this_name()) then return end
+        pcall(function() require('announcer').on_go_loot(c) end)
+    elseif c.type == MSG.GO_LOOT_RESULT then
+        local target = tostring(c.target or "")
+        if target ~= "" and clean_text(target) ~= clean_text(this_name()) then return end
+        pcall(function() require('announcer').on_go_loot_result(c) end)
     elseif c.type == MSG.LOOT_REPLAY_REQUEST then
         pcall(function() require('announcer').on_replay_request(c) end)
     elseif c.type == MSG.LOOT_REPLAY then
@@ -392,6 +402,42 @@ function Engine.send_need_confirm_reply(target_name, payload)
         item_id = tonumber(payload.item_id) or 0,
         bucket_key = tostring(payload.bucket_key or ""),
         owned = payload.owned == true,
+    })
+    return true
+end
+
+-- Ask one character (over the bus) to walk to a corpse and loot an item the
+-- linked-items panel says it needs. Executed by the go_loot runner on the
+-- target's box; the target answers with GO_LOOT_RESULT.
+function Engine.send_go_loot(target_name, payload)
+    if not Engine.ok or type(payload) ~= "table" then return false end
+    target_name = tostring(target_name or "")
+    if target_name == "" then return false end
+    send_mail("go_loot", {
+        type = MSG.GO_LOOT,
+        proto = CFG.proto,
+        from = tostring(mq.TLO.Me.CleanName() or "?"),
+        target = target_name,
+        item_name = tostring(payload.item_name or ""),
+        item_id = tonumber(payload.item_id) or 0,
+        corpse_id = tonumber(payload.corpse_id) or 0,
+    })
+    return true
+end
+
+function Engine.send_go_loot_result(target_name, payload)
+    if not Engine.ok or type(payload) ~= "table" then return false end
+    target_name = tostring(target_name or "")
+    if target_name == "" then return false end
+    send_mail("go_loot_result", {
+        type = MSG.GO_LOOT_RESULT,
+        proto = CFG.proto,
+        from = tostring(mq.TLO.Me.CleanName() or "?"),
+        target = target_name,
+        item_name = tostring(payload.item_name or ""),
+        corpse_id = tonumber(payload.corpse_id) or 0,
+        ok = payload.ok == true,
+        note = tostring(payload.note or ""),
     })
     return true
 end

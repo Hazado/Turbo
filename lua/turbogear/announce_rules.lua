@@ -148,6 +148,22 @@ function M.remove_needer(names, order, character)
     return true
 end
 
+-- Corpse spawn id from a TurboLoot control line, when the item is still ON the
+-- corpse. [ANNOUNCE]/[SKIP]/[IGNORE] lines carry "(ID: <corpse spawn id>)" and
+-- the item was deliberately left behind, so the id is actionable (go loot it).
+-- Looted-class tags (KEEP/SELL/BANK/...) are ignored: the item is gone.
+function M.corpse_id_from_line(line)
+    line = tostring(line or "")
+    for tag, payload_start in line:gmatch("%[([^%]]+)%]()") do
+        local t = tostring(tag or ""):lower()
+        if t:find("announce", 1, true) or t:find("skip", 1, true) or t:find("ignore", 1, true) then
+            local id = line:sub(payload_start):match("%(%s*ID%s*:%s*(%d+)%s*%)")
+            if id then return tonumber(id) end
+        end
+    end
+    return nil
+end
+
 -- Coordinator beacon freshness: the driver UI stamps shared settings while it
 -- is announce-active; bg responders defer to it while the stamp is fresh.
 function M.beacon_fresh(seen_at, now, ttl_s)

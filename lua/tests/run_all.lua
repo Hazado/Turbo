@@ -20,6 +20,7 @@ local interp = (arg and arg[1]) or (arg and arg[-1]) or "luajit"
 local tests = {
     "turbogear_announce_rules_test.lua",
     "turbogear_announcer_parser_test.lua",
+    "turbogear_go_loot_test.lua",
     "turbogear_needs_index_test.lua",
     "turbogear_runtime_guard_test.lua",
     "turbogear_config_bgready_test.lua",

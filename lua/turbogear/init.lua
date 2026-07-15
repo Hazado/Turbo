@@ -599,6 +599,21 @@ local function tgear_command(...)
                     item_id > 0 and (" (" .. tostring(item_id) .. ")") or ""))
             end
         end
+    elseif arg == "goloot" then
+        -- goloot <character> <corpse_id> <item_id> <item name...>
+        -- Viewer UIs delegate here (/tgearbg goloot) because only the bg
+        -- responder owns the actor mailbox; announcer routes appropriately.
+        local character = args[2] or ""
+        local corpse_id = tonumber(args[3]) or 0
+        local item_id = tonumber(args[4]) or 0
+        local item_name = table.concat(args, " ", 5)
+        local ok, err = announcer.dispatch_go_loot(character, corpse_id, item_id, item_name)
+        if not ok then
+            print("[TurboGear] go-loot failed: " .. tostring(err or "?"))
+        end
+    elseif arg == "golootnote" then
+        -- golootnote <character> <note_token> <item name...>  (bg -> UI relay)
+        announcer.note_go_status(table.concat(args, " ", 4), args[2] or "?", args[3] or "?")
     elseif arg == "announcetest" or arg == "atest" then
         if (args[2] or ""):lower() == "burst" then
             local names = {}
@@ -856,6 +871,7 @@ local function run_loop(inspect_tick, peer_refresh)
         Store.tick()
         inventory_watch.tick()
         if not announcer.is_passive() then announcer.tick() end
+        require('go_loot').tick()
         if inspect_tick then inspect_tick() end
         tick_perfdiag_capture()
         -- Per-frame non-render work gauge (P5): total time this loop pass spent

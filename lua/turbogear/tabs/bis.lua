@@ -788,6 +788,7 @@ local function linked_item_age_text(age_s)
 end
 
 local draw_linked_send_buttons
+local draw_linked_needers
 
 local function draw_linked_items_panel()
     local ok, rows = pcall(function() return announcer.linked_items() end)
@@ -837,7 +838,7 @@ local function draw_linked_items_panel()
                 "linked_panel_" .. tostring(id),
                 tonumber(row.item_id) or nil)
             ImGui.TableSetColumnIndex(3)
-            col_text(Theme.missing, table.concat(row.needers or {}, " | "))
+            draw_linked_needers(row, id)
             ImGui.TableSetColumnIndex(4)
             ImGui.TextDisabled(linked_item_age_text(row.age_s))
         end
@@ -854,6 +855,61 @@ local LINKED_SEND_BUTTONS = {
     { label = "GU", channel = "guild", text = "guild", width = 38 },
     { label = "S",  channel = "say",   text = "say",   width = 28 },
 }
+
+-- Friendly text for go-loot outcome tokens (tokens stay space-free because
+-- they travel through /tgear golootnote argument parsing).
+local GO_LOOT_NOTES = {
+    sent = "sent", going = "going", looted = "looted",
+    busy = "runner busy", in_combat = "in combat",
+    corpse_gone = "corpse gone", too_far = "too far", not_found = "item gone",
+    timeout_move = "couldn't reach", no_target = "no target",
+    no_window = "window didn't open", window_closed = "window closed",
+    loot_failed = "loot failed", no_corpse_id = "no corpse id",
+}
+
+-- Needers cell: when the row carries a fresh corpse id (TurboLoot left the
+-- item on the corpse), each needer becomes a click-to-go button that sends
+-- that character to loot it. Otherwise plain text, as before.
+draw_linked_needers = function(row, id)
+    local needers = row.needers or {}
+    if #needers == 0 then
+        col_text(Theme.dim, "-")
+        return
+    end
+    local ttl = tonumber(cfg.CFG.go_loot_corpse_ttl_s) or 420
+    local can_go = tonumber(row.corpse_id) ~= nil
+        and (tonumber(row.corpse_age_s) or math.huge) <= ttl
+    local go_status = row.go_status or {}
+    for i, name in ipairs(needers) do
+        if i > 1 then ImGui.SameLine() end
+        if can_go then
+            local clicked = themed_button(
+                tostring(name) .. "##bis_linked_go_" .. tostring(i) .. "_" .. tostring(id),
+                Theme.steel,
+                button_text_width(tostring(name)),
+                NAV_BTN_H)
+            if ImGui.IsItemHovered and ImGui.IsItemHovered() and ImGui.SetTooltip then
+                ImGui.SetTooltip(string.format(
+                    "Send %s to loot this item from corpse %d.\nWorks when they are in that zone with loot rights; result reports back here.",
+                    tostring(name), tonumber(row.corpse_id) or 0))
+            end
+            if clicked then
+                local ok, err = announcer.go_loot_request(row.id, name)
+                status_msg = ok
+                    and string.format("Go-loot sent: %s -> corpse %d.", tostring(name), tonumber(row.corpse_id) or 0)
+                    or ("Go-loot failed: " .. tostring(GO_LOOT_NOTES[tostring(err)] or err or "?"))
+            end
+        else
+            col_text(Theme.missing, tostring(name))
+        end
+        local note = go_status[tostring(name)]
+        if note and note ~= "" then
+            ImGui.SameLine()
+            col_text(note == "looted" and Theme.green or Theme.dim,
+                "(" .. tostring(GO_LOOT_NOTES[tostring(note)] or note) .. ")")
+        end
+    end
+end
 
 draw_linked_send_buttons = function(row, id)
     for i, btn in ipairs(LINKED_SEND_BUTTONS) do

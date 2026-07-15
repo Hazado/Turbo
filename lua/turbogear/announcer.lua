@@ -374,6 +374,13 @@ local function parse_item_links(line)
         end
     end
 
+    -- ANNOUNCE/SKIP-class lines mean the item was left ON that corpse; carry
+    -- the corpse spawn id so the linked-items panel can offer "go loot it".
+    local corpse_id = rules.corpse_id_from_line(line)
+    if corpse_id then
+        for _, item in ipairs(out) do item.corpse_id = corpse_id end
+    end
+
     return out
 end
 
@@ -519,6 +526,12 @@ local function prune_linked_items(now)
     linked_items = kept
 end
 
+local function row_corpse_id(bucket)
+    local cid = tonumber(bucket and bucket.corpse_id)
+    if cid and cid > 0 then return math.floor(cid) end
+    return nil
+end
+
 local function record_linked_item(bucket, status)
     if type(bucket) ~= "table" or type(bucket.order) ~= "table" or #bucket.order == 0 then return end
     local key = tostring(bucket.key or grouped_item_key(bucket.item_name, bucket.item_id, bucket.item_link))
@@ -537,6 +550,11 @@ local function record_linked_item(bucket, status)
             row.source = tostring(bucket.source or row.source or "")
             row.status = tostring(status or row.status or "")
             row.at = now
+            local cid = tonumber(bucket.corpse_id)
+            if cid and cid > 0 then
+                row.corpse_id = math.floor(cid)
+                row.corpse_at = tonumber(bucket.corpse_at) or now
+            end
             table.remove(linked_items, i)
             table.insert(linked_items, 1, row)
             return
@@ -554,6 +572,8 @@ local function record_linked_item(bucket, status)
         source = tostring(bucket.source or ""),
         status = tostring(status or ""),
         at = now,
+        corpse_id = row_corpse_id(bucket),
+        corpse_at = tonumber(bucket.corpse_at),
     })
     prune_linked_items(now)
 end
@@ -589,7 +609,7 @@ local function note_group_scan(mode, source, items, snaps, added)
     runtime.last_group_scan_pending = #targeted_checks
 end
 
-local function ensure_group_announce(item_name, item_link, item_id, source)
+local function ensure_group_announce(item_name, item_link, item_id, source, corpse_id)
     local key = grouped_item_key(item_name, item_id, item_link)
     if key == "name:" then return nil end
     local now = os.clock()
@@ -620,6 +640,13 @@ local function ensure_group_announce(item_name, item_link, item_id, source)
         end
         if (tonumber(item_id) or 0) > 0 then bucket.item_id = tonumber(item_id) or 0 end
         bucket.due = math.max(tonumber(bucket.due) or now, now + group_window_s())
+    end
+    -- Corpse hint (from TurboLoot ANNOUNCE/SKIP lines): newest wins so a fresh
+    -- drop of the same item replaces a stale corpse id.
+    local cid = tonumber(corpse_id)
+    if cid and cid > 0 then
+        bucket.corpse_id = math.floor(cid)
+        bucket.corpse_at = now
     end
     return bucket
 end
@@ -893,7 +920,7 @@ local function scan_group_needs_from_cache(links, source)
         if item_name ~= "" then
             note_loot_seen(item_name, source)
             local item_link = resolve_group_item_link(item_name, item.link, item.id)
-            local bucket = ensure_group_announce(item_name, item_link, item.id, source)
+            local bucket = ensure_group_announce(item_name, item_link, item.id, source, item.corpse_id)
             -- Announce under the LINKED item's own name (a real item), never
             -- an index alias like "... - Tier II" (see needs_index display rules).
             if index_enabled then
@@ -1010,6 +1037,8 @@ function M.linked_items()
     local now = os.clock()
     local out = {}
     for _, row in ipairs(linked_items or {}) do
+        local go = {}
+        for name, s in pairs(row.go_status or {}) do go[name] = s end
         out[#out + 1] = {
             id = row.id,
             key = row.key,
@@ -1020,9 +1049,150 @@ function M.linked_items()
             source = row.source,
             status = row.status,
             age_s = math.max(0, now - (tonumber(row.at) or now)),
+            corpse_id = row.corpse_id,
+            corpse_age_s = row.corpse_at and math.max(0, now - row.corpse_at) or nil,
+            go_status = go,
         }
     end
     return out
+end
+
+-- "Go loot" round-trip for the linked-items panel. The viewer UI never owns
+-- the actor mailbox (static roles), so remote requests are delegated to the
+-- local bg responder over the /tgearbg bind; the responder does the actor
+-- send. Results come back the same way (/tgear golootnote) so the panel can
+-- show what happened.
+local function set_go_status(item_name, character, text)
+    local dk = linked_item_display_key(item_name)
+    for _, row in ipairs(linked_items or {}) do
+        if (dk ~= "" and row.display_key == dk) then
+            row.go_status = row.go_status or {}
+            row.go_status[tostring(character or "?")] = tostring(text or "")
+            return true
+        end
+    end
+    return false
+end
+
+function M.note_go_status(item_name, character, note)
+    return set_go_status(item_name, trim(character), note)
+end
+
+local function local_bg_running()
+    local ok, running = pcall(function()
+        local script = mq.TLO.Lua and mq.TLO.Lua.Script and mq.TLO.Lua.Script(CFG.bg_lua_name)
+        return script and script.Status and tostring(script.Status() or ""):upper() == "RUNNING"
+    end)
+    return ok and running == true
+end
+
+-- Panel entry point (any instance). Runs locally for our own character;
+-- otherwise hands off to whoever owns the actor mailbox.
+function M.go_loot_request(id, character)
+    id = tonumber(id) or 0
+    character = trim(character)
+    if character == "" then return false, "no character" end
+    for _, row in ipairs(linked_items or {}) do
+        if tonumber(row.id) == id then
+            local corpse_id = tonumber(row.corpse_id) or 0
+            if corpse_id <= 0 then return false, "no corpse id for this item" end
+            if character:lower() == me_name():lower() then
+                local ok, err = require('go_loot').request({
+                    item_name = row.item_name,
+                    item_id = row.item_id,
+                    corpse_id = corpse_id,
+                    reply_to = "",
+                })
+                set_go_status(row.item_name, character, ok and "going" or tostring(err or "busy"))
+                return ok, err
+            end
+            return M.dispatch_go_loot(character, corpse_id, row.item_id, row.item_name)
+        end
+    end
+    return false, "item no longer listed"
+end
+
+-- Actor send when we own the mailbox; /tgearbg delegation when we are the
+-- viewer UI. Also the /tgear[bg] goloot command body.
+function M.dispatch_go_loot(character, corpse_id, item_id, item_name)
+    character = trim(character)
+    item_name = tostring(item_name or "")
+    corpse_id = tonumber(corpse_id) or 0
+    if character == "" or corpse_id <= 0 then return false, "bad go-loot request" end
+    if character:lower() == me_name():lower() then
+        local ok, err = require('go_loot').request({
+            item_name = item_name,
+            item_id = tonumber(item_id) or 0,
+            corpse_id = corpse_id,
+            reply_to = "",
+        })
+        set_go_status(item_name, character, ok and "going" or tostring(err or "busy"))
+        return ok, err
+    end
+    local okE, Engine = pcall(function() return require('engine').Engine end)
+    if okE and Engine and Engine.ok and type(Engine.send_go_loot) == "function" then
+        local sent = Engine.send_go_loot(character, {
+            item_name = item_name,
+            item_id = tonumber(item_id) or 0,
+            corpse_id = corpse_id,
+        })
+        set_go_status(item_name, character, sent and "sent" or "send failed")
+        return sent, sent and nil or "send failed"
+    end
+    if local_bg_running() then
+        mq.cmd(string.format('/squelch /tgearbg goloot %s %d %d %s',
+            character, corpse_id, tonumber(item_id) or 0, item_name))
+        set_go_status(item_name, character, "sent")
+        return true
+    end
+    return false, "bg responder not running (actor sends live there)"
+end
+
+-- Target side: another box asked THIS character to go loot (actor dispatch,
+-- runs in the mailbox owner = bg responder).
+function M.on_go_loot(msg)
+    if type(msg) ~= "table" then return end
+    local ok, err = require('go_loot').request({
+        item_name = tostring(msg.item_name or ""),
+        item_id = tonumber(msg.item_id) or 0,
+        corpse_id = tonumber(msg.corpse_id) or 0,
+        reply_to = trim(msg.from or ""),
+    })
+    if not ok then
+        pcall(function()
+            local Engine = require('engine').Engine
+            if Engine and Engine.send_go_loot_result then
+                Engine.send_go_loot_result(trim(msg.from or ""), {
+                    item_name = tostring(msg.item_name or ""),
+                    corpse_id = tonumber(msg.corpse_id) or 0,
+                    ok = false,
+                    note = tostring(err or "busy"),
+                })
+            end
+        end)
+    end
+end
+
+-- Origin side: the runner's outcome arrived. Print it, record it, and forward
+-- to the viewer UI (separate script, separate Lua state) if one is open.
+function M.on_go_loot_result(msg)
+    if type(msg) ~= "table" then return end
+    local who = trim(msg.from or "?")
+    local note = tostring(msg.note or (msg.ok == true and "looted" or "failed"))
+    local item_name = tostring(msg.item_name or "?")
+    set_go_status(item_name, who, note)
+    print(string.format("\at[TurboGear]\ax go-loot %s: %s - %s", item_name, who, note))
+    if state.bg == true then
+        local okUi, ui_running = pcall(function()
+            local script = mq.TLO.Lua.Script(CFG.lua_name)
+            return tostring(script.Status() or ""):upper() == "RUNNING"
+        end)
+        if okUi and ui_running == true then
+            pcall(function()
+                mq.cmd(string.format('/squelch /tgear golootnote %s %s %s', who, note, item_name))
+            end)
+        end
+    end
 end
 
 function M.dismiss_linked_item(id)
@@ -1553,7 +1723,7 @@ local function try_process_direct_chat_links_while_warming(links, snap, allow_qu
     for _, item in ipairs(links) do
         note_loot_seen(item.name, source)
         if opts.group_local then
-            ensure_group_announce(item.name, item.link, item.id, source)
+            ensure_group_announce(item.name, item.link, item.id, source, item.corpse_id)
         end
     end
     if allow_queue then
@@ -1599,7 +1769,7 @@ local function try_process_item_links(links, source, allow_queue, line, opts)
     for _, item in ipairs(links) do
         note_loot_seen(item.name, source)
         if opts.group_local then
-            ensure_group_announce(item.name, item.link, item.id, source)
+            ensure_group_announce(item.name, item.link, item.id, source, item.corpse_id)
         end
         local need = catalog.check_announce_need(snap, item.name, item.id)
         if announce_from_need(need, source, item.link, item.id, snap, ready, item.name, opts) then
