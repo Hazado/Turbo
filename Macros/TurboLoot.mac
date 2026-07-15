@@ -6101,8 +6101,11 @@ Sub AnnounceSkipped(string key, string msg)
     }
     | Structured TurboGear handoff for corpse-left loot messages. Chat still
     | prints below, but linked-needs reliability should not depend on parsing it.
+    | Call /tgearbg (looters typically run bg only) and /tgear (UI boxes). Pass
+    | corpse id so Go-loot buttons work on the driver panel.
     /if (${itemNameFromKey.Length} && (${msg.Find[SKIP]} || ${msg.Find[ANNOUNCE]})) {
-        /squelch /tgear lootseenquiet "${itemNameFromKey}"
+        /squelch /tgearbg lootseenquiet "${itemNameFromKey}" 0 ${_skipCorpseID}
+        /squelch /tgear lootseenquiet "${itemNameFromKey}" 0 ${_skipCorpseID}
     }
     /declare skipMethodUpper string local ${announceSkippedMethod.Upper}
     /declare effectiveMethod string local ${announceSkippedMethod}

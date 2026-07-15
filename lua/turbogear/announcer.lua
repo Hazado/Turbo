@@ -218,10 +218,12 @@ local function copy_items(items)
     for _, item in ipairs(items or {}) do
         local name = tostring(item and item.name or "")
         if name ~= "" then
+            local cid = tonumber(item.corpse_id)
             out[#out + 1] = {
                 name = name,
                 id = tonumber(item.id) or 0,
                 link = tostring(item.link or ""),
+                corpse_id = (cid and cid > 0) and math.floor(cid) or nil,
             }
         end
     end
@@ -295,6 +297,30 @@ local function clean_text_candidate(s)
     return s
 end
 
+-- Visible item name from a TurboLoot control payload that may wrap a clickable
+-- link. Other-player mq.event lines often keep \x12 frames but drop a clean
+-- ExtractLinks hit; strip frames and read the name before "(ID: n)".
+local function control_line_item_name(payload)
+    payload = tostring(payload or "")
+    if payload == "" then return nil end
+    -- Try ParseItemLink on any raw frames first (best when the frame is intact).
+    if mq.ParseItemLink then
+        for frame in payload:gmatch("\x12([^\x12]+)\x12") do
+            local raw = "\x12" .. frame .. "\x12"
+            local pok, item = pcall(function() return mq.ParseItemLink(raw) end)
+            if pok and type(item) == "table" then
+                local name = link_name(item)
+                if name and name ~= "" then return name end
+            end
+        end
+    end
+    local plain = payload:gsub("\x12[^\x12]*\x12", " "):gsub("\x12", " ")
+    local name = plain:match("^%s*(.-)%s*%(%s*ID%s*:%s*%d+%s*%)")
+    name = clean_text_candidate(name)
+    if name == "" then return nil end
+    return name
+end
+
 local function parse_item_links(line)
     local out = {}
     local seen = {}
@@ -366,11 +392,13 @@ local function parse_item_links(line)
     -- [SKIP] Essence of Earth (ID: 148) - Already have
     -- TurboLoot's displayed ID is the corpse/target ID, not the item ID. Keep
     -- this fallback name-only; real item IDs come from parsed clickable links.
+    -- Always run this even when ExtractLinks already hit: other-player events
+    -- sometimes yield a useless/empty parse while the control text is intact.
     for tag, payload_start in tostring(line or ""):gmatch("%[([^%]]+)%]()") do
         if is_control_tag(tag) then
             local payload = tostring(line or ""):sub(payload_start)
-            local name, id = payload:match("^%s*(.-)%s*%(%s*ID%s*:%s*(%d+)%s*%)")
-            if name and id then add_item(name, 0, nil) end
+            local name = control_line_item_name(payload)
+            if name then add_item(name, 0, nil) end
         end
     end
 
@@ -936,6 +964,11 @@ local function scan_group_needs_from_cache(links, source)
                 queued = queued + (tonumber(d_queued) or 0)
                 snaps_seen = math.max(snaps_seen, tonumber(d_snaps) or 0)
             end
+            -- Surface Go-loot buttons as soon as we know a corpse id and at
+            -- least one needer - don't wait for the [TG] collapse flush.
+            if bucket and row_corpse_id(bucket) and type(bucket.order) == "table" and #bucket.order > 0 then
+                record_linked_item(bucket, "pending")
+            end
         end
     end
     if queued > 0 then
@@ -961,16 +994,20 @@ local function scan_group_text_needs_from_cache(line, source)
         and (needs_index.group_ready and needs_index.group_ready() or needs_index.ready())
     if group_index_ready then
         local added = 0
+        local corpse_id = rules.corpse_id_from_line(line)
         local hits = needs_index.text_needs(line, 24)
         for _, hit in ipairs(hits) do
             local item_link = resolve_group_item_link(hit.name, nil, hit.id)
-            ensure_group_announce(hit.name, item_link, hit.id, source or "line")
+            local bucket = ensure_group_announce(hit.name, item_link, hit.id, source or "line", corpse_id)
             -- hit.name is the alias that actually appeared in the line; use it
             -- for every needer rather than each needer's own index alias.
             for _, need in ipairs(hit.needers or {}) do
                 if add_group_need(hit.name, item_link, hit.id, need.character or "?", source or "line") then
                     added = added + 1
                 end
+            end
+            if bucket and row_corpse_id(bucket) and type(bucket.order) == "table" and #bucket.order > 0 then
+                record_linked_item(bucket, "pending")
             end
         end
         note_group_scan("text-idx", source, #hits, needs_index.char_count(), added)
@@ -1937,34 +1974,43 @@ function M.on_loot_link(msg)
     for _, it in ipairs(msg.items) do
         local name = tostring(it.name or "")
         if name ~= "" then
+            local cid = tonumber(it.corpse_id)
             links[#links + 1] = {
                 name = name,
                 id = tonumber(it.id) or 0,
                 link = tostring(it.link or ""),
+                corpse_id = (cid and cid > 0) and math.floor(cid) or nil,
             }
             pcall(function() item_actions.remember_item_link(name, it.id, it.link) end)
         end
     end
     if #links == 0 then return end
     remember_recent_replay("", links, "actor")
+    -- Actor loot links from a looter are fleet-visible drops: run the same
+    -- grouped needs scan the chat driver uses (including corpse hints).
     diag.time("announce.actor", function()
-        try_process_item_links(links, "actor", true, nil, { reply_to = from })
+        try_process_item_links(links, "actor", true, nil, {
+            reply_to = from,
+            group_local = true,
+        })
     end)
 end
 
-function M.on_loot_seen(item_name, item_id, item_link, source)
+function M.on_loot_seen(item_name, item_id, item_link, source, corpse_id)
     if passive then return false end
     if not SharedSettings.bisAnnounceEnabled then return false end
     refresh_settings_if_due()
     item_name = trim(item_name or "")
     item_id = tonumber(item_id) or 0
     item_link = tostring(item_link or "")
+    corpse_id = tonumber(corpse_id) or 0
     if item_name == "" then return false end
 
     local links = {{
         name = item_name,
         id = item_id,
         link = item_link,
+        corpse_id = corpse_id > 0 and math.floor(corpse_id) or nil,
     }}
     if item_link ~= "" then
         pcall(function() item_actions.remember_item_link(item_name, item_id, item_link) end)
@@ -1974,6 +2020,14 @@ function M.on_loot_seen(item_name, item_id, item_link, source)
         try_process_item_links(links, tostring(source or "structured"), true, nil, {
             group_local = true,
         })
+    end)
+    -- Tell peer drivers about the corpse-left item even when this box is not
+    -- the announce UI - Go-loot buttons live on the driver panel.
+    pcall(function()
+        local Engine = require('engine').Engine
+        if Engine and Engine.ok and Engine.broadcast_loot_links then
+            Engine.broadcast_loot_links(links, me_name())
+        end
     end)
     return true
 end

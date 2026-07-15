@@ -1,3 +1,11 @@
+1.2.4
+- Go loot / announce: TurboLoot's structured handoff now calls /tgearbg (looters
+  usually bind that, not /tgear) and passes the corpse spawn id, then broadcasts
+  it to peer drivers over actors so the Linked items panel can show Go buttons
+  even when other-player chat links do not parse. ANNOUNCE/SKIP chat parsing is
+  tougher about link frames, and a pending linked row appears as soon as a
+  corpse id and needers are known (before the [TG] flush).
+
 1.2.3
 - Go loot: pause /afollow and stop /chaseme before walking to the corpse, then
   /afollow unpause on finish - same prelude as TurboLoot sell/bank/tribute so

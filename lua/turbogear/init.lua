@@ -589,14 +589,36 @@ local function tgear_command(...)
         end
     elseif arg == "lootseen" or arg == "lootseenquiet" or arg == "loot" or arg == "linkedloot" then
         local quiet = arg == "lootseenquiet"
-        local item_name, item_id = parse_item_name_id(rest)
+        -- lootseenquiet "Item Name" [itemId] [corpseId]
+        -- Trailing integers: last is corpse id when two are present; alone a
+        -- trailing int is treated as corpse id (TurboLoot always passes 0 item
+        -- id + real corpse id).
+        local tokens = {}
+        for token in tostring(rest or ""):gmatch("%S+") do tokens[#tokens + 1] = token end
+        local corpse_id, item_id = 0, 0
+        if #tokens >= 2 and tonumber(tokens[#tokens]) and tonumber(tokens[#tokens - 1]) then
+            corpse_id = tonumber(tokens[#tokens]) or 0
+            item_id = tonumber(tokens[#tokens - 1]) or 0
+            table.remove(tokens)
+            table.remove(tokens)
+        elseif #tokens >= 1 and tonumber(tokens[#tokens]) then
+            corpse_id = tonumber(tokens[#tokens]) or 0
+            table.remove(tokens)
+        end
+        local item_name = table.concat(tokens, " "):gsub('^%s*"', ""):gsub('"%s*$', "")
+        item_name = tostring(item_name or ""):match("^%s*(.-)%s*$") or ""
         if item_name == "" then
-            if not quiet then print("[TurboGear] Usage: /tgear lootseen \"Item Name\" [itemId]") end
-        elseif announcer.on_loot_seen(item_name, item_id, "", quiet and "turboloot" or "turbogear-command") then
+            local n, id = parse_item_name_id(rest)
+            item_name, item_id = n, id
+        end
+        if item_name == "" then
+            if not quiet then print("[TurboGear] Usage: /tgear[bg] lootseen \"Item Name\" [itemId] [corpseId]") end
+        elseif announcer.on_loot_seen(item_name, item_id, "", quiet and "turboloot" or "turbogear-command", corpse_id) then
             if not quiet then
-                print(string.format("[TurboGear] structured loot seen: %s%s",
+                print(string.format("[TurboGear] structured loot seen: %s%s%s",
                     tostring(item_name),
-                    item_id > 0 and (" (" .. tostring(item_id) .. ")") or ""))
+                    item_id > 0 and (" (" .. tostring(item_id) .. ")") or "",
+                    corpse_id > 0 and (" corpse=" .. tostring(corpse_id)) or ""))
             end
         end
     elseif arg == "goloot" then

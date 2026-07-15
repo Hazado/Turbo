@@ -111,12 +111,28 @@ local hit = parse("[19:19:25] Ghee tells the group, '[ANNOUNCE] Imbued Feather (
 check(#hit == 1, 'timestamp before ANNOUNCE does not consume payload')
 check(hit[1] and hit[1].name == "Imbued Feather", 'ANNOUNCE name parsed')
 check(hit[1] and hit[1].id == 0, 'ANNOUNCE corpse id ignored')
+check(hit[1] and hit[1].corpse_id == 209, 'ANNOUNCE corpse_id attached')
 
 local skip = parse("[01:54:29] Ahffrait tells the group, '[SKIP] Elemental Gauntlet Mold (ID: 148) - Already have'")
 check(#skip == 1, 'timestamp before SKIP does not consume payload')
 check(skip[1] and skip[1].name == "Elemental Gauntlet Mold", 'SKIP name parsed')
 check(skip[1] and skip[1].id == 0, 'SKIP corpse id ignored')
+check(skip[1] and skip[1].corpse_id == 148, 'SKIP corpse_id attached')
 
+-- Other-player events sometimes wrap only a link frame between the tag and (ID:)
+local framed = parse("Sketti tells the group, '[ANNOUNCE] \x12RAWNOXIOUS\x12 (ID: 128)'")
+check(#framed >= 1, 'ANNOUNCE with link frame still yields an item')
+local framed_hit = framed[1]
+check(framed_hit and framed_hit.name == "Noxious Bloom of Corporeal Calamity", 'ANNOUNCE frame name via ParseItemLink')
+check(framed_hit and framed_hit.corpse_id == 128, 'ANNOUNCE frame keeps corpse_id')
+
+local framed_plain = parse("Sketti tells the group, '[ANNOUNCE] \x12DEADBEEF\x12Wand of Ruptured Reality\x12 (ID: 99)'")
+check(#framed_plain >= 1, 'ANNOUNCE with opaque frame + visible name')
+local found_wand = false
+for _, it in ipairs(framed_plain) do
+    if it.name == "Wand of Ruptured Reality" and it.corpse_id == 99 then found_wand = true end
+end
+check(found_wand, 'ANNOUNCE strips opaque frames and keeps visible name + corpse_id')
 local none = parse("[19:19:25] Morgouna auctions, 'wts Idol of the Scale 500k each'")
 check(#none == 0, 'plain timestamp line without control tag ignored')
 

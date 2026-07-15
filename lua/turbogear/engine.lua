@@ -313,7 +313,8 @@ local function loot_link_sig(items)
     for _, it in ipairs(items or {}) do
         local id = tonumber(it.id) or 0
         local name = tostring(it.name or ""):lower()
-        parts[#parts + 1] = string.format("%s:%d", name, id)
+        local cid = tonumber(it.corpse_id) or 0
+        parts[#parts + 1] = string.format("%s:%d:%d", name, id, cid)
     end
     table.sort(parts)
     return table.concat(parts, "|")
@@ -332,10 +333,12 @@ function Engine.broadcast_loot_links(items, from_name)
     loot_link_dedupe[sig] = now
     local payload_items = {}
     for _, it in ipairs(items) do
+        local cid = tonumber(it.corpse_id)
         payload_items[#payload_items + 1] = {
             name = tostring(it.name or ""),
             id = tonumber(it.id) or 0,
             link = tostring(it.link or ""),
+            corpse_id = (cid and cid > 0) and math.floor(cid) or nil,
         }
     end
     Engine.stats.tx_loot = (Engine.stats.tx_loot or 0) + 1
