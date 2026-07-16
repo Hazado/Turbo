@@ -1,7 +1,7 @@
 <img width="861" height="114" alt="TurboSuite" src="https://github.com/user-attachments/assets/c2c5ad06-d38b-4faa-82e5-cb64f12af4af" />
 
 
-> Quality-of-life tools for EverQuest EMU (E3Next / MacroQuest): smart looting, fleet inventory and BiS, linked-needs announces, spell research, spawn tracking, raid rolls, and more. It's your loot, do whatever you want with it.
+> Quality-of-life tools for EverQuest EMU (E3Next / MacroQuest): smart looting, fleet inventory and BiS, linked-needs announces, needed spells, spawn tracking, raid rolls, and more. It's your loot, do whatever you want with it.
 
 **On this page:** [Install](#install-in-under-a-minute) · [What's included](#whats-included) · [Feature tour](#feature-tour) · [Updating](#updating) · [Your settings are safe](#your-settings-are-safe) · [Requirements](#requirements) · [Manual install](#manual-install) · [Support](#support)
 
@@ -37,9 +37,9 @@ That one window drives the whole suite. Its Actions tab handles town chores, ite
 | **TurboKey** | `/mac TurboKey RULE` | Pick up an item and run one command to add it to your loot rules as KEEP, SELL, BANK, TRIBUTE, DESTROY, ANNOUNCE, or IGNORE. Items can also be tagged with a click from TurboGear's item view |
 | **TurboGive** | `/mac TurboGive` | Hand out and collect items between your characters using a shared give list. [More info](https://github.com/drel-git/TurboLoot/blob/main/TurboGive%20Getting%20Started.md) |
 | **TurboGear** | `/lua run turbogear` | Live inventory of every boxed character in one window, BiS / upgrade views, and linked-needs announces when an item is linked in chat |
-| **TurboHandins** | `/lua run Turbo/handins` | One-window PoT and GoD symbol turn-ins (`/giveplanar`, `/givediscord`), with per-character exclusion lists |
-| **TurboMobs** | `/lua run TurboMobs` | NPC spawn tracker with alerts, preloaded with spawn lists for 114 Lazarus zones |
-| **TurboRolls** | `/lua run TurboRolls` | Raid roll tracking: start a roll range, see everyone's rolls ranked live |
+| **TurboHandins** | `/lua run Turbo/handins` | One-window PoT and GoD symbol turn-ins, with per-character exclusion lists. While that window is running, `/giveplanar` and `/givediscord` (alias `/givetexvu`) run the turn-in |
+| **TurboMobs** | `/lua run TurboMobs` | NPC spawn tracker with alerts: 114 Lazarus zones preloaded, plus learn/track new nameds and PHs as you camp |
+| **TurboRolls** | `/lua run TurboRolls` | Raid roll tracking: start a range, live ranked rolls, announce winner or top rolls to raid |
 | **Utilities** | various | `turbo_bank_all` (bank everything), `turbo_collect_cash` / `turbo_collect_dc` (gather plat and Diamond Coins from your boxes), `turbo_reclaim_lotto`, an xtarget heal macro, and more |
 
 ## Feature Tour
@@ -58,17 +58,21 @@ TurboGear keeps a live inventory snapshot of every character you box, shared ove
 
 The headline feature: when anyone links an item in chat, TurboGear instantly announces who actually needs it, checked against every box's real inventory. No more "does anyone need this?" silence while six people alt-tab. Group, raid, and say links are listened to by default; guild and OOC listening stay off until you turn them on in TurboGear Setup.
 
-The Spells tab also tracks each caster's researchable spells (levels 66-70), shows what is still missing across the fleet, and exports per-character want lists with one click.
+The Spells tab also tracks each caster's needed researchable spells (levels 66-70), shows what is still missing across the fleet, and exports per-character want lists with one click.
 
 ### Town chores, handled
 
 The hub turns your loot rules into one-click town workflows. Park near a banker, tribute master, and vendor and hit the **Unload** button on the Actions tab: one click banks, tributes, sells, and destroys everything in a single pass. A whole grind session's worth of bag cleanup in seconds. Prefer it piecemeal? Sell, Bank, Tribute, and Destroy each have their own button (or `/mac turboloot sell`, `bank`, `tribute`, `destroy`).
 
-TurboWares (built into the hub) is a merchant sidecar that pops up when you're at a vendor. TurboHandins turns the PoT and GoD symbol grind into one window: it scans your bags, shows what each character can turn in, and `/giveplanar` or `/givediscord` does the rest, with an exclusion list for items you're hoarding.
+TurboWares (built into the hub) is a merchant sidecar that pops up when you're at a vendor. TurboHandins turns the PoT and GoD symbol grind into one window: it scans your bags, shows what each character can turn in, and runs the hand-in from the UI (or `/giveplanar` / `/givediscord` while that window is open), with an exclusion list for items you're hoarding.
 
 ### Raid night helpers
 
-TurboRolls runs loot rolls with a live ranked window (start a range, everyone rolls with `/random`, done). TurboMobs watches for the spawns you care about, with prebuilt spawn lists covering 114 Lazarus zones so you don't have to type in mob names yourself.
+TurboRolls runs loot rolls with a live ranked window: start a range, everyone `/random`s, and you can announce the winner or top rolls to raid when you're ready.
+
+### Spawn tracking
+
+TurboMobs watches for the NPCs you care about. It ships with prebuilt spawn lists for 114 Lazarus zones, and it can also learn and track new nameds and PHs as you camp so your watch list grows with the places you actually play.
 
 ## Updating
 
@@ -94,7 +98,7 @@ Removing Turbo is just as simple: delete the `Turbo`, `turbogear`, `turbo_lib`, 
 
 ## Support
 
-Found a bug or need a hand? Open an [issue](https://github.com/drel-git/Turbo/issues) or ping **dr3l** on Discord. For loot problems, turn on `logToFile=ON`, reproduce it, and send `Logs/TurboLoot.mac.log`.
+Found a bug or need a hand? Open an [issue](https://github.com/drel-git/Turbo/issues) or ping **dr3l** on Discord. Prefer **Export Diagnostics** from the Turbo hub (More / Tools) and send the `Config/Turbo/diagnostics/Turbo_diag_*` folder. For TurboLoot-only mac issues, `logToFile=ON` in your turboloot INI is still fine: reproduce, then send `Logs/TurboLoot.mac.log`.
 
 ## License
 
