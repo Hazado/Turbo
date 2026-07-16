@@ -37,7 +37,7 @@ That one window drives the whole suite. Its Actions tab handles town chores, ite
 | **TurboKey** | `/mac TurboKey RULE` | Pick up an item and run one command to add it to your loot rules as KEEP, SELL, BANK, TRIBUTE, DESTROY, ANNOUNCE, or IGNORE. Items can also be tagged with a click from TurboGear's item view |
 | **TurboGive** | `/mac TurboGive` | Hand out and collect items between your characters using a shared give list. [More info](https://github.com/drel-git/TurboLoot/blob/main/TurboGive%20Getting%20Started.md) |
 | **TurboGear** | `/lua run turbogear` | Live inventory of every boxed character in one window, BiS / upgrade views, and linked-needs announces when an item is linked in chat |
-| **TurboHandins** | `/lua run Turbo/handins` | One-window PoT and GoD symbol turn-ins, with per-character exclusion lists. While that window is running, `/giveplanar` and `/givediscord` (alias `/givetexvu`) run the turn-in |
+| **TurboHandins** | `/lua run Turbo/handins` | One-window PoT and GoD symbol turn-ins from the in-game UI, with per-character exclusion lists |
 | **TurboMobs** | `/lua run TurboMobs` | NPC spawn tracker with alerts: 114 Lazarus zones preloaded, plus learn/track new nameds and PHs as you camp |
 | **TurboRolls** | `/lua run TurboRolls` | Raid roll tracking: start a range, live ranked rolls, announce winner or top rolls to raid |
 | **Utilities** | various | `turbo_bank_all` (bank everything), `turbo_collect_cash` / `turbo_collect_dc` (gather plat and Diamond Coins from your boxes), `turbo_reclaim_lotto`, an xtarget heal macro, and more |
@@ -64,7 +64,7 @@ The Spells tab also tracks each caster's needed researchable spells (levels 66-7
 
 The hub turns your loot rules into one-click town workflows. Park near a banker, tribute master, and vendor and hit the **Unload** button on the Actions tab: one click banks, tributes, sells, and destroys everything in a single pass. A whole grind session's worth of bag cleanup in seconds. Prefer it piecemeal? Sell, Bank, Tribute, and Destroy each have their own button (or `/mac turboloot sell`, `bank`, `tribute`, `destroy`).
 
-TurboWares (built into the hub) is a merchant sidecar that pops up when you're at a vendor. TurboHandins turns the PoT and GoD symbol grind into one window: it scans your bags, shows what each character can turn in, and runs the hand-in from the UI (or `/giveplanar` / `/givediscord` while that window is open), with an exclusion list for items you're hoarding.
+TurboWares (built into the hub) is a merchant sidecar that pops up when you're at a vendor. TurboHandins turns the PoT and GoD symbol grind into one window: it scans your bags, shows what each character can turn in, and runs the hand-in from the UI, with an exclusion list for items you're hoarding.
 
 ### Raid night helpers
 
