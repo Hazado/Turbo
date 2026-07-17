@@ -38,6 +38,7 @@ local tests = {
     "turbogear_announcer_budget_test.lua",
     "turbogear_engine_dispatch_test.lua",
     "turbogear_suggestions_stats_test.lua",
+    "turbo_loot_doctor_test.lua",
 }
 
 -- os.execute returns differ across Lua versions:

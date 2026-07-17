@@ -750,6 +750,8 @@ local peer_autostart = {
     last_at = 0,
     last_sig = "",
     sync_at = 0,
+    pending_sig = nil,
+    pending_since = 0,
 }
 -- R5: viewer's delegated startup sync, gated on the bg readiness ack.
 local startup_bg_sync = {
@@ -854,14 +856,33 @@ local function tick_peer_autostart()
         end
     end
     local sig = group_roster_sig()
+    -- Empty roster is common while zoning. Do NOT wipe last_sig — when the
+    -- identical roster returns, soft-launch must be a noop (avoids N× full
+    -- inventory publishes after every zone).
     if sig == "" then
-        peer_autostart.last_sig = ""
+        peer_autostart.pending_sig = nil
+        peer_autostart.pending_since = 0
         return
     end
-    if sig == peer_autostart.last_sig then return end
+    if sig == peer_autostart.last_sig then
+        peer_autostart.pending_sig = nil
+        peer_autostart.pending_since = 0
+        return
+    end
+
+    -- Coalesce staggered zone-ins / group repopulation into one soft-launch.
+    local settle = tonumber(CFG.peer_autostart_settle_s) or 1.5
+    if peer_autostart.pending_sig ~= sig then
+        peer_autostart.pending_sig = sig
+        peer_autostart.pending_since = now
+        return
+    end
+    if (now - peer_autostart.pending_since) < settle then return end
 
     local added = added_group_names(peer_autostart.last_sig, sig)
     peer_autostart.last_sig = sig
+    peer_autostart.pending_sig = nil
+    peer_autostart.pending_since = 0
     if #added == 0 then return end
 
     if cfg.soft_launch_peers(added) then

@@ -28,7 +28,10 @@
         /lua run Turbo diag clean -- remove old Turbo diagnostics bundles only
         /lua run Turbo view full|mini -- layout + save (alias: layout)
         /lua run Turbo doctor     -- print install/profile doctor when UI is closed
-        /turbodoctor              -- same report while the Turbo UI is already running
+        /lua run Turbo doctor loot -- slim auto-loot gate report (why slain did not start TurboLoot)
+        /turbodoctor              -- same install report when the Turbo UI is already running
+        /turbodoctor loot         -- slim auto-loot gate report while Turbo is running
+        /tlootwhy                 -- alias for /turbodoctor loot
         /turbosnapshot            -- active turboloot.ini settings, grouped + with descriptions
         /turbomain                -- show/hide main Turbo while the Turbo UI is already running
         /turbofocus               -- show main Turbo (open only; does not hide)
@@ -110,6 +113,7 @@ local TG = {
         mq.cmd('/g HALT! all actions stopped')
     end,
     doctorBindActive = false,
+    lootWhyBindActive = false,
     setupTabBindActive = false,
     e3SetupBindActive = false,
     gainsWinBindActive = false,
@@ -5984,14 +5988,44 @@ local function printHelp()
     printf('\aw    \ay/lua run Turbo patcher\ax — launch TurboPatcher.exe (aliases: patch, update)\ax')
     printf('\aw    \ay/turbopatcher\ax — same, while Turbo is already running\ax')
     printf('\aw      \aoMissing exe opens the download page. Hub banner when a newer suite is on GitHub.\ax')
-    printf('\aw    \ay/lua run Turbo doctor\ax — install scan + profile report (versions, files, INIs)\ax')
-    printf('\aw    \ay%s\ax — same install report when the Turbo UI is already open\ax', TURBO_DOCTOR_BIND)
-    printf('\aw    \ay/turbosnapshot\ax — active turboloot.ini settings, grouped + with descriptions\ax')
+    printf('\aw    \ay/lua run Turbo doctor\ax - install scan + profile report (versions, files, INIs)\ax')
+    printf('\aw    \ay/lua run Turbo doctor loot\ax - slim auto-loot gates (why slain did not start TurboLoot)\ax')
+    printf('\aw    \ay%s\ax - same install report when the Turbo UI is already open\ax', TURBO_DOCTOR_BIND)
+    printf('\aw    \ay%s loot\ax / \ay/tlootwhy\ax - slim auto-loot gate report\ax', TURBO_DOCTOR_BIND)
+    printf('\aw    \ay/turbosnapshot\ax - active turboloot.ini settings, grouped + with descriptions\ax')
     printf('\aw \ax')
     printf('\at==== \ayOTHER TOOLS \at====\ax')
     printf('\aw    \ag/mac turboloot help\ax     \ag/mac turbogive help\ax     \ag/mac turbokey help\ax')
     printf('\aw \ax')
     printf('\aw  \aohttps://github.com/drel-git/TurboLoot\ax')
+end
+
+local function printTurboLootDoctor()
+    local lootIni = nil
+    pcall(function()
+        local profile = getActiveProfile()
+        local me = mq.TLO.Me.CleanName() or mq.TLO.Me.Name() or ''
+        if TG.perCharProfile and me ~= '' and TG.charProfiles[me] then
+            profile = TG.charProfiles[me]
+        end
+        lootIni = select(1, resolveTurbolootIniPathForProfile(cleanProfileName(profile) or 'turboloot.ini'))
+    end)
+    local e3Ini = nil
+    pcall(function() e3Ini = findE3Ini() end)
+    local uiLooter = nil
+    pcall(function()
+        if TG.selectedChar and TG.selectedChar ~= '' then
+            uiLooter = TG.selectedChar
+        elseif TG.savedDefaultLooter and TG.savedDefaultLooter ~= '' then
+            uiLooter = TG.savedDefaultLooter
+        end
+    end)
+    require('Turbo.loot_doctor').print({
+        loot_ini_path = lootIni,
+        e3_ini_path = e3Ini,
+        ui_looter = uiLooter,
+        fallback_radius = tonumber(TG.lootRadius) or DEFAULT_LOOT_RADIUS,
+    })
 end
 
 local function printTurboDoctor()
@@ -6224,13 +6258,27 @@ local registerSkipListener, unregisterSkipListener, rebuildSkipDisplayRows
 
 local function bindTurboRuntimeCommands()
     local ok, err = pcall(function()
-        mq.bind(TURBO_DOCTOR_BIND, function()
-            printTurboDoctor()
+        mq.bind(TURBO_DOCTOR_BIND, function(...)
+            local arg1 = tostring(({ ... })[1] or ''):lower()
+            if arg1 == 'loot' or arg1 == 'why' or arg1 == 'auto' then
+                printTurboLootDoctor()
+            else
+                printTurboDoctor()
+            end
         end)
     end)
     TG.doctorBindActive = ok
     if not ok then
         printf('\at[Turbo]\ax \ayCould not bind %s: %s\ax', TURBO_DOCTOR_BIND, tostring(err))
+    end
+    local okWhy, errWhy = pcall(function()
+        mq.bind('/tlootwhy', function()
+            printTurboLootDoctor()
+        end)
+    end)
+    TG.lootWhyBindActive = okWhy
+    if not okWhy then
+        printf('\at[Turbo]\ax \ayCould not bind /tlootwhy: %s\ax', tostring(errWhy))
     end
     -- v3.8.52: /turbosnapshot — grouped active-INI dump with descriptions.
     -- Doctor lost its [Active INI Settings] block in 3.8.52; this is the
@@ -6474,6 +6522,10 @@ local function unbindTurboRuntimeCommands()
     if TG.doctorBindActive then
         pcall(function() mq.unbind(TURBO_DOCTOR_BIND) end)
         TG.doctorBindActive = false
+    end
+    if TG.lootWhyBindActive then
+        pcall(function() mq.unbind('/tlootwhy') end)
+        TG.lootWhyBindActive = false
     end
     if TG.snapshotBindActive then
         pcall(function() mq.unbind('/turbosnapshot') end)
@@ -10549,6 +10601,7 @@ function TG.renderWindow()
         ruleButton = ruleButton, turboConvertTooltip = turboConvertTooltip,
         RULE_BTN_W = RULE_BTN_W, SLIM_RULE_BTN_H = SLIM_RULE_BTN_H, ActionsView = ActionsView,
         openTurbolootIniFileExternal = openTurbolootIniFileExternal, printTurboDoctor = printTurboDoctor,
+        printTurboLootDoctor = printTurboLootDoctor,
         openE3IniExternal = openE3IniExternal, openTurboRepoWeb = openTurboRepoWeb,
         openTurboPatcherExternal = TG.openTurboPatcherExternal,
         openTurbolootConfigFolderExternal = openTurbolootConfigFolderExternal,
@@ -12704,6 +12757,8 @@ if cliMode then
                 tonumber(result.removed) or 0,
                 tonumber(result.kept) or 0,
                 (tonumber(result.errors) or 0) > 0 and string.format(', \ar%d error(s)\ax', tonumber(result.errors) or 0) or '')
+        elseif sub == 'loot' or sub == 'why' or sub == 'auto' then
+            printTurboLootDoctor()
         else
             printTurboDoctor()
         end

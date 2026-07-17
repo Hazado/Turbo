@@ -6472,6 +6472,7 @@ Sub TurboDoctor
     /echo ${doctorTag} \awLua UI: ${If[${Ini.File[../lua/Turbo/init.lua].Exists},\ag../lua/Turbo/init.lua OK,\ar../lua/Turbo/init.lua MISSING]}\ax
 
     /echo ${doctorTag} \awGroup: grouped=\ay${Me.Grouped}\aw members=\ay${Group.Members}\aw Raid members=\ay${Raid.Members}\ax
+    /echo ${doctorTag} \awAuto-loot gates: \ag/turbodoctor loot\ax (or \ag/tlootwhy\ax / \ag/lua run Turbo doctor loot\ax)
     /echo ${doctorTag} \awFull install/version scan: \ag/lua run Turbo doctor\ax
 
     /if (${Window[InventoryWindow].Open} || ${Window[BigBankWnd].Open} || ${Window[MerchantWnd].Open} || ${Window[TributeMasterWnd].Open}) {

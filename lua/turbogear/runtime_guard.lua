@@ -70,7 +70,9 @@ function M.autostart_decision(scripts, mode)
     if mode == 'repair' or mode == 'force' then
         return 'repair_bg'
     end
-    if bg then return 'publish_bg' end
+    -- Contract: ensure bg is running. Healthy bg already owns sync / keepalive /
+    -- inventory dirty publishes; do not force a full inventory republish.
+    if bg then return 'noop' end
     return 'start_bg'
 end
 
