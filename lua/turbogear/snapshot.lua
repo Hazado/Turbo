@@ -226,6 +226,15 @@ local function build_snap(depth, opts)
         bankCapturedAt = bank_open and now or nil,
         bankReason = bank_open and "live" or "bank window closed; cached bank preserved if available",
     }
+    -- DoN header extras (crystals): nil means unknown — never invent 0 on TLO failure.
+    pcall(function()
+        local r = mq.TLO.Me.RadiantCrystals()
+        if r ~= nil then snap.radiant_crystals = tonumber(r) end
+    end)
+    pcall(function()
+        local e = mq.TLO.Me.EbonCrystals()
+        if e ~= nil then snap.ebon_crystals = tonumber(e) end
+    end)
     pcall(function()
         diag.context("snapshot.inventory", string.format("depth=%s bankOpen=%s scanBank=%s",
             tostring(depth), tostring(bank_open == true), tostring(bank_open == true)))

@@ -2358,6 +2358,59 @@ TG.refreshProfileCache = function()
     return #TG.profileList, nowMS() - start
 end
 
+-- Console-free directory listing via lfs (bundled with MQ). io.popen('dir ...')
+-- spawns a cmd.exe console that flashes on screen in a GUI process; every
+-- caller below prefers this and only falls back to io.popen if lfs is missing.
+-- mode: 'file' (default) lists plain files, 'directory' lists subdirectories.
+-- Returns an array of names, or nil when lfs is unavailable/failed.
+TG.listFilesNoConsole = function(dir, mode)
+    if not dir or dir == '' then return nil end
+    local okLfs, lfs = pcall(require, 'lfs')
+    if not (okLfs and lfs and lfs.dir) then return nil end
+    local out = {}
+    local okDir = pcall(function()
+        for name in lfs.dir(dir) do
+            if name ~= '.' and name ~= '..' then
+                local attr = lfs.attributes(dir .. '\\' .. tostring(name))
+                local m = attr and attr.mode or nil
+                if mode == 'directory' then
+                    if m == 'directory' then out[#out + 1] = tostring(name) end
+                elseif m == 'file' or not attr then
+                    out[#out + 1] = tostring(name)
+                end
+            end
+        end
+    end)
+    if not okDir then return nil end
+    return out
+end
+
+-- Console-free recursive delete (files via os.remove, dirs via lfs.rmdir,
+-- depth-first). Replaces os.execute('cmd /c rmdir') which flashed a console
+-- per call. Returns true on full success.
+TG.removeTreeNoConsole = function(path)
+    local okLfs, lfs = pcall(require, 'lfs')
+    if not (okLfs and lfs and lfs.dir and lfs.rmdir) then return false end
+    local function recurse(p)
+        local all_ok = true
+        for name in lfs.dir(p) do
+            if name ~= '.' and name ~= '..' then
+                local full = p .. '\\' .. tostring(name)
+                local attr = lfs.attributes(full)
+                if attr and attr.mode == 'directory' then
+                    if not recurse(full) then all_ok = false end
+                else
+                    if not os.remove(full) then all_ok = false end
+                end
+            end
+        end
+        if not all_ok then return false end
+        return lfs.rmdir(p) and true or false
+    end
+    local ok, res = pcall(recurse, tostring(path or ''))
+    return (ok and res) and true or false
+end
+
 local function scanTurbolootProfiles()
     if profilesScanned then return end
     profilesScanned = true
@@ -2369,20 +2422,38 @@ local function scanTurbolootProfiles()
     TG.profileSources = {}
     TG.profileList = {}
 
-    local cmd = string.format('dir /b /a-d "%s\\Config\\turboloot*.ini" 2>nul', mqPath)
-    local handle = io.popen(cmd)
-    if handle then
-        for line in handle:lines() do
-            local name = line:gsub('[\r\n]', ''):match('^%s*(.-)%s*$')
-            if name and name ~= '' and not TG.isRuntimeProfileName(name) then
+    -- lfs first (no console flash); io.popen only as a fallback.
+    local cfgNames = TG.listFilesNoConsole(mqPath .. '\\Config', 'file')
+    if cfgNames then
+        for _, name in ipairs(cfgNames) do
+            if name:lower():match('^turboloot.*%.ini$') and not TG.isRuntimeProfileName(name) then
                 TG.addProfileCandidate(name, false, false, true)
             end
         end
-        handle:close()
+    else
+        local cmd = string.format('dir /b /a-d "%s\\Config\\turboloot*.ini" 2>nul', mqPath)
+        local handle = io.popen(cmd)
+        if handle then
+            for line in handle:lines() do
+                local name = line:gsub('[\r\n]', ''):match('^%s*(.-)%s*$')
+                if name and name ~= '' and not TG.isRuntimeProfileName(name) then
+                    TG.addProfileCandidate(name, false, false, true)
+                end
+            end
+            handle:close()
+        end
     end
 
-    local macroCmd = string.format('dir /b /a-d "%s\\Macros\\turboloot*.ini" 2>nul', mqPath)
-    local macroHandle = io.popen(macroCmd)
+    local macroNames = TG.listFilesNoConsole(mqPath .. '\\Macros', 'file')
+    if macroNames then
+        for _, name in ipairs(macroNames) do
+            if name:lower():match('^turboloot.*%.ini$') and not TG.isRuntimeProfileName(name) then
+                TG.addProfileCandidate(name, true, false, true)
+            end
+        end
+    end
+    local macroHandle = macroNames == nil and io.popen(
+        string.format('dir /b /a-d "%s\\Macros\\turboloot*.ini" 2>nul', mqPath)) or nil
     if macroHandle then
         for line in macroHandle:lines() do
             local name = line:gsub('[\r\n]', ''):match('^%s*(.-)%s*$')
@@ -2499,17 +2570,26 @@ end
 local function listTurbolootInisInFolder(dir)
     local out = {}
     if not dir or dir == '' then return out end
-    local cmd = string.format('dir /b /a-d "%s\\turboloot*.ini" 2>nul', dir)
-    local handle = io.popen(cmd)
-    if handle then
-        for line in handle:lines() do
-            local name = line:gsub('[\r\n]', ''):match('^%s*(.-)%s*$')
+    local names = TG.listFilesNoConsole(dir, 'file')
+    if names then
+        for _, name in ipairs(names) do
             --- Skip runtime files (TurboLoot_skip_queue.ini etc.) — see TG.isRuntimeProfileName.
-            if name and name ~= '' and not TG.isRuntimeProfileName(name) then
+            if name:lower():match('^turboloot.*%.ini$') and not TG.isRuntimeProfileName(name) then
                 table.insert(out, name)
             end
         end
-        handle:close()
+    else
+        local cmd = string.format('dir /b /a-d "%s\\turboloot*.ini" 2>nul', dir)
+        local handle = io.popen(cmd)
+        if handle then
+            for line in handle:lines() do
+                local name = line:gsub('[\r\n]', ''):match('^%s*(.-)%s*$')
+                if name and name ~= '' and not TG.isRuntimeProfileName(name) then
+                    table.insert(out, name)
+                end
+            end
+            handle:close()
+        end
     end
     table.sort(out, function(a, b) return a:lower() < b:lower() end)
     return out
@@ -5252,27 +5332,32 @@ TG.cleanupDiagnosticsBundles = function(opts)
     local maxAgeDays = tonumber(opts.maxAgeDays) or 7
     local now = os.time()
     local entries, notes = {}, {}
-    local cmd = string.format('dir /b /ad "%s\\Turbo_diag_*" 2>nul', diagDir:gsub('/', '\\'))
-    local pipe = io.popen(cmd)
-    if pipe then
-        for name in pipe:lines() do
-            name = tostring(name or ''):match('^%s*(.-)%s*$') or ''
-            local y, mo, d, h, mi, s = name:match('^Turbo_diag_.-_(%d%d%d%d)(%d%d)(%d%d)_(%d%d)(%d%d)(%d%d)$')
-            if y then
-                local ts = os.time({
-                    year = tonumber(y),
-                    month = tonumber(mo),
-                    day = tonumber(d),
-                    hour = tonumber(h),
-                    min = tonumber(mi),
-                    sec = tonumber(s),
-                }) or 0
-                entries[#entries + 1] = { name = name, path = diagDir .. '\\' .. name, ts = ts }
-            end
+    -- lfs listing (no console flash); io.popen('dir') flashed a cmd window.
+    local dirNames = TG.listFilesNoConsole(diagDir:gsub('/', '\\'), 'directory')
+    if not dirNames then
+        local pipe = io.popen(string.format('dir /b /ad "%s\\Turbo_diag_*" 2>nul', diagDir:gsub('/', '\\')))
+        dirNames = {}
+        if pipe then
+            for name in pipe:lines() do dirNames[#dirNames + 1] = name end
+            pipe:close()
+        else
+            notes[#notes + 1] = 'Could not list diagnostics bundles.'
         end
-        pipe:close()
-    else
-        notes[#notes + 1] = 'Could not list diagnostics bundles.'
+    end
+    for _, raw in ipairs(dirNames or {}) do
+        local name = tostring(raw or ''):match('^%s*(.-)%s*$') or ''
+        local y, mo, d, h, mi, s = name:match('^Turbo_diag_.-_(%d%d%d%d)(%d%d)(%d%d)_(%d%d)(%d%d)(%d%d)$')
+        if y then
+            local ts = os.time({
+                year = tonumber(y),
+                month = tonumber(mo),
+                day = tonumber(d),
+                hour = tonumber(h),
+                min = tonumber(mi),
+                sec = tonumber(s),
+            }) or 0
+            entries[#entries + 1] = { name = name, path = diagDir .. '\\' .. name, ts = ts }
+        end
     end
 
     table.sort(entries, function(a, b) return (a.ts or 0) > (b.ts or 0) end)
@@ -5283,8 +5368,8 @@ TG.cleanupDiagnosticsBundles = function(opts)
         if oldEnough or overKeep then
             local safeName = tostring(entry.name or '')
             if safeName:match('^Turbo_diag_[%w_%-]+_%d%d%d%d%d%d%d%d_%d%d%d%d%d%d$') then
-                local ok = os.execute(string.format('cmd /c rmdir /s /q "%s"', tostring(entry.path):gsub('/', '\\')))
-                if ok == true or ok == 0 then
+                -- Recursive lfs delete; no os.execute (console flash per bundle).
+                if TG.removeTreeNoConsole(tostring(entry.path):gsub('/', '\\')) then
                     removed = removed + 1
                 else
                     errors = errors + 1

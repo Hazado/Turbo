@@ -319,6 +319,8 @@ local function merge_lite_snapshot(existing, snap)
         bankReason = snap.bankReason,
         lockouts = snap.lockouts or existing.lockouts,
         liveStats = snap.liveStats or existing.liveStats,
+        radiant_crystals = snap.radiant_crystals ~= nil and snap.radiant_crystals or existing.radiant_crystals,
+        ebon_crystals = snap.ebon_crystals ~= nil and snap.ebon_crystals or existing.ebon_crystals,
     }
     if snap.bankValid ~= true and type(existing.bank) == "table" and #existing.bank > 0 then
         out.bank = existing.bank
@@ -346,6 +348,8 @@ local function merge_snapshot(existing, snap)
     if snap.depth ~= "full" then return merge_lite_snapshot(existing, snap) end
     if snap.lockouts == nil then snap.lockouts = existing.lockouts end
     if snap.liveStats == nil then snap.liveStats = existing.liveStats end
+    if snap.radiant_crystals == nil then snap.radiant_crystals = existing.radiant_crystals end
+    if snap.ebon_crystals == nil then snap.ebon_crystals = existing.ebon_crystals end
     if not snap.spells_sig or snap.spells_sig == "" then
         snap.spells = existing.spells
         snap.spells_sig = existing.spells_sig

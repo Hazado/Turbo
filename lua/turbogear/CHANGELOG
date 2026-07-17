@@ -1,3 +1,60 @@
+1.2.40
+- Pill row decluttered: the Full Names/Compact toggle is now a "Compact"
+  checkbox in the List pill's new VIEW section (Full names by default; routes
+  through the existing density+names toggle). Missing Only stays on the row -
+  it is a working filter people flip constantly.
+- Roster legend moved to a tooltip on the "Slot" column header (covers normal
+  and ultra layouts, includes the right-click hints); the footer legend row is
+  gone, giving the roster that vertical space back.
+
+1.2.39
+- List pill FIXED (root cause found via pilldebug close-reason logging): MQ's
+  ImGui.Selectable returns true every frame for a row drawn selected=true, so
+  the active "BiS Catalog" mode row fired continuously and closed the panel the
+  moment it opened ("panel CLOSED (entry selected)"). All pill selectables now
+  guard with "if not selected", the same pattern characters.lua already used -
+  which is also why the Characters popup never had the bug.
+
+1.2.38
+- List pill: open-state moved to _G so module reloads can no longer reset it
+  (the 1.2.37 panel opened then vanished; repeated "CLICK: panel opening" with
+  no "panel closing" proved state was being wiped between clicks). The
+  hot-reload shim now retries a stale VERSION once per session instead of
+  every frame - the per-frame reload was the state-wiper. pilldebug now logs
+  the REASON for every close (entry selected / click-away with hover states)
+  and prints a line on module load so reload loops are visible.
+
+1.2.37
+- List pill: converted from OpenPopup/BeginPopup to a manually-managed dropdown
+  panel. /tgear pilldebug proved the popup opened and was externally closed one
+  frame later (CLICK -> OPEN -> CLOSED every click); the manual panel is immune
+  since only the pill's own code closes it (pick an entry, click the pill again,
+  or click anywhere outside). pilldebug now logs panel OPEN/CLOSED transitions.
+
+1.2.36
+- BiS + Lists: Missing Only + Compact/Full Names moved onto the pill row, right
+  of the List pill (hidden in Manage Lists mode). Same settings keys.
+- Parked the DoN faction/crystals experiment: roster headers render identically
+  on every catalog again (no second line). Removed the Magelo fetcher, the
+  /tgear faction command, and the faction chat event. Snapshots still carry
+  radiant/ebon crystal counts for cache compatibility; nothing reads them.
+  Magelo/header-extra modules and tests removed.
+- New /tgear pilldebug: gated List-pill diagnostics. Toggle it, click the pill:
+  a CLICK line without a popup OPEN line means the popup is killed same-frame;
+  no CLICK line means input never reaches the button. Report which you see.
+
+1.2.35
+- BiS + Lists: List pill (beside Characters) replaces BiS Catalog / Custom Lists /
+  Manage Lists sub-tabs; catalog Visible checkboxes live in that pill (same
+  bisHiddenLists key). Setup TurboBiS Lists keeps Announce only. DoN roster
+  headers show radiant crystals (and Magelo Norrath's Keepers when fetched);
+  crystals + faction_keepers ride the snapshot bus. /tgear faction refreshes
+  Keepers via bg curl (no auto-fetch on load — avoids console flash). Filter row
+  is Missing Only + Compact/Full Names (catalog search removed; use Search
+  everywhere). List pill matches Characters (OpenPopup); Copy to Custom List is
+  in the pill. Magelo waits for a stable curl file before parse; /tgear catalog
+  escapes to catalog mode.
+
 1.2.34
 - Hub shell locked to one height (~680) across Actions / Review / Setup / More so
   the window stops growing and tab switches no longer change size. More: Backups,

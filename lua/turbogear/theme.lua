@@ -34,6 +34,8 @@ M.Theme = {
     bag = { 0.32, 0.47, 0.68, 1.0 }, bank = { 0.55, 0.47, 0.72, 1.0 },
     -- Characters chrome: muted teal - quiet tint, distinct from Sync/action blues.
     charactersPill = { 0.30, 0.44, 0.42, 1.0 },
+    -- List pill (BiS mode): slightly cooler steel so it sits next to Characters.
+    listPill = { 0.34, 0.40, 0.48, 1.0 },
     location = { 0.58, 0.61, 0.68, 1.0 }, owner = { 0.64, 0.68, 0.75, 1.0 },
     value = { 0.72, 0.88, 0.74, 1.0 }, valueTop = { 0.85, 0.64, 0.25, 1.0 },
     neutral = { 0.78, 0.82, 0.88, 1.0 },
