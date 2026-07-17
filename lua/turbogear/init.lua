@@ -24,6 +24,8 @@
         /tgear exportspells [copies]  export missing research list
         /tgear import <file>  /tgear export <list>  /tgear sharelist <list>
         /tgear pulllists <Server_CharName>
+        /tgear pilldebug toggle List-pill click/popup diagnostics
+        /tgear catalog   switch BiS + Lists back to BiS Catalog
 ============================================================================ ]]
 
 local mq = require('mq')
@@ -685,6 +687,19 @@ local function tgear_command(...)
     elseif arg == "resetui" or arg == "safeui" then
         cfg.reset_ui_settings()
         print("[TurboGear] UI settings reset (bis tab, normal density, search cleared). Run /mqoverlay resume then /lua run turbogear")
+    elseif arg == "catalog" or arg == "biscatalog" then
+        cfg.Settings.mainTab = "bis"
+        cfg.Settings.bisListsTab = "catalog"
+        cfg.Settings.bisListMode = "catalog"
+        if cfg.SaveSettings then cfg.SaveSettings() end
+        state.show = true
+        print("[TurboGear] switched to BiS Catalog (List pill / BiS + Lists)")
+    elseif arg == "pilldebug" then
+        -- Gated List-pill click/popup diagnostics (see bis_list_pill.lua).
+        cfg.Settings.debugListPill = not (cfg.Settings.debugListPill == true)
+        if cfg.SaveSettings then cfg.SaveSettings() end
+        print("[TurboGear] List pill debug " .. (cfg.Settings.debugListPill and "ON" or "OFF")
+            .. " - click the pill; expect CLICK then popup OPEN lines.")
     elseif arg == "status" then
         for _, line in ipairs(status_lines(12, true)) do print(line) end
     elseif arg == "stop" then

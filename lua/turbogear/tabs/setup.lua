@@ -265,37 +265,22 @@ end
 
 local function draw_bis_list_matrix()
     col_text(Theme.section or Theme.header, "TurboBiS Lists")
-    col_text(Theme.dim, "Visible controls whether the tab button appears. Announce controls linked-needs chat for that list.")
-    local visible_specs = catalog.ui_list_specs()
+    col_text(Theme.dim, "Tab visibility moved to the List picker on the BiS + Lists tab.")
+    col_text(Theme.dim, "Announce controls linked-needs chat for that list (display is unchanged).")
     local announce_specs = catalog.announce_list_specs()
-    local announce_by_id = {}
-    for _, spec in ipairs(announce_specs or {}) do
-        announce_by_id[spec.id] = spec
-    end
-    if views.begin_scroll_table("SetupTurboBiSListMatrix", 3, views.scroll_table_flags(), 92.0, 260.0) then
+    if views.begin_scroll_table("SetupTurboBiSListMatrix", 2, views.scroll_table_flags(), 92.0, 260.0) then
         ImGui.TableSetupColumn("List", ImGuiTableColumnFlags.WidthStretch, 1.6)
-        ImGui.TableSetupColumn("Visible", ImGuiTableColumnFlags.WidthFixed, 86.0)
         ImGui.TableSetupColumn("Announce", ImGuiTableColumnFlags.WidthFixed, 98.0)
-        views.table_headers_centered({ "List", "Visible", "Announce" })
-        for _, spec in ipairs(visible_specs or {}) do
-            local ann = announce_by_id[spec.id]
-            local visible = not catalog.list_hidden(spec.id)
-            local enabled = ann and catalog.list_announce_enabled(spec.id)
+        views.table_headers_centered({ "List", "Announce" })
+        for _, spec in ipairs(announce_specs or {}) do
+            local enabled = catalog.list_announce_enabled(spec.id)
             ImGui.TableNextRow()
             ImGui.TableSetColumnIndex(0)
             local prefix = spec.user and "Custom: " or ""
             col_text(spec.user and (Theme.purple or Theme.item) or Theme.item, prefix .. tostring(spec.label or spec.id or "?"))
             ImGui.TableSetColumnIndex(1)
-            if toggle_button((visible and "ON" or "OFF") .. "##setup_bis_matrix_vis_" .. tostring(spec.id), visible, 64, 0) then
-                catalog.set_list_hidden(spec.id, visible)
-            end
-            ImGui.TableSetColumnIndex(2)
-            if ann then
-                if toggle_button((enabled and "ON" or "OFF") .. "##setup_bis_matrix_ann_" .. tostring(spec.id), enabled, 64, 0) then
-                    catalog.set_list_announce_enabled(spec.id, not enabled)
-                end
-            else
-                col_text(Theme.placeholder or Theme.dim, "-")
+            if toggle_button((enabled and "ON" or "OFF") .. "##setup_bis_matrix_ann_" .. tostring(spec.id), enabled, 64, 0) then
+                catalog.set_list_announce_enabled(spec.id, not enabled)
             end
         end
         ImGui.EndTable()

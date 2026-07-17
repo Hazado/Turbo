@@ -250,6 +250,7 @@ end
 select_catalog = function(group, rec)
     if not rec or not rec.id then return end
     Settings.bisListMode = "catalog"
+    Settings.bisListsTab = "catalog"
     Settings.bisCatalogGroup = group and group.name or ""
     Settings.bisCatalogList = rec.id
     Settings.bisCatalogLastByGroup = type(Settings.bisCatalogLastByGroup) == "table" and Settings.bisCatalogLastByGroup or {}
@@ -260,6 +261,7 @@ end
 
 select_user_list = function(id)
     Settings.bisListMode = "user"
+    Settings.bisListsTab = "my"
     Settings.bisSelectedList = id
     roster_cache.key = nil
     SaveSettings()
@@ -558,18 +560,6 @@ local function draw_wrapped_nav_button(_i, label, active, id, on_click)
     end
 end
 
-local function custom_lists_combo_label()
-    if Settings.bisListMode == "user" then
-        local list = bis.get(Settings.bisSelectedList)
-        if list and list.name and list.name ~= "" then
-            local suffix = catalog.list_announce_enabled(list.id) and "" or " !"
-            return tostring(list.name) .. suffix
-        end
-        return "Pick a list..."
-    end
-    return "Switch to Custom List..."
-end
-
 local function run_analyze_list(list_id)
     list_id = tostring(list_id or Settings.bisSelectedList or "")
     local ok_lo, loadout = pcall(require, 'loadout')
@@ -677,50 +667,6 @@ local function draw_user_list_actions(list_id)
             and string.format("'%s' is active for linked-needs announces.", tostring(detail or list_id))
             or tostring(detail or "Could not enable linked needs.")
     end
-    ImGui.SameLine()
-    if themed_button("Manage Lists##bis_act_edit", Theme.steel) then
-        Settings.mainTab = "bis"
-        Settings.bisListsTab = "edit"
-        Settings.bisListMode = "user"
-        SaveSettings()
-    end
-end
-
-local function draw_custom_lists_combo()
-    local names = bis.list_names()
-    local in_user = Settings.bisListMode == "user"
-    local label = custom_lists_combo_label()
-
-    ImGui.SetNextItemWidth(190.0)
-    if ImGui.BeginCombo("##bis_custom_lists", label) then
-        bis_dropdown_open = true
-        if #names == 0 then
-            ImGui.TextDisabled("No custom lists yet")
-            if ImGui.Selectable("Create / Manage Lists##bis_custom_setup") then
-                Settings.mainTab = "bis"
-                Settings.bisListsTab = "edit"
-                Settings.bisListMode = "user"
-                SaveSettings()
-            end
-        else
-            for _, rec in ipairs(names) do
-                local rec_label = tostring(rec.name) .. (catalog.list_announce_enabled(rec.id) and "" or " !")
-                if ImGui.Selectable(rec_label .. "##bis_custom_" .. tostring(rec.id), in_user and Settings.bisSelectedList == rec.id) then
-                    clear_bis_filter()
-                    select_user_list(rec.id)
-                end
-                if ImGui.IsItemHovered and ImGui.IsItemHovered() and ImGui.SetTooltip then
-                    local l = rec.list or {}
-                    ImGui.SetTooltip(string.format("%s\n%d entries%s\nBiS + Lists -> Manage Lists",
-                        rec.name, #(l.entries or {}), (l.class and l.class ~= "") and (" - " .. l.class) or ""))
-                end
-            end
-        end
-        ImGui.EndCombo()
-    end
-    if ImGui.IsItemHovered and ImGui.IsItemHovered() and ImGui.SetTooltip then
-        ImGui.SetTooltip("Your wishlists and loadout plans (not zone catalogs)")
-    end
 end
 
 local function draw_my_lists_header()
@@ -741,11 +687,9 @@ local function draw_my_lists_header()
         return
     end
 
-    col_text(Theme.header or Theme.item, "List:")
-    ImGui.SameLine()
-    draw_custom_lists_combo()
     local user_list = active_user_list()
     if user_list then
+        col_text(Theme.header or Theme.item, tostring(user_list.name or "Custom List"))
         ImGui.SameLine()
         col_text(Theme.dim, string.format("(%d items)", #(user_list.entries or {})))
     end
@@ -958,66 +902,43 @@ draw_linked_send_buttons = function(row, id)
     end
 end
 
-local function input_text_hint(id, hint, value)
-    if ImGui.InputTextWithHint then
-        local ok, rv = pcall(ImGui.InputTextWithHint, id, hint, value or "")
-        if ok then return rv or "" end
-    end
-    return ImGui.InputText(id, value or "") or ""
+local function view_mode_is_full_names()
+    return density_mode() == "compact" and Settings.bisCompactFullNames == true
 end
 
-local function draw_bis_search()
-    local clear_w = math.ceil(button_text_width("Clear"))
-    local gap = style_spacing_x()
-    local hint = Settings.bisListMode == "user" and "Search this list..." or "Search this catalog..."
-    if ImGui.BeginTable then
-        local flags = (ImGuiTableFlags.NoSavedSettings or 0) + (ImGuiTableFlags.NoPadOuterX or 0)
-        if ImGui.BeginTable("##bisfilter_row", 2, flags) then
-            ImGui.TableSetupColumn("Search", ImGuiTableColumnFlags.WidthStretch, 1.0)
-            ImGui.TableSetupColumn("Clear", ImGuiTableColumnFlags.WidthFixed, clear_w + gap)
-            ImGui.TableNextRow()
-            ImGui.TableSetColumnIndex(0)
-            ImGui.SetNextItemWidth(-1)
-            local new_filter = input_text_hint("##bisfilter", hint, filter or "")
-            if new_filter ~= filter then
-                filter = new_filter or ""
-                roster_cache.key = nil
-            end
-            ImGui.TableSetColumnIndex(1)
-            if themed_button("Clear##bisfilter_clear", Theme.steel, clear_w, NAV_BTN_H) then
-                clear_bis_filter()
-            end
-            ImGui.EndTable()
-        end
-        return
+local function toggle_compact_full_names()
+    if view_mode_is_full_names() then
+        -- Compact: dense ultra columns
+        Settings.bisViewDensity = "ultra"
+        Settings.bisCompactRows = true
+        Settings.bisCompactFullNames = false
+    else
+        -- Full Names: readable compact columns with full item names
+        Settings.bisViewDensity = "compact"
+        Settings.bisCompactRows = false
+        Settings.bisCompactFullNames = true
     end
+    roster_cache.key = nil
+    SaveSettings()
+end
 
-    local avail = stable_avail_x()
-    if avail <= 0 then avail = 400.0 end
-    local search_w = math.max(100.0, avail - clear_w - gap - 10.0)
-    draw_wrapped_controls({
-        {
-            width = search_w,
-            height = NAV_BTN_H,
-            draw = function()
-                ImGui.SetNextItemWidth(search_w)
-                local new_filter = input_text_hint("##bisfilter", hint, filter or "")
-                if new_filter ~= filter then
-                    filter = new_filter or ""
-                    roster_cache.key = nil
-                end
-            end,
-        },
-        {
-            width = clear_w,
-            height = NAV_BTN_H,
-            draw = function()
-                if themed_button("Clear##bisfilter_clear", Theme.steel, clear_w, NAV_BTN_H) then
-                    clear_bis_filter()
-                end
-            end,
-        },
-    })
+-- Missing Only. Drawn on the pill row (ui.lua chrome), right of the List pill.
+-- Compact/Full view moved into the List pill (VIEW section) in v1.2.40.
+function M.draw_quick_toggles()
+    local missing_only = Settings.bisShowMissingOnly and true or false
+    if not ImGui.Checkbox then return end
+    local rv1, rv2 = ImGui.Checkbox("Missing Only##bismissing", missing_only)
+    local new_val, apply = nil, false
+    if type(rv2) == "boolean" then
+        new_val, apply = rv1, rv2
+    elseif type(rv1) == "boolean" and rv1 ~= missing_only then
+        new_val, apply = rv1, true
+    end
+    if apply then
+        Settings.bisShowMissingOnly = new_val and true or false
+        roster_cache.key = nil
+        SaveSettings()
+    end
 end
 
 local function row_color(row)
@@ -2196,38 +2117,29 @@ local function draw_catalog_cell(row, layout, layout_cfg, snap, slot, ridx, col_
     end
 end
 
-draw_bis_color_legend = function(layout)
-    local _, avail_h = views.content_avail()
-    if layout ~= "ultra" and (tonumber(avail_h) or 0) < 42 then
-        col_text(Theme.dim, "Legend: hover BiS cells for color/status details.")
-        if ImGui.IsItemHovered and ImGui.IsItemHovered() and ImGui.SetTooltip then
-            ImGui.SetTooltip("Green = equipped\nBlue = carried\nGrey-red = missing\nRight-click cells for Inspect / Alla / Copy.")
-        end
-        return
-    end
+draw_bis_color_legend = function(_)
+    -- v1.2.40: legend moved to a tooltip on the "Slot" column header, giving
+    -- the roster the footer row back. Function kept for call-site stability.
+end
+
+-- Legend tooltip text (hover the "Slot" column header). On M, not a local:
+-- this chunk sits near LuaJIT's 200-local main-chunk limit.
+M.bis_legend_tooltip = function(layout)
+    local lines = {
+        "Green = equipped",
+        "Blue = carried (bag/bank)",
+    }
+    if show_elsewhere() then lines[#lines + 1] = "Gold = elsewhere" end
+    lines[#lines + 1] = "Grey-red = missing"
     if layout == "ultra" then
-        col_text(BIS_GREEN, "W")
-        ImGui.SameLine(); col_text(Theme.dim, "= equipped")
-        ImGui.SameLine(); col_text(BIS_BAG, "B")
-        ImGui.SameLine(); col_text(Theme.dim, "= carried (bag/bank)")
-        if show_elsewhere() then
-            ImGui.SameLine(); col_text(BIS_ELSE, "E")
-            ImGui.SameLine(); col_text(Theme.dim, "= elsewhere")
-        end
-        ImGui.SameLine(); col_text(BIS_MISS, "X")
-        ImGui.SameLine(); col_text(Theme.dim, "= missing | hover cell for full item + location")
-    else
-        col_text(BIS_GREEN, "Green = equipped")
-        ImGui.SameLine(); col_text(BIS_BAG, "Blue = carried")
-        if show_elsewhere() then
-            ImGui.SameLine(); col_text(BIS_ELSE, "Gold = elsewhere")
-        end
-        ImGui.SameLine(); col_text(BIS_MISS, "Grey-red = missing")
-        if show_elsewhere() then
-            ImGui.SameLine(); col_text(BIS_ELSE, "Gold = elsewhere · ")
-        end
-        ImGui.SameLine(); col_text(Theme.dim, "Hover for info · Right-click for Inspect / Alla / Copy")
+        lines[#lines + 1] = ""
+        lines[#lines + 1] = "Ultra cells: W = equipped, B = carried"
+            .. (show_elsewhere() and ", E = elsewhere" or "") .. ", X = missing"
     end
+    lines[#lines + 1] = ""
+    lines[#lines + 1] = "Hover a cell for the full item + location."
+    lines[#lines + 1] = "Right-click a cell for Inspect / Alla / Copy."
+    return table.concat(lines, "\n")
 end
 
 local function draw_catalog_roster(list_id)
@@ -2288,6 +2200,9 @@ local function draw_catalog_roster(list_id)
             views.setup_scroll_freeze("BiSCatalogRoster", 1, 1)
             ImGui.TableNextRow()
             ImGui.TableSetColumnIndex(0); col_text(Theme.header or Theme.item, "Slot")
+            if ImGui.IsItemHovered and ImGui.IsItemHovered() and ImGui.SetTooltip then
+                ImGui.SetTooltip(M.bis_legend_tooltip(layout))
+            end
             for cidx, key in ipairs(keys) do
                 local snap = peek_snapshot(key)
                 local c = roster_cache.counts[key] or { 0, 0, 0 }
@@ -2379,73 +2294,8 @@ local function draw_bis_toolbar(catalog_id)
         end
     end
 
-    toolbar[#toolbar + 1] = {
-        width = 128,
-        height = COMBO_ROW_H,
-        draw = function()
-            local missing_only = Settings.bisShowMissingOnly and true or false
-            if ImGui.Checkbox then
-                local rv1, rv2 = ImGui.Checkbox("Missing Only##bismissing", missing_only)
-                local new_val, apply = nil, false
-                if type(rv2) == "boolean" then
-                    new_val, apply = rv1, rv2
-                elseif type(rv1) == "boolean" and rv1 ~= missing_only then
-                    new_val, apply = rv1, true
-                end
-                if apply then
-                    Settings.bisShowMissingOnly = new_val and true or false
-                    roster_cache.key = nil
-                    SaveSettings()
-                end
-            end
-        end,
-    }
-
-    toolbar[#toolbar + 1] = {
-        width = button_text_width("Compact"),
-        draw = function()
-            local compact = density_mode() == "ultra"
-            if toggle_button("Compact##bis_density_compact", compact, 0, NAV_BTN_H) then
-                Settings.bisViewDensity = compact and "compact" or "ultra"
-                Settings.bisCompactRows = not compact
-                roster_cache.key = nil
-                SaveSettings()
-            end
-        end,
-    }
-
-    if density_mode() == "compact" then
-        local names_label = Settings.bisCompactFullNames and "Full Names" or "Short Names"
-        toolbar[#toolbar + 1] = {
-            width = button_text_width(names_label),
-            draw = function()
-                if toggle_button(names_label .. "##bis_names", Settings.bisCompactFullNames == true) then
-                    Settings.bisCompactFullNames = not (Settings.bisCompactFullNames == true)
-                    roster_cache.key = nil
-                    SaveSettings()
-                end
-            end,
-        }
-    end
-
-    if Settings.bisShowUserLists ~= false and Settings.bisListMode ~= "user" then
-        toolbar[#toolbar + 1] = {
-            width = 190,
-            height = COMBO_ROW_H,
-            draw = draw_custom_lists_combo,
-        }
-        toolbar[#toolbar + 1] = {
-            width = button_text_width("Copy to Custom List"),
-            draw = function()
-                if themed_button("Copy to Custom List##bis_copy_catalog", Theme.sync, 0, NAV_BTN_H) then
-                    copy_catalog_to_custom(catalog_id)
-                end
-                if ImGui.IsItemHovered and ImGui.IsItemHovered() and ImGui.SetTooltip then
-                    ImGui.SetTooltip("Make an editable copy of this BiS catalog for the current character/class.")
-                end
-            end,
-        }
-    end
+    -- Missing Only + Compact/Full Names live on the pill row (ui.lua chrome,
+    -- M.draw_quick_toggles). Copy to Custom List lives in the List pill.
 
     if REF_LISTS_FOCUS[catalog_id] then
         toolbar[#toolbar + 1] = {
@@ -2511,7 +2361,6 @@ local function draw_bis_body()
         draw_catalog_buttons()
         ImGui.Spacing()
     end
-    draw_bis_search()
     local catalog_id = (Settings.bisListMode ~= "user") and selected_catalog_id() or ""
     if catalog_id ~= "" then
         reset_anguish_reference_toggles(catalog_id)
@@ -2594,6 +2443,43 @@ function M.open_catalog_list(list_id, search_text)
     if search_text and tostring(search_text) ~= "" then
         filter = tostring(search_text)
     end
+end
+
+-- List pill lives in bis_list_pill.lua (keeps this chunk under the 200-local limit).
+-- Force-reload when VERSION changes so /lua stop+run picks up edits (MQ may keep package.loaded).
+function M.draw_list_pill(opts)
+    local ver = 11
+    if rawget(_G, "__TGListPillVer") ~= ver then
+        package.loaded["bis_list_pill"] = nil
+        _G.__TGListPillVer = ver
+    end
+    local ok, pill = pcall(require, "bis_list_pill")
+    if not ok or not pill or not pill.draw then return false end
+    -- Stale-version retry ONCE per session, never per-frame: a per-frame
+    -- reload would reset the pill module's state every frame (the panel
+    -- could open but never stay open).
+    if tonumber(pill.VERSION) and tonumber(pill.VERSION) ~= ver
+        and rawget(_G, "__TGListPillVerRetry") ~= ver then
+        _G.__TGListPillVerRetry = ver
+        package.loaded["bis_list_pill"] = nil
+        ok, pill = pcall(require, "bis_list_pill")
+        if not ok or not pill or not pill.draw then return false end
+    end
+    return pill.draw(opts, {
+        ensure_visible_catalog = ensure_visible_catalog,
+        clear_filter = clear_bis_filter,
+        select_user_list = select_user_list,
+        selected_catalog_id = selected_catalog_id,
+        copy_catalog_to_custom = function()
+            copy_catalog_to_custom(selected_catalog_id())
+        end,
+        invalidate_roster = function() roster_cache.key = nil end,
+        set_status = function(msg) status_msg = tostring(msg or "") end,
+        -- Compact/Full view (pill VIEW section). Must go through the toggle:
+        -- it flips density + name mode together and invalidates the roster.
+        is_compact = function() return not view_mode_is_full_names() end,
+        toggle_compact = function() toggle_compact_full_names() end,
+    })
 end
 
 return M

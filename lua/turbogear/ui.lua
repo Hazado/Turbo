@@ -850,20 +850,34 @@ local function characters_tab_for_main(main)
 end
 
 local function draw_characters_chrome(main)
-    if Settings.showCharactersPill ~= true then return false end
-    local tab = characters_tab_for_main(main)
-    if not tab then return false end
-    local width = 260
-    if characters.is_list and characters.is_list(tab) then width = 280
-    elseif characters.is_primary(tab) then width = 320
-    elseif characters.is_picker(tab) then width = 280 end
-    characters.draw_pill(tab, { width = width, height = 22 })
-    local msg = characters.take_status()
-    if msg and msg ~= "" then
-        ImGui.SameLine()
-        col_text(Theme.dim, msg)
+    local drew = false
+    if Settings.showCharactersPill == true then
+        local tab = characters_tab_for_main(main)
+        if tab then
+            local width = 260
+            if characters.is_list and characters.is_list(tab) then width = 280
+            elseif characters.is_primary(tab) then width = 320
+            elseif characters.is_picker(tab) then width = 280 end
+            characters.draw_pill(tab, { width = width, height = 22 })
+            drew = true
+            local msg = characters.take_status()
+            if msg and msg ~= "" then
+                ImGui.SameLine()
+                col_text(Theme.dim, msg)
+            end
+        end
     end
-    return true
+    -- List pill is global BiS mode chrome (not Link Scope). Shown even in Manage Lists.
+    if tostring(main or "") == "bis" and bis.draw_list_pill then
+        if drew then ImGui.SameLine() end
+        if bis.draw_list_pill({ height = 22 }) then drew = true end
+        -- Missing Only + Full Names/Compact live right of the pill (not in edit mode).
+        if tostring(Settings.bisListsTab or "catalog") ~= "edit" and bis.draw_quick_toggles then
+            if drew then ImGui.SameLine() end
+            bis.draw_quick_toggles()
+        end
+    end
+    return drew
 end
 
 local function draw_gear_chrome()
@@ -933,22 +947,9 @@ local function draw_upgrade_body(cur)
 end
 
 local function draw_bis_lists_chrome()
-    if (Settings.bisListsTab or "catalog") ~= "edit" then
-        Settings.bisListsTab = tostring(Settings.bisListMode or "catalog") == "user" and "my" or "catalog"
-    end
-    local cur = Settings.bisListsTab or "catalog"
-    cur = draw_tab_buttons({
-        { key = "catalog", label = "BiS Catalog" },
-        { key = "my", label = "Custom Lists" },
-        { key = "edit", label = "Manage Lists" },
-    }, cur, "tg_bis_lists", true, function(tab)
-        Settings.bisListsTab = tab
-        if tab == "catalog" then Settings.bisListMode = "catalog"
-        elseif tab == "my" then Settings.bisListMode = "user" end
-        SaveSettings()
-    end)
-    ImGui.Separator()
-    return cur
+    -- List pill owns bisListsTab + bisListMode. Do not rewrite them here —
+    -- syncing tab from mode every frame made it impossible to leave custom lists.
+    return Settings.bisListsTab or "catalog"
 end
 
 local function draw_bis_lists_body(cur)
@@ -958,10 +959,11 @@ local function draw_bis_lists_body(cur)
         if setup.draw_user_lists_editor then diag.time("ui.bis_lists.edit", setup.draw_user_lists_editor)
         else col_text(Theme.amber, "List editor is unavailable.") end
     else
-        if cur == "catalog" and Settings.bisListMode ~= "catalog" then
-            Settings.bisListMode = "catalog"; SaveSettings()
-        elseif cur == "my" and Settings.bisListMode ~= "user" then
-            Settings.bisListMode = "user"; SaveSettings()
+        -- Tab wins: keep bisListMode aligned so bis.draw matches the pill.
+        if cur == "catalog" then
+            if Settings.bisListMode ~= "catalog" then Settings.bisListMode = "catalog" end
+        elseif cur == "my" then
+            if Settings.bisListMode ~= "user" then Settings.bisListMode = "user" end
         end
         diag.time("ui.bis_lists.catalog", bis.draw)
     end

@@ -514,14 +514,25 @@ end
 
 function M.set_list_hidden(id, hidden)
     id = tostring(id or "")
-    if id == "" then return end
+    if id == "" then return false end
     Settings.bisHiddenLists = type(Settings.bisHiddenLists) == "table" and Settings.bisHiddenLists or {}
     if hidden then
+        -- Guard: never hide the last visible catalog (force it to stay).
+        local remaining = 0
+        for _, spec in ipairs(UI_LIST_BUTTONS) do
+            if tostring(spec.id) ~= id and not M.list_hidden(spec.id) and M.list(spec.id) then
+                remaining = remaining + 1
+            end
+        end
+        if remaining <= 0 then
+            return false
+        end
         Settings.bisHiddenLists[id] = true
     else
         Settings.bisHiddenLists[id] = nil
     end
     if SaveSettings then SaveSettings() end
+    return true
 end
 
 function M.ui_list_specs()

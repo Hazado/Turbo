@@ -392,7 +392,7 @@ return {
     },
     singles = {
       { id = 79226, name = 'Tome of Arcane Reprisal', spell_id = 10889, ability = 'Arcane Reprisal' },
-      { id = 59925, name = 'Tome of Battle Focus Discipline', spell_id = 5038, ability = 'Battle Focus Discipline' },
+      { id = 59925, name = 'Tome of Battle Focus Discipline', spell_id = 15116, ability = 'Battle Focus Effect' },
       { id = 79251, name = 'Tome of Bloodcurdling Scream', spell_id = 10915, ability = 'Bloodcurdling Scream' },
       { id = 50120, name = 'Tome of Cleaving Madness Discipline', spell_id = 10860, ability = 'Cleaving Madness Discipline' },
       { id = 50118, name = 'Tome of Cry of Catastrophe', spell_id = 10857, ability = 'Cry of Catastrophe' },

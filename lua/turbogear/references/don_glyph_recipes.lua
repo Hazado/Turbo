@@ -9,7 +9,10 @@
 --   Concordance of Research. These are pre-DoN (OoW research) items the
 --   glyph upgrades. Every rune needs a Receptive Runic Tablet (9615) -
 --   the imbued-tier bottleneck, like Formless Mnemonic Glyph (81948) is
---   for mnemonics. Formless has NO recipe - vendor/drop/quest (unconfirmed).
+--   for mnemonics. Formless has no recipe: it DROPS from Dark Reign named that
+--   are script-spawned into DoN mission instances (their spawn-table home zone,
+--   freeportarena, is just a staging zone - do not farm there). Also drops from
+--   Gimblax (delveb) and Wong Li (stillmoona).
 --
 -- glyph_spell_id: the spell the glyph CASTS when clicked (items.clickeffect).
 -- Glyphs are permanent clickies, not consumables: ownership stays item-based,
@@ -19,6 +22,10 @@
 return {
   glyph_container = { name = 'Lodestone of Mnemonic Binding', id = 66909 },
   rune_container  = { name = 'Concordance of Research', id = 17504 },
+  formless = {
+    name = 'Formless Mnemonic Glyph', id = 81948,
+    source = 'Drops: Dark Reign named inside DoN mission instances; also Gimblax (delveb), Wong Li (stillmoona)',
+  },
   glyphs = {
     {
       name = 'Imbued Glyph: Aegis of Vie', id = 76567, kind = 'imbued', glyph_spell_id = 15510,
