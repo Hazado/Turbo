@@ -4291,7 +4291,7 @@ TG.openAllaUrl = function(kind, id)
     local base = (kind == 'npc') and TG.allaNpcUrlBase or TG.allaItemUrlBase
     base = tostring(base or '')
     if not ShellOpen.isSafeHttpUrl(base) then
-        TG.statusMessage = 'Set a valid http(s) Alla URL base in More > Links.'
+        TG.statusMessage = 'Set a valid http(s) Alla URL base in More > Alla lookup URLs.'
         return false
     end
     if ShellOpen.openAllaPage(base, id) then
@@ -10915,12 +10915,13 @@ function TG.renderWindow()
         else
             local minW = Theme.layout.windowMinW or fullDefaultW or 480
             local maxW = Theme.layout.windowMaxW or 760
-            local minH = 620
-            ImGui.SetNextWindowSizeConstraints(minW, minH, maxW, 1040)
+            -- Height is theme-locked; allow only a small extra for the update banner.
+            local minH = fullDefaultH
+            local maxH = fullDefaultH + 48
+            ImGui.SetNextWindowSizeConstraints(minW, minH, maxW, maxH)
             local saved = g.fullWindowSize
             local targetW = (saved and saved.w) or fullDefaultW
-            local targetH = (saved and saved.h) or fullDefaultH
-            ImGui.SetNextWindowSize(targetW, targetH, ImGuiCond.FirstUseEver)
+            ImGui.SetNextWindowSize(targetW, fullDefaultH, ImGuiCond.FirstUseEver)
         end
     end)
 
@@ -10952,29 +10953,37 @@ function TG.renderWindow()
                         UiState.windowHeightForTab(true, g.activeTab, Theme)
                     )
                 end)
-            elseif not g.userSizedFullWindow then
+            else
                 local saved = g.fullWindowSize
-                pcall(function()
-                    ImGui.SetWindowSize(
-                        (saved and saved.w) or fullDefaultW,
-                        (saved and saved.h) or fullDefaultH
-                    )
-                end)
+                local w = (saved and saved.w) or fullDefaultW
+                pcall(function() ImGui.SetWindowSize(w, fullDefaultH) end)
+                g.fullWindowSize = { w = w, h = fullDefaultH }
             end
         elseif g.slimGUI ~= g.lastSlimGUIForResize then
             g.lastSlimGUIForResize = g.slimGUI
             local targetW = g.slimGUI and (g.slimIniExpanded and 390 or 280)
                 or ((g.fullWindowSize and g.fullWindowSize.w) or fullDefaultW)
             local targetH = g.slimGUI and UiState.windowHeightForTab(true, g.activeTab, Theme)
-                or ((g.fullWindowSize and g.fullWindowSize.h) or fullDefaultH)
+                or fullDefaultH
             pcall(function() ImGui.SetWindowSize(targetW, targetH) end)
-        end
-        if not g.slimGUI then
-            local okSize, sx, sy = pcall(ImGui.GetWindowSize)
-            if okSize and sx and sy then
-                g.fullWindowSize = { w = sx, h = sy }
-                g.userSizedFullWindow = true
+            if not g.slimGUI then
+                g.fullWindowSize = { w = targetW, h = fullDefaultH }
             end
+        end
+        -- Full mode: pin height to the theme shell every frame so tab content /
+        -- update banner cannot permanently grow the window. Width may follow
+        -- the last shell width (clamped). Banner adds a temporary reserve only.
+        if not g.slimGUI then
+            local minW = Theme.layout.windowMinW or fullDefaultW or 480
+            local maxW = Theme.layout.windowMaxW or 760
+            local baseW = (g.fullWindowSize and g.fullWindowSize.w) or fullDefaultW
+            baseW = math.max(minW, math.min(maxW, tonumber(baseW) or fullDefaultW))
+            local bannerReserve = 0
+            if g._updateBannerHeightApplied then
+                bannerReserve = tonumber(g._updateBannerReservePx) or 36
+            end
+            pcall(function() ImGui.SetWindowSize(baseW, fullDefaultH + bannerReserve) end)
+            g.fullWindowSize = { w = baseW, h = fullDefaultH }
         end
 
         ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, 4, 3)
@@ -11010,11 +11019,15 @@ function TG.renderWindow()
         -- ============ TOP BAR + TAB BAR ============
         g.cachedEventRadiusDisplay = eventLootRadius or g.lootRadius
         local function rememberFullWindowSize()
-            local okSize, sx, sy = pcall(ImGui.GetWindowSize)
-            if okSize and sx and sy and not g.slimGUI then
-                g.fullWindowSize = { w = sx, h = sy }
-                g.userSizedFullWindow = true
-            end
+            -- Full hub height is theme-locked; only remember width if the user
+            -- stretched the window horizontally within min/max.
+            if g.slimGUI then return end
+            local okSize, sx = pcall(ImGui.GetWindowSize)
+            if not (okSize and sx) then return end
+            local minW = Theme.layout.windowMinW or fullDefaultW or 480
+            local maxW = Theme.layout.windowMaxW or 760
+            sx = math.max(minW, math.min(maxW, tonumber(sx) or fullDefaultW))
+            g.fullWindowSize = { w = sx, h = fullDefaultH }
         end
 
         local function ensureWindowHeight(targetH)
@@ -11051,28 +11064,14 @@ function TG.renderWindow()
                     onDismiss = function() end,
                 }) == true
             end
-            -- Keep tab content height stable: grow/shrink the shell when the
-            -- banner appears or is dismissed so Actions/More do not gain a
-            -- surprise scrollbar from the extra row.
+            -- Temporary height only while the banner is visible (not saved).
             local reserve = (okUC and UC and tonumber(UC.BANNER_WINDOW_RESERVE)) or 36
-            if drewBanner and not g._updateBannerHeightApplied then
-                local okSize, sx, sy = pcall(ImGui.GetWindowSize)
-                if okSize and sx and sy then
-                    pcall(function() ImGui.SetWindowSize(sx, sy + reserve) end)
-                    g._updateBannerHeightApplied = true
-                    if g.fullWindowSize and g.fullWindowSize.h then
-                        g.fullWindowSize.h = g.fullWindowSize.h + reserve
-                    end
-                end
-            elseif (not drewBanner) and g._updateBannerHeightApplied then
-                local okSize, sx, sy = pcall(ImGui.GetWindowSize)
-                if okSize and sx and sy then
-                    pcall(function() ImGui.SetWindowSize(sx, math.max(620, sy - reserve)) end)
-                    if g.fullWindowSize and g.fullWindowSize.h then
-                        g.fullWindowSize.h = math.max(620, g.fullWindowSize.h - reserve)
-                    end
-                end
+            if drewBanner then
+                g._updateBannerHeightApplied = true
+                g._updateBannerReservePx = reserve
+            else
                 g._updateBannerHeightApplied = false
+                g._updateBannerReservePx = nil
             end
         end)
         ImGui.Dummy(0, 2)

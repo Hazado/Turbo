@@ -506,7 +506,8 @@ function M.render(state, actions)
     end
 
     local function drawAllaSettings()
-        actions.thinSep('utility', 'Alla links')
+        if not ImGui.CollapsingHeader('Alla lookup URLs##tools_alla') then return end
+        actions.tip('Item/NPC lookup bases used by Open Alla from Review and elsewhere.')
         g.allaItemUrlBase = actions.Ui.compactInput('Item base', g.allaItemUrlBase, {
             id = '##tools_alla_item_base',
             labelW = 72,
@@ -660,7 +661,7 @@ function M.render(state, actions)
     end
 
     local function drawToolsDiagnostics()
-        actions.thinSep('utility', 'Review and diagnostics')
+        if not ImGui.CollapsingHeader('Review and diagnostics##tools_diag') then return end
         drawVariantGrid({
             {
                 label = 'Export Diagnostics##tools_export_diagnostics',
@@ -721,8 +722,8 @@ function M.render(state, actions)
     end
 
     local function drawToolsBackups()
+        if not ImGui.CollapsingHeader('Backups##tools_backups') then return end
         local targetName = selectedToolCharacter()
-        actions.thinSep('profile', 'Backups')
         drawVariantGrid({
             {
                 label = 'Backup TL INI##tools_backup_tl',
@@ -836,18 +837,16 @@ function M.render(state, actions)
     if g.activeTab == 'tools' then
         ImGui.TextColored(0.62, 0.70, 0.86, 1.0, 'More')
         ImGui.SameLine()
-        ImGui.TextColored(0.46, 0.50, 0.58, 1.0, 'maintenance, backups, links')
-        ImGui.Dummy(0, 6)
+        ImGui.TextColored(0.46, 0.50, 0.58, 1.0, 'files, links; expand for backups / diagnostics')
+        ImGui.Dummy(0, 4)
         drawToolCharacterSelector()
-        ImGui.Dummy(0, 4)
+        ImGui.Dummy(0, 2)
         drawFileOpenRow()
-        ImGui.Dummy(0, 4)
-        drawToolsDiagnostics()
-        ImGui.Dummy(0, 4)
-        drawToolsBackups()
-        ImGui.Dummy(0, 4)
+        ImGui.Dummy(0, 2)
         drawToolsLinks()
-        ImGui.Dummy(0, 4)
+        ImGui.Dummy(0, 2)
+        drawToolsDiagnostics()
+        drawToolsBackups()
         drawAllaSettings()
         if g.statusMessage ~= '' then
             actions.coloredSep(55, 60, 75, 60)

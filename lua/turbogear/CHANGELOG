@@ -1,3 +1,9 @@
+1.2.34
+- Hub shell locked to one height (~680) across Actions / Review / Setup / More so
+  the window stops growing and tab switches no longer change size. More: Backups,
+  diagnostics, and Alla URL bases collapse by default (links/files stay visible).
+  Review Clear All / corpse hide controls stay on the main Review page.
+
 1.2.33
 - Update banner: thinner single-row strip; hub grows/shrinks window height when
   the banner shows so Actions/Review/Setup/More keep a stable shell (less surprise

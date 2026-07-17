@@ -28,7 +28,7 @@ M.layout = {
     windowMaxW   = 620,
     fullTargetW  = 480,
     slimTargetW  = 280,
-    fullTargetH  = 720,
+    fullTargetH  = 680,
     slimTargetH  = 700,
     actionsFullW = 480,
     setupFullW   = 480,
@@ -38,15 +38,14 @@ M.layout = {
     -- Actions / Setup / Review. Set to the widest of the three per-tab
     -- widths above so nothing gets clipped.
     bigViewW     = 480,
-    -- Unified full-view height. Actions / Review / Setup use the same target
-    -- size so switching tabs does not resize the window; only Review's
-    -- skipped-loot list should scroll.
-    bigViewH     = 720,
+    -- Unified full-view height. Actions / Review / Setup / More share one
+    -- shell so tab switches do not resize the window.
+    bigViewH     = 680,
     actionsFullH = 640,
     toolsFullH   = 620,
     gainsFullH   = 720,
     actionsSlimH = 700,
-    setupSharedFullH = 720,
+    setupSharedFullH = 680,
     setupAdvancedFullH = 860,
     setupFullH   = 820,
     reviewFullH  = 820,

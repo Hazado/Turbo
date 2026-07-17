@@ -68,8 +68,8 @@ function M.windowHeightForTab(isSlim, activeTab, Theme, opts)
     end
 
     -- Full path intentionally uses one shared shell height. Page content
-    -- scrolls inside the window; tab switches must not resize the window.
-    return Theme.layout.bigViewH or Theme.layout.fullTargetH or 720
+    -- that is taller scrolls inside the window; tab switches must not resize.
+    return Theme.layout.bigViewH or Theme.layout.fullTargetH or 680
 end
 
 function M.windowWidthForTab(isSlim, activeTab, Theme)
