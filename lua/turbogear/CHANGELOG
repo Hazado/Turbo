@@ -1,3 +1,8 @@
+1.2.28
+- Update banner: recheck GitHub every 15m when up to date (was stuck 6h after a
+  same-version check). More → Check now forces a fetch. Banner row simplified
+  so it is harder to miss.
+
 1.2.27
 - Update check: spawn PowerShell via CreateProcess CREATE_NO_WINDOW so starting
   Turbo no longer flashes a command prompt. Veksar Cleric Glyph Aug renamed to

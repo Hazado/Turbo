@@ -809,10 +809,28 @@ function M.render(state, actions)
         if ImGui.IsItemHovered() and ImGui.SetTooltip then
             ImGui.SetTooltip('When on, Turbo occasionally checks GitHub for a newer suite version and shows a banner. Off = never check.')
         end
+        ImGui.SameLine()
+        if ImGui.SmallButton('Check now##tools_update_check_now') then
+            local okUC, UC = pcall(require, 'Turbo.update_check')
+            if okUC and UC and UC.force_check then
+                if UC.force_check(g) then
+                    g.statusMessage = 'Checking GitHub for a Turbo update...'
+                else
+                    g.statusMessage = 'Could not start update check (or checks are disabled).'
+                end
+                if actions.saveSettings then actions.saveSettings() end
+            end
+        end
+        if ImGui.IsItemHovered() and ImGui.SetTooltip then
+            ImGui.SetTooltip('Fetch the latest CHANGELOG from GitHub now and show the banner if you are behind.')
+        end
         if g.turboUpdateAvailable == true then
             ImGui.TextColored(1.0, 0.76, 0.29, 1.0, string.format(
-                'Update available → v%s (use Turbo Patcher above)',
+                'Update available → v%s (banner above, or Turbo Patcher)',
                 tostring(g.remoteTurboVersion or '?')))
+        elseif g.remoteTurboVersion and g.remoteTurboVersion ~= '' then
+            ImGui.TextColored(0.55, 0.60, 0.68, 1.0, string.format(
+                'GitHub: v%s (you are current)', tostring(g.remoteTurboVersion)))
         end
     end
 

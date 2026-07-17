@@ -12,7 +12,10 @@ local CHANGELOG_URL =
     'https://raw.githubusercontent.com/drel-git/Turbo/main/lua/turbogear/CHANGELOG'
 local PATCHER_RELEASES_URL =
     'https://github.com/drel-git/TurboPatcher/releases/latest'
-local THROTTLE_S = 6 * 60 * 60
+-- When already behind, don't re-hit GitHub often. When up to date, recheck sooner
+-- so a new release shows up without waiting most of a day.
+local THROTTLE_BEHIND_S = 6 * 60 * 60
+local THROTTLE_OK_S = 15 * 60
 local RESULT_FILE = 'turbo_update_check.txt'
 local FETCH_MARKER = 'turbo_update_check.fetching'
 
@@ -200,11 +203,43 @@ local function should_fetch(g)
     if not settings_enabled(g) then return false end
     if state.busy then return false end
     local last = tonumber(g and g.updateCheckAt) or 0
-    if last > 0 and (os.time() - last) < THROTTLE_S and state.remoteVersion then
+    local throttle = THROTTLE_OK_S
+    if g and g.turboUpdateAvailable == true then
+        throttle = THROTTLE_BEHIND_S
+    elseif state.updateAvailable then
+        throttle = THROTTLE_BEHIND_S
+    end
+    if last > 0 and (os.time() - last) < throttle and state.remoteVersion then
         return false
     end
     -- Also throttle spawn attempts even before a result arrives.
-    if state.lastFetchStarted > 0 and (os.time() - state.lastFetchStarted) < 60 then
+    if state.lastFetchStarted > 0 and (os.time() - state.lastFetchStarted) < 45 then
+        return false
+    end
+    return true
+end
+
+--- Clear throttle/cache and fetch immediately (More → Check now).
+function M.force_check(g)
+    if not settings_enabled(g) then return false end
+    state.localVersion = M.read_local_changelog_version()
+    state.remoteVersion = nil
+    state.updateAvailable = false
+    state.lastFetchStarted = 0
+    state.busy = false
+    if g then
+        g.updateCheckAt = 0
+        g.updateBannerDismissedVersion = ''
+        g.turboUpdateAvailable = false
+        g.remoteTurboVersion = ''
+        g._updateCheckDirty = true
+    end
+    pcall(function() os.remove(config_path(RESULT_FILE)) end)
+    pcall(function() os.remove(config_path(FETCH_MARKER)) end)
+    state.lastFetchStarted = os.time()
+    state.busy = true
+    if not spawn_fetch() then
+        state.busy = false
         return false
     end
     return true
@@ -294,34 +329,28 @@ function M.draw_banner(g, opts)
     if not g or g.turboUpdateAvailable ~= true then return false end
     local localV = state.localVersion or M.read_local_changelog_version() or '?'
     local remoteV = state.remoteVersion or g.remoteTurboVersion or '?'
-    local msg = string.format('Turbo update available: v%s → v%s', localV, remoteV)
+    local msg = string.format('Update available: v%s → v%s', localV, remoteV)
 
-    ImGui.PushStyleColor(ImGuiCol.ChildBg, 0.16, 0.12, 0.04, 0.95)
-    ImGui.PushStyleColor(ImGuiCol.Border, 0.83, 0.60, 0.16, 1.0)
-    if ImGui.BeginChild('##turbo_update_banner', 0, opts.height or 32, true) then
-        pcall(function()
-            if ImGui.AlignTextToFramePadding then ImGui.AlignTextToFramePadding() end
-        end)
-        ImGui.TextColored(1.0, 0.76, 0.29, 1.0, msg)
-        ImGui.SameLine()
-        if ImGui.SmallButton('Update##turbo_update_go') then
-            if type(opts.onUpdate) == 'function' then opts.onUpdate() end
-        end
-        if ImGui.IsItemHovered() and ImGui.SetTooltip then
-            ImGui.SetTooltip('Launch TurboPatcher to install the update.')
-        end
-        ImGui.SameLine()
-        if ImGui.SmallButton('x##turbo_update_dismiss') then
-            M.dismiss(g)
-            if type(opts.onDismiss) == 'function' then opts.onDismiss() end
-        end
-        if ImGui.IsItemHovered() and ImGui.SetTooltip then
-            ImGui.SetTooltip('Dismiss until the next Turbo version.')
-        end
+    -- Flat row (no BeginChild) — more reliable in MQ ImGui and harder to miss.
+    ImGui.Separator()
+    ImGui.TextColored(1.0, 0.82, 0.28, 1.0, msg)
+    ImGui.SameLine()
+    if ImGui.SmallButton('Update##turbo_update_go') then
+        if type(opts.onUpdate) == 'function' then opts.onUpdate() end
     end
-    ImGui.EndChild()
-    ImGui.PopStyleColor(2)
-    ImGui.Dummy(0, 4)
+    if ImGui.IsItemHovered() and ImGui.SetTooltip then
+        ImGui.SetTooltip('Launch TurboPatcher to install the update.')
+    end
+    ImGui.SameLine()
+    if ImGui.SmallButton('Dismiss##turbo_update_dismiss') then
+        M.dismiss(g)
+        if type(opts.onDismiss) == 'function' then opts.onDismiss() end
+    end
+    if ImGui.IsItemHovered() and ImGui.SetTooltip then
+        ImGui.SetTooltip('Hide until the next Turbo version.')
+    end
+    ImGui.Separator()
+    ImGui.Dummy(0, 2)
     return true
 end
 
