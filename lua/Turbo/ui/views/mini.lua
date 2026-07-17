@@ -104,14 +104,14 @@ function M.render(state, actions, ui)
 
         if g.turboUpdateAvailable == true then
             if miniButton('Update##mini_turbo_update', 'amberButton', 64) then
-                if actions.openTurboPatcher then
-                    actions.openTurboPatcher()
-                elseif type(g.openTurboPatcherExternal) == 'function' then
-                    g.openTurboPatcherExternal()
+                if type(g.openTurboPatcherExternal) == 'function' then
+                    g.openTurboPatcherExternal({ update = true })
+                elseif actions.openTurboPatcher then
+                    actions.openTurboPatcher({ update = true })
                 end
             end
             actions.tip(string.format(
-                'Turbo update available (v%s). Opens TurboPatcher.',
+                'Turbo update available (v%s). Opens TurboPatcher and applies the update.',
                 tostring(g.remoteTurboVersion or '?')))
             sp6()
         end

@@ -4455,7 +4455,10 @@ end
 --- 'open'): no console window, and the patcher outlives this script if it
 --- stops us. Checked spots: <MQ>\, <MQ>\TurboPatcher\, <MQ>\Patcher\.
 --- On TG (not a local): the main chunk is near LuaJIT's 200-local limit.
-TG.openTurboPatcherExternal = function()
+--- opts.update = true → pass --update so the patcher applies the suite update
+--- after it finishes checking (used by the in-game update banner / mini Update).
+TG.openTurboPatcherExternal = function(opts)
+    opts = type(opts) == 'table' and opts or {}
     local exe
     local mqPath = (mq.TLO.MacroQuest.Path() or ''):gsub('[\\/]+$', '')
     if mqPath ~= '' then
@@ -4482,8 +4485,19 @@ TG.openTurboPatcherExternal = function()
         end
         return
     end
-    if shellOpenFile(exe) then
-        TG.statusMessage = 'Turbo Patcher launched: ' .. exe
+    local params = {}
+    if mqPath ~= '' then
+        params[#params + 1] = '--mq'
+        params[#params + 1] = '"' .. mqPath .. '"'
+    end
+    if opts.update then
+        params[#params + 1] = '--update'
+    end
+    local argStr = table.concat(params, ' ')
+    if shellOpenFile(exe, argStr ~= '' and argStr or nil) then
+        TG.statusMessage = opts.update
+            and ('Turbo Patcher launched (auto-update): ' .. exe)
+            or ('Turbo Patcher launched: ' .. exe)
     else
         TG.statusMessage = 'Could not launch Turbo Patcher: ' .. exe
     end
@@ -10728,7 +10742,9 @@ function TG.renderWindow()
                     g.skipReviewOpen = g.reviewWindowOpen
                 end
             end,
-            openTurboPatcher = TG.openTurboPatcherExternal,
+            openTurboPatcher = function(opts)
+                TG.openTurboPatcherExternal(opts)
+            end,
             setMiniLootMode = function(mode)
                 if TG.requireSharedControl('Loot mode') then
                     collectGroupMembers()
@@ -11027,7 +11043,9 @@ function TG.renderWindow()
             if okUC and UC and UC.draw_banner then
                 UC.draw_banner(g, {
                     onUpdate = function()
-                        if TG.openTurboPatcherExternal then TG.openTurboPatcherExternal() end
+                        if TG.openTurboPatcherExternal then
+                            TG.openTurboPatcherExternal({ update = true })
+                        end
                     end,
                     onDismiss = function() end,
                 })
@@ -12215,7 +12233,9 @@ function TG.renderWindow()
                 openGithub = function()
                     o.openTurboRepoWeb()
                 end,
-                openTurboPatcher = o.openTurboPatcherExternal,
+                openTurboPatcher = function(opts)
+                    o.openTurboPatcherExternal(opts)
+                end,
                 sendXTankMacro = function()
                     if TG.requireSharedControl('XTank macro broadcast') then
                         local cmd = TG.xtankBroadcastCommand()

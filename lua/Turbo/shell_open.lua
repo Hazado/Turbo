@@ -36,9 +36,13 @@ end
 --- Alias kept for callers that validate URL bases before appending IDs.
 M.isSafeHttpBaseUrl = M.isSafeHttpUrl
 
-function M.shellOpenExternal(target)
+--- Open a file/URL. Optional params is a command-line string for executables
+--- (e.g. '--mq "C:\\EQ" --update').
+function M.shellOpenExternal(target, params)
     target = tostring(target or ''):match('^%s*(.-)%s*$') or ''
     if target == '' then return false end
+    params = tostring(params or ''):match('^%s*(.-)%s*$') or ''
+    if params == '' then params = nil end
 
     local okFfi, ffi = pcall(require, 'ffi')
     if okFfi and ffi then
@@ -61,7 +65,7 @@ function M.shellOpenExternal(target)
                 state.shell32 = ffi.load('shell32')
                 state.ffi = ffi
             end
-            local ret = state.shell32.ShellExecuteA(nil, 'open', target, nil, nil, 1)
+            local ret = state.shell32.ShellExecuteA(nil, 'open', target, params, nil, 1)
             local code = tonumber(state.ffi.cast('intptr_t', ret))
             if not code or code <= 32 then
                 error('ShellExecuteA failed: ' .. tostring(code))
@@ -73,6 +77,8 @@ function M.shellOpenExternal(target)
     local ok2 = pcall(function()
         if target:lower():match('^https?://') then
             os.execute(string.format('start "" %s', M.winQuotedArg(target)))
+        elseif params then
+            os.execute(string.format('start "" %s %s', M.winQuotedArg(target), params))
         else
             os.execute(string.format('explorer %s', M.winQuotedArg(target)))
         end
@@ -80,10 +86,10 @@ function M.shellOpenExternal(target)
     return ok2 == true
 end
 
-function M.shellOpenFile(path)
+function M.shellOpenFile(path, params)
     path = tostring(path or ''):match('^%s*(.-)%s*$') or ''
     if path == '' then return false end
-    return M.shellOpenExternal(path)
+    return M.shellOpenExternal(path, params)
 end
 
 function M.shellOpenFolder(dir)
