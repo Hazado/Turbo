@@ -27,6 +27,8 @@ local tests = {
     "turbogear_degradation_test.lua",
     "turbogear_snapshot_delta_test.lua",
     "turbogear_spells_index_test.lua",
+    "turbogear_don_spells_test.lua",
+    "turbogear_spell_known_test.lua",
     "turbogear_store_test.lua",
     "turbogear_store_save_test.lua",
     "turbogear_store_sqlite_test.lua",

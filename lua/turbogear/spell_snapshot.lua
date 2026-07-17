@@ -127,6 +127,23 @@ function M.gather(className)
         end
     end
     merge_don_pack_spells(className, out, spell_ids_out)
+    do
+        local okDS, DS = pcall(require, 'don_spells')
+        if okDS and DS and DS.merge_into_spell_maps then
+            local SpellKnownMod = nil
+            pcall(function()
+                local okm, mod = pcall(require, 'spell_known')
+                if okm then SpellKnownMod = mod end
+            end)
+            DS.merge_into_spell_maps(
+                className,
+                out,
+                spell_ids_out,
+                probe_book,
+                SpellKnownMod and SpellKnownMod.live_id or nil
+            )
+        end
+    end
     return out, spell_ids_out
 end
 

@@ -1,3 +1,8 @@
+1.2.32
+- DoN spells/tomes: ownership uses references/don_spell_catalog (pack held, or
+  every scroll held / ability scribed). Spellsync probes catalog abilities and
+  spell_ids so opened packs and multi-scroll packs clear correctly.
+
 1.2.31
 - Update banner: ASCII-only version line (no broken "?" arrow glyph), amber bar,
   Update Now / Later buttons; mini shows Update vX + dismiss.

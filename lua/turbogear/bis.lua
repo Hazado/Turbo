@@ -683,9 +683,25 @@ local function is_local_eval_snap(snap)
     return trim(snap.name or ""):lower() == my
 end
 
+local DonSpells = nil
+local function ensure_don_spells()
+    if DonSpells ~= nil then return DonSpells end
+    local ok, mod = pcall(require, 'don_spells')
+    DonSpells = ok and mod or false
+    return DonSpells
+end
+
 local function match_entry(entry, snap)
     entry = normalize_entry_ro(entry)
     local idx = snapshot_index(snap)
+    -- DoN pack/single catalog: pack held OR every scroll/ability satisfied.
+    local DS = ensure_don_spells()
+    if DS and DS.try_match then
+        local handled, match, status = DS.try_match(entry, snap)
+        if handled then
+            return match, status or "missing", entry
+        end
+    end
     for _, id in ipairs(entry.ids or {}) do
         local rec = idx.by_id[tonumber(id)]
         if rec then return rec.item, rec.status, entry end
@@ -731,6 +747,18 @@ function M.evaluate_entry(entry, snap, opts)
     -- live-confirm individual hits at announce time.
     if match == nil and status == "missing" and not (opts and opts.skip_live) then
         if (opts and opts.live_fallback) or is_local_eval_snap(snap) then
+            local DS = ensure_don_spells()
+            if DS and DS.try_live_match then
+                local handled, liveMatch, liveStatus = DS.try_live_match(entry)
+                if handled then
+                    return {
+                        entry = entry,
+                        have = liveStatus ~= nil and liveStatus ~= "missing",
+                        match = liveMatch,
+                        status = liveStatus or "missing",
+                    }
+                end
+            end
             if live_own_cached(entry) then
                 return { entry = entry, have = true, match = nil, status = "carried" }
             end
@@ -753,6 +781,25 @@ local function link_matches_entry(entry, item_name, item_id)
     local iid = tonumber(item_id)
     if iid and iid > 0 then
         for _, id in ipairs(entry.ids or {}) do if tonumber(id) == iid then return true end end
+    end
+    -- DoN catalog: looted scroll/tome should match its pack or single row.
+    local DS = ensure_don_spells()
+    if DS and DS.lookup_entry then
+        local hit = DS.lookup_entry(entry)
+        if hit and hit.row then
+            if hit.kind == 'pack' then
+                if iid and tonumber(hit.row.id) == iid then return true end
+                local pn = norm(hit.row.name)
+                if lname ~= "" and pn ~= "" and lname == pn then return true end
+                for _, ab in ipairs(hit.row.abilities or {}) do
+                    if iid and tonumber(ab.item) == iid then return true end
+                    if lname ~= "" and norm(ab.item_name) == lname then return true end
+                end
+            elseif hit.kind == 'single' then
+                if iid and tonumber(hit.row.id) == iid then return true end
+                if lname ~= "" and norm(hit.row.name) == lname then return true end
+            end
+        end
     end
     return false
 end
