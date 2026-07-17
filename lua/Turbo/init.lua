@@ -11040,15 +11040,39 @@ function TG.renderWindow()
         if TG.turboChromeDragHandle then TG.turboChromeDragHandle('Drag empty Turbo header space to move the window.', false, 'main') end
         pcall(function()
             local okUC, UC = pcall(require, 'Turbo.update_check')
+            local drewBanner = false
             if okUC and UC and UC.draw_banner then
-                UC.draw_banner(g, {
+                drewBanner = UC.draw_banner(g, {
                     onUpdate = function()
                         if TG.openTurboPatcherExternal then
                             TG.openTurboPatcherExternal({ update = true })
                         end
                     end,
                     onDismiss = function() end,
-                })
+                }) == true
+            end
+            -- Keep tab content height stable: grow/shrink the shell when the
+            -- banner appears or is dismissed so Actions/More do not gain a
+            -- surprise scrollbar from the extra row.
+            local reserve = (okUC and UC and tonumber(UC.BANNER_WINDOW_RESERVE)) or 36
+            if drewBanner and not g._updateBannerHeightApplied then
+                local okSize, sx, sy = pcall(ImGui.GetWindowSize)
+                if okSize and sx and sy then
+                    pcall(function() ImGui.SetWindowSize(sx, sy + reserve) end)
+                    g._updateBannerHeightApplied = true
+                    if g.fullWindowSize and g.fullWindowSize.h then
+                        g.fullWindowSize.h = g.fullWindowSize.h + reserve
+                    end
+                end
+            elseif (not drewBanner) and g._updateBannerHeightApplied then
+                local okSize, sx, sy = pcall(ImGui.GetWindowSize)
+                if okSize and sx and sy then
+                    pcall(function() ImGui.SetWindowSize(sx, math.max(620, sy - reserve)) end)
+                    if g.fullWindowSize and g.fullWindowSize.h then
+                        g.fullWindowSize.h = math.max(620, g.fullWindowSize.h - reserve)
+                    end
+                end
+                g._updateBannerHeightApplied = false
             end
         end)
         ImGui.Dummy(0, 2)

@@ -1,3 +1,8 @@
+1.2.33
+- Update banner: thinner single-row strip; hub grows/shrinks window height when
+  the banner shows so Actions/Review/Setup/More keep a stable shell (less surprise
+  scrollbars). Patcher 1.2.3: gold Update Now pinned to the bottom of the window.
+
 1.2.32
 - DoN spells/tomes: ownership uses references/don_spell_catalog (pack held, or
   every scroll held / ability scribed). Spellsync probes catalog abilities and
