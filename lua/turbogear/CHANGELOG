@@ -1,3 +1,8 @@
+1.2.27
+- Update check: spawn PowerShell via CreateProcess CREATE_NO_WINDOW so starting
+  Turbo no longer flashes a command prompt. Veksar Cleric Glyph Aug renamed to
+  Enduring Focus Glyph: Pious Elixir of Divinity.
+
 1.2.26
 - Turbo hub: optional update check (GitHub CHANGELOG, ~6h) with banner + Update
   that launches TurboPatcher; missing exe opens the download page. More tab

@@ -102,6 +102,75 @@ local function write_ps1(ps1Path, outPath)
     return true
 end
 
+-- Spawn with CREATE_NO_WINDOW so os.execute / "start" never flashes a console.
+local CREATE_NO_WINDOW = 0x08000000
+local spawn_cdef_done = false
+
+local function spawn_hidden(cmdline)
+    cmdline = tostring(cmdline or '')
+    if cmdline == '' then return false end
+    local okFfi, ffi = pcall(require, 'ffi')
+    if not okFfi or not ffi then return false end
+    if not spawn_cdef_done then
+        local okDef = pcall(ffi.cdef, [[
+            typedef struct {
+                uint32_t cb;
+                char* lpReserved;
+                char* lpDesktop;
+                char* lpTitle;
+                uint32_t dwX;
+                uint32_t dwY;
+                uint32_t dwXSize;
+                uint32_t dwYSize;
+                uint32_t dwXCountChars;
+                uint32_t dwYCountChars;
+                uint32_t dwFillAttribute;
+                uint32_t dwFlags;
+                uint16_t wShowWindow;
+                uint16_t cbReserved2;
+                uint8_t* lpReserved2;
+                void* hStdInput;
+                void* hStdOutput;
+                void* hStdError;
+            } TURBO_STARTUPINFOA;
+            typedef struct {
+                void* hProcess;
+                void* hThread;
+                uint32_t dwProcessId;
+                uint32_t dwThreadId;
+            } TURBO_PROCESS_INFORMATION;
+            int CreateProcessA(
+                const char* lpApplicationName,
+                char* lpCommandLine,
+                void* lpProcessAttributes,
+                void* lpThreadAttributes,
+                int bInheritHandles,
+                uint32_t dwCreationFlags,
+                void* lpEnvironment,
+                const char* lpCurrentDirectory,
+                TURBO_STARTUPINFOA* lpStartupInfo,
+                TURBO_PROCESS_INFORMATION* lpProcessInformation
+            );
+            int CloseHandle(void* hObject);
+        ]])
+        if not okDef then return false end
+        spawn_cdef_done = true
+    end
+    local si = ffi.new('TURBO_STARTUPINFOA')
+    local pi = ffi.new('TURBO_PROCESS_INFORMATION')
+    si.cb = ffi.sizeof(si)
+    -- CreateProcess may mutate the command line buffer.
+    local buf = ffi.new('char[?]', #cmdline + 1)
+    ffi.copy(buf, cmdline)
+    local ok = ffi.C.CreateProcessA(
+        nil, buf, nil, nil, 0, CREATE_NO_WINDOW, nil, nil, si, pi) ~= 0
+    if ok then
+        pcall(function() ffi.C.CloseHandle(pi.hThread) end)
+        pcall(function() ffi.C.CloseHandle(pi.hProcess) end)
+    end
+    return ok
+end
+
 local function spawn_fetch()
     local outPath = config_path(RESULT_FILE)
     local ps1Path = config_path('turbo_update_check.ps1')
@@ -111,11 +180,13 @@ local function spawn_fetch()
         local mf = io.open(marker, 'w')
         if mf then mf:write(tostring(os.time())); mf:close() end
     end)
-    -- Detached so the ImGui/game loop never blocks on the network.
-    local cmd = string.format(
-        'start "" /B powershell -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File "%s"',
+    -- Detached + no console window (do not use os.execute / start — those flash cmd).
+    local cmdline = string.format(
+        'powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File "%s"',
         ps1Path)
-    local ok = pcall(os.execute, cmd)
+    if spawn_hidden(cmdline) then return true end
+    -- Last resort: still Hidden, but may flash on some hosts.
+    local ok = pcall(os.execute, 'start "" /B ' .. cmdline)
     return ok == true
 end
 

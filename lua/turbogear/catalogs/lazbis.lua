@@ -39795,9 +39795,9 @@ return {
           ["Glyph Aug"] = {
             ids = {
             },
-            item = "Enduring Focus Glyph: Pious Elixir",
+            item = "Enduring Focus Glyph: Pious Elixir of Divinity",
             names = {
-              "Enduring Focus Glyph: Pious Elixir",
+              "Enduring Focus Glyph: Pious Elixir of Divinity",
             },
             slot = "Glyph Aug",
           },
