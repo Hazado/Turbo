@@ -5361,6 +5361,17 @@ return {
             "Pack3",
             "Pack4",
             "Pack5",
+            "Pack6",
+            "Pack7",
+            "Pack8",
+            "Pack9",
+            "Pack10",
+          },
+        },
+        {
+          name = "Clickies",
+          slots = {
+            "Clicky",
           },
         },
         {
@@ -5389,12 +5400,6 @@ return {
             "Aug10",
             "Aug11",
             "Aug12",
-          },
-        },
-        {
-          name = "Clickies",
-          slots = {
-            "Clicky",
           },
         },
         {
@@ -5454,7 +5459,7 @@ return {
               "Cryptic Clutch of Malevolent Efficiency",
               "Vacant Vessel of Malevolent Efficiency",
             },
-            notes = "-11-33% detrimental spell mana cost | +10 hINT",
+            notes = "-11–33% detrimental spell mana cost | +10 hINT",
             slot = "Aug2",
           },
           Aug3 = {
@@ -5743,6 +5748,76 @@ return {
               "Echoes of the Ancient",
             },
           },
+          Pack4 = {
+            ids = {
+              81935,
+            },
+            item = "Song: Niv's Symphonic",
+            names = {
+              "Song: Niv's Symphonic",
+            },
+            slot = "Pack4",
+            spell = "Niv's Symphonic",
+            spells = {
+              "Niv's Symphonic",
+            },
+          },
+          Pack5 = {
+            ids = {
+              78739,
+            },
+            item = "Song: One Bard Band",
+            names = {
+              "Song: One Bard Band",
+            },
+            slot = "Pack5",
+            spell = "One Bard Band",
+            spells = {
+              "One Bard Band",
+            },
+          },
+          Pack6 = {
+            ids = {
+              50157,
+            },
+            item = "Song: Squall Blade",
+            names = {
+              "Song: Squall Blade",
+            },
+            slot = "Pack6",
+            spell = "Squall Blade",
+            spells = {
+              "Squall Blade",
+            },
+          },
+          Pack7 = {
+            ids = {
+              79226,
+            },
+            item = "Tome of Arcane Reprisal",
+            names = {
+              "Tome of Arcane Reprisal",
+            },
+            slot = "Pack7",
+            spell = "Arcane Reprisal",
+            spells = {
+              "Arcane Reprisal",
+            },
+          },
+          Pack8 = {
+            ids = {
+              50156,
+            },
+            item = "Tome of Endless Blades",
+            names = {
+              "Tome of Endless Blades",
+            },
+            slot = "Pack8",
+            spell = "Endless Blades",
+            spells = {
+              "Endless Blades",
+            },
+          },
           Ranged = {
             ids = {
               55052,
@@ -5864,7 +5939,7 @@ return {
               "Cryptic Clutch of Chilling Demise",
               "Vacant Vessel of Chilling Demise",
             },
-            notes = "+10-60% cold spell damage | +5 hINT, +25 hCR",
+            notes = "+10–60% cold spell damage | +5 hINT, +25 hCR",
             slot = "Aug11",
           },
           Aug12 = {
@@ -5892,7 +5967,7 @@ return {
               "Cryptic Clutch of Malevolent Efficiency",
               "Vacant Vessel of Malevolent Efficiency",
             },
-            notes = "-11-33% detrimental spell mana cost | +10 hINT",
+            notes = "-11–33% detrimental spell mana cost | +10 hINT",
             slot = "Aug2",
           },
           Aug3 = {
@@ -5920,7 +5995,7 @@ return {
               "Cryptic Clutch of Noxious Demise",
               "Vacant Vessel of Noxious Demise",
             },
-            notes = "+10-60% poison spell damage | +5 hINT, +25 hPR",
+            notes = "+10–60% poison spell damage | +5 hINT, +25 hPR",
             slot = "Aug4",
           },
           Aug5 = {
@@ -5934,7 +6009,7 @@ return {
               "Cryptic Clutch of Festering Demise",
               "Vacant Vessel of Festering Demise",
             },
-            notes = "+10-60% disease spell damage | +5 hINT, +25 hDR",
+            notes = "+10–60% disease spell damage | +5 hINT, +25 hDR",
             slot = "Aug5",
           },
           Aug6 = {
@@ -5948,7 +6023,7 @@ return {
               "Cryptic Clutch of Merciful Mending",
               "Vacant Vessel of Merciful Mending",
             },
-            notes = "+10-60% healing | +10 hWIS",
+            notes = "+10–60% healing | +10 hWIS",
             slot = "Aug6",
           },
           Aug7 = {
@@ -6219,6 +6294,76 @@ return {
               "Sha's Urgent Renewal",
             },
           },
+          Pack5 = {
+            ids = {
+              81933,
+            },
+            item = "Spell: Feral Mettle",
+            names = {
+              "Spell: Feral Mettle",
+            },
+            slot = "Pack5",
+            spell = "Feral Mettle",
+            spells = {
+              "Feral Mettle",
+            },
+          },
+          Pack6 = {
+            ids = {
+              81934,
+            },
+            item = "Spell: Ravenous Ice",
+            names = {
+              "Spell: Ravenous Ice",
+            },
+            slot = "Pack6",
+            spell = "Ravenous Ice",
+            spells = {
+              "Ravenous Ice",
+            },
+          },
+          Pack7 = {
+            ids = {
+              78701,
+            },
+            item = "Spell: Roaring Sleet",
+            names = {
+              "Spell: Roaring Sleet",
+            },
+            slot = "Pack7",
+            spell = "Roaring Sleet",
+            spells = {
+              "Roaring Sleet",
+            },
+          },
+          Pack8 = {
+            ids = {
+              81868,
+            },
+            item = "Spell: Spiritual Enlightenment",
+            names = {
+              "Spell: Spiritual Enlightenment",
+            },
+            slot = "Pack8",
+            spell = "Spiritual Enlightenment",
+            spells = {
+              "Spiritual Enlightenment",
+            },
+          },
+          Pack9 = {
+            ids = {
+              81867,
+            },
+            item = "Spell: Swift Salve of the Stillmoon",
+            names = {
+              "Spell: Swift Salve of the Stillmoon",
+            },
+            slot = "Pack9",
+            spell = "Swift Salve of the Stillmoon",
+            spells = {
+              "Swift Salve of the Stillmoon",
+            },
+          },
           Ranged = {
             ids = {
               71627,
@@ -6340,7 +6485,7 @@ return {
               "Cryptic Clutch of Noxious Demise",
               "Vacant Vessel of Noxious Demise",
             },
-            notes = "+10-60% poison spell damage | +5 hINT, +25 hPR",
+            notes = "+10–60% poison spell damage | +5 hINT, +25 hPR",
             slot = "Aug3",
           },
           Aug4 = {
@@ -6581,6 +6726,132 @@ return {
               "Ancient: Annihilator's Volley",
             },
           },
+          Pack10 = {
+            ids = {
+              80281,
+            },
+            item = "Tome of Wounded Rage Discipline",
+            names = {
+              "Tome of Wounded Rage Discipline",
+            },
+            slot = "Pack10",
+            spell = "Wounded Rage Discipline",
+            spells = {
+              "Wounded Rage Discipline",
+            },
+          },
+          Pack2 = {
+            ids = {
+              79226,
+            },
+            item = "Tome of Arcane Reprisal",
+            names = {
+              "Tome of Arcane Reprisal",
+            },
+            slot = "Pack2",
+            spell = "Arcane Reprisal",
+            spells = {
+              "Arcane Reprisal",
+            },
+          },
+          Pack3 = {
+            ids = {
+              59925,
+            },
+            item = "Tome of Battle Focus Discipline",
+            names = {
+              "Tome of Battle Focus Discipline",
+            },
+            slot = "Pack3",
+            spell = "Battle Focus Discipline",
+            spells = {
+              "Battle Focus Discipline",
+            },
+          },
+          Pack4 = {
+            ids = {
+              79251,
+            },
+            item = "Tome of Bloodcurdling Scream",
+            names = {
+              "Tome of Bloodcurdling Scream",
+            },
+            slot = "Pack4",
+            spell = "Bloodcurdling Scream",
+            spells = {
+              "Bloodcurdling Scream",
+            },
+          },
+          Pack5 = {
+            ids = {
+              50120,
+            },
+            item = "Tome of Cleaving Madness Discipline",
+            names = {
+              "Tome of Cleaving Madness Discipline",
+            },
+            slot = "Pack5",
+            spell = "Cleaving Madness Discipline",
+            spells = {
+              "Cleaving Madness Discipline",
+            },
+          },
+          Pack6 = {
+            ids = {
+              50118,
+            },
+            item = "Tome of Cry of Catastrophe",
+            names = {
+              "Tome of Cry of Catastrophe",
+            },
+            slot = "Pack6",
+            spell = "Cry of Catastrophe",
+            spells = {
+              "Cry of Catastrophe",
+            },
+          },
+          Pack7 = {
+            ids = {
+              80081,
+            },
+            item = "Tome of Fourth Wind",
+            names = {
+              "Tome of Fourth Wind",
+            },
+            slot = "Pack7",
+            spell = "Fourth Wind",
+            spells = {
+              "Fourth Wind",
+            },
+          },
+          Pack8 = {
+            ids = {
+              80280,
+            },
+            item = "Tome of Rancorous Flurry Discipline",
+            names = {
+              "Tome of Rancorous Flurry Discipline",
+            },
+            slot = "Pack8",
+            spell = "Rancorous Flurry Discipline",
+            spells = {
+              "Rancorous Flurry Discipline",
+            },
+          },
+          Pack9 = {
+            ids = {
+              50119,
+            },
+            item = "Tome of Vigorous Axe Throw",
+            names = {
+              "Tome of Vigorous Axe Throw",
+            },
+            slot = "Pack9",
+            spell = "Vigorous Axe Throw",
+            spells = {
+              "Vigorous Axe Throw",
+            },
+          },
           Ranged = {
             ids = {
               55052,
@@ -6674,7 +6945,7 @@ return {
               "Cryptic Clutch of Benevolent Efficiency",
               "Vacant Vessel of Benevolent Efficiency",
             },
-            notes = "-11-33% beneficial spell mana cost | +10 hWIS",
+            notes = "-11–33% beneficial spell mana cost | +10 hWIS",
             slot = "Aug1",
           },
           Aug10 = {
@@ -6744,7 +7015,7 @@ return {
               "Cryptic Clutch of Malevolent Efficiency",
               "Vacant Vessel of Malevolent Efficiency",
             },
-            notes = "-11-33% detrimental spell mana cost | +10 hINT",
+            notes = "-11–33% detrimental spell mana cost | +10 hINT",
             slot = "Aug4",
           },
           Aug5 = {
@@ -6786,7 +7057,7 @@ return {
               "Cryptic Clutch of Arcane Demise",
               "Vacant Vessel of Arcane Demise",
             },
-            notes = "+10-60% magic spell damage | +5 hINT, +25 hMR",
+            notes = "+10–60% magic spell damage | +5 hINT, +25 hMR",
             slot = "Aug7",
           },
           Aug8 = {
@@ -6814,7 +7085,7 @@ return {
               "Cryptic Clutch of Merciful Mending",
               "Vacant Vessel of Merciful Mending",
             },
-            notes = "+10-60% healing | +10 hWIS",
+            notes = "+10–60% healing | +10 hWIS",
             slot = "Aug9",
           },
           Back = {
@@ -7041,6 +7312,90 @@ return {
               "Aegis of Vie",
             },
           },
+          Pack4 = {
+            ids = {
+              80284,
+            },
+            item = "Spell: Chromablast",
+            names = {
+              "Spell: Chromablast",
+            },
+            slot = "Pack4",
+            spell = "Chromablast",
+            spells = {
+              "Chromablast",
+            },
+          },
+          Pack5 = {
+            ids = {
+              124941,
+            },
+            item = "Spell: Divine Redemption",
+            names = {
+              "Spell: Divine Redemption",
+            },
+            slot = "Pack5",
+            spell = "Divine Redemption",
+            spells = {
+              "Divine Redemption",
+            },
+          },
+          Pack6 = {
+            ids = {
+              78149,
+            },
+            item = "Spell: Elixir of Redemption",
+            names = {
+              "Spell: Elixir of Redemption",
+            },
+            slot = "Pack6",
+            spell = "Elixir of Redemption",
+            spells = {
+              "Elixir of Redemption",
+            },
+          },
+          Pack7 = {
+            ids = {
+              78086,
+            },
+            item = "Spell: Sound of Zeal",
+            names = {
+              "Spell: Sound of Zeal",
+            },
+            slot = "Pack7",
+            spell = "Sound of Zeal",
+            spells = {
+              "Sound of Zeal",
+            },
+          },
+          Pack8 = {
+            ids = {
+              80282,
+            },
+            item = "Spell: Urgent Renewal",
+            names = {
+              "Spell: Urgent Renewal",
+            },
+            slot = "Pack8",
+            spell = "Urgent Renewal",
+            spells = {
+              "Urgent Renewal",
+            },
+          },
+          Pack9 = {
+            ids = {
+              80283,
+            },
+            item = "Spell: Vigilant Censure",
+            names = {
+              "Spell: Vigilant Censure",
+            },
+            slot = "Pack9",
+            spell = "Vigilant Censure",
+            spells = {
+              "Vigilant Censure",
+            },
+          },
           Ranged = {
             ids = {
               60535,
@@ -7134,7 +7489,7 @@ return {
               "Cryptic Clutch of Benevolent Efficiency",
               "Vacant Vessel of Benevolent Efficiency",
             },
-            notes = "-11-33% beneficial spell mana cost | +10 hWIS",
+            notes = "-11–33% beneficial spell mana cost | +10 hWIS",
             slot = "Aug1",
           },
           Aug10 = {
@@ -7148,7 +7503,7 @@ return {
               "Cryptic Clutch of Merciful Mending",
               "Vacant Vessel of Merciful Mending",
             },
-            notes = "+10-60% healing | +10 hWIS",
+            notes = "+10–60% healing | +10 hWIS",
             slot = "Aug10",
           },
           Aug11 = {
@@ -7218,7 +7573,7 @@ return {
               "Cryptic Clutch of Malevolent Efficiency",
               "Vacant Vessel of Malevolent Efficiency",
             },
-            notes = "-11-33% detrimental spell mana cost | +10 hINT",
+            notes = "-11–33% detrimental spell mana cost | +10 hINT",
             slot = "Aug4",
           },
           Aug5 = {
@@ -7260,7 +7615,7 @@ return {
               "Cryptic Clutch of Fiery Demise",
               "Vacant Vessel of Fiery Demise",
             },
-            notes = "+10-60% fire spell damage | +5 hINT, +25 hFR",
+            notes = "+10–60% fire spell damage | +5 hINT, +25 hFR",
             slot = "Aug7",
           },
           Aug8 = {
@@ -7274,7 +7629,7 @@ return {
               "Cryptic Clutch of Arcane Demise",
               "Vacant Vessel of Arcane Demise",
             },
-            notes = "+10-60% magic spell damage | +5 hINT, +25 hMR",
+            notes = "+10–60% magic spell damage | +5 hINT, +25 hMR",
             slot = "Aug8",
           },
           Aug9 = {
@@ -7515,6 +7870,90 @@ return {
               "Sun's Blistering Corona",
             },
           },
+          Pack4 = {
+            ids = {
+              80757,
+            },
+            item = "Spell: Ascent Frost",
+            names = {
+              "Spell: Ascent Frost",
+            },
+            slot = "Pack4",
+            spell = "Ascent Frost",
+            spells = {
+              "Ascent Frost",
+            },
+          },
+          Pack5 = {
+            ids = {
+              78200,
+            },
+            item = "Spell: Breath of the Ascent",
+            names = {
+              "Spell: Breath of the Ascent",
+            },
+            slot = "Pack5",
+            spell = "Breath of the Ascent",
+            spells = {
+              "Breath of the Ascent",
+            },
+          },
+          Pack6 = {
+            ids = {
+              80758,
+            },
+            item = "Spell: Dawnflame",
+            names = {
+              "Spell: Dawnflame",
+            },
+            slot = "Pack6",
+            spell = "Dawnflame",
+            spells = {
+              "Dawnflame",
+            },
+          },
+          Pack7 = {
+            ids = {
+              80759,
+            },
+            item = "Spell: Lunar Shadow",
+            names = {
+              "Spell: Lunar Shadow",
+            },
+            slot = "Pack7",
+            spell = "Lunar Shadow",
+            spells = {
+              "Lunar Shadow",
+            },
+          },
+          Pack8 = {
+            ids = {
+              117592,
+            },
+            item = "Spell: Nature Seeker's Behest",
+            names = {
+              "Spell: Nature Seeker's Behest",
+            },
+            slot = "Pack8",
+            spell = "Nature Seeker's Behest",
+            spells = {
+              "Nature Seeker's Behest",
+            },
+          },
+          Pack9 = {
+            ids = {
+              80756,
+            },
+            item = "Spell: Sunburst Devotion",
+            names = {
+              "Spell: Sunburst Devotion",
+            },
+            slot = "Pack9",
+            spell = "Sunburst Devotion",
+            spells = {
+              "Sunburst Devotion",
+            },
+          },
           Ranged = {
             ids = {
               60535,
@@ -7608,7 +8047,7 @@ return {
               "Cryptic Clutch of Benevolent Efficiency",
               "Vacant Vessel of Benevolent Efficiency",
             },
-            notes = "-11-33% beneficial spell mana cost | +10 hWIS",
+            notes = "-11–33% beneficial spell mana cost | +10 hWIS",
             slot = "Aug1",
           },
           Aug10 = {
@@ -7664,7 +8103,7 @@ return {
               "Cryptic Clutch of Malevolent Efficiency",
               "Vacant Vessel of Malevolent Efficiency",
             },
-            notes = "-11-33% detrimental spell mana cost | +10 hINT",
+            notes = "-11–33% detrimental spell mana cost | +10 hINT",
             slot = "Aug4",
           },
           Aug5 = {
@@ -7706,7 +8145,7 @@ return {
               "Cryptic Clutch of Arcane Demise",
               "Vacant Vessel of Arcane Demise",
             },
-            notes = "+10-60% magic spell damage | +5 hINT, +25 hMR",
+            notes = "+10–60% magic spell damage | +5 hINT, +25 hMR",
             slot = "Aug7",
           },
           Aug8 = {
@@ -7946,9 +8385,9 @@ return {
             ids = {
               82802,
             },
-            item = "Spell Pack: Ellowind",
+            item = "Spell Pack: Ellowind Hastening",
             names = {
-              "Spell Pack: Ellowind",
+              "Spell Pack: Ellowind Hastening",
             },
             slot = "Pack2",
             spell = "Speed of Ellowind",
@@ -7983,6 +8422,76 @@ return {
             spell = "Edict of Tashan",
             spells = {
               "Edict of Tashan",
+            },
+          },
+          Pack5 = {
+            ids = {
+              50149,
+            },
+            item = "Spell: Boon of the Sentinel",
+            names = {
+              "Spell: Boon of the Sentinel",
+            },
+            slot = "Pack5",
+            spell = "Boon of the Sentinel",
+            spells = {
+              "Boon of the Sentinel",
+            },
+          },
+          Pack6 = {
+            ids = {
+              80781,
+            },
+            item = "Spell: Chromatic Chaos",
+            names = {
+              "Spell: Chromatic Chaos",
+            },
+            slot = "Pack6",
+            spell = "Chromatic Chaos",
+            spells = {
+              "Chromatic Chaos",
+            },
+          },
+          Pack7 = {
+            ids = {
+              80783,
+            },
+            item = "Spell: Hysteria",
+            names = {
+              "Spell: Hysteria",
+            },
+            slot = "Pack7",
+            spell = "Hysteria",
+            spells = {
+              "Hysteria",
+            },
+          },
+          Pack8 = {
+            ids = {
+              80782,
+            },
+            item = "Spell: Urgent Rune of Destiny",
+            names = {
+              "Spell: Urgent Rune of Destiny",
+            },
+            slot = "Pack8",
+            spell = "Urgent Rune of Destiny",
+            spells = {
+              "Urgent Rune of Destiny",
+            },
+          },
+          Pack9 = {
+            ids = {
+              80780,
+            },
+            item = "Spell: Whispers of Emoush",
+            names = {
+              "Spell: Whispers of Emoush",
+            },
+            slot = "Pack9",
+            spell = "Whispers of Emoush",
+            spells = {
+              "Whispers of Emoush",
             },
           },
           Ranged = {
@@ -8106,7 +8615,7 @@ return {
               "Cryptic Clutch of Malevolent Efficiency",
               "Vacant Vessel of Malevolent Efficiency",
             },
-            notes = "-11-33% detrimental spell mana cost | +10 hINT",
+            notes = "-11–33% detrimental spell mana cost | +10 hINT",
             slot = "Aug3",
           },
           Aug4 = {
@@ -8148,7 +8657,7 @@ return {
               "Cryptic Clutch of Fiery Demise",
               "Vacant Vessel of Fiery Demise",
             },
-            notes = "+10-60% fire spell damage | +5 hINT, +25 hFR",
+            notes = "+10–60% fire spell damage | +5 hINT, +25 hFR",
             slot = "Aug6",
           },
           Aug7 = {
@@ -8395,6 +8904,90 @@ return {
               "Goner's Urgent Renewal",
             },
           },
+          Pack4 = {
+            ids = {
+              80766,
+            },
+            item = "Spell: Blade Rend",
+            names = {
+              "Spell: Blade Rend",
+            },
+            slot = "Pack4",
+            spell = "Blade Rend",
+            spells = {
+              "Blade Rend",
+            },
+          },
+          Pack5 = {
+            ids = {
+              50144,
+            },
+            item = "Spell: Burning Bladestorm",
+            names = {
+              "Spell: Burning Bladestorm",
+            },
+            slot = "Pack5",
+            spell = "Burning Bladestorm",
+            spells = {
+              "Burning Bladestorm",
+            },
+          },
+          Pack6 = {
+            ids = {
+              79091,
+            },
+            item = "Spell: Fickle Inferno",
+            names = {
+              "Spell: Fickle Inferno",
+            },
+            slot = "Pack6",
+            spell = "Fickle Inferno",
+            spells = {
+              "Fickle Inferno",
+            },
+          },
+          Pack7 = {
+            ids = {
+              80764,
+            },
+            item = "Spell: Frantic Blaze",
+            names = {
+              "Spell: Frantic Blaze",
+            },
+            slot = "Pack7",
+            spell = "Frantic Blaze",
+            spells = {
+              "Frantic Blaze",
+            },
+          },
+          Pack8 = {
+            ids = {
+              80779,
+            },
+            item = "Spell: Grant Battle Materiel",
+            names = {
+              "Spell: Grant Battle Materiel",
+            },
+            slot = "Pack8",
+            spell = "Grant Battle Materiel",
+            spells = {
+              "Grant Battle Materiel",
+            },
+          },
+          Pack9 = {
+            ids = {
+              80765,
+            },
+            item = "Spell: Monolithic Strength",
+            names = {
+              "Spell: Monolithic Strength",
+            },
+            slot = "Pack9",
+            spell = "Monolithic Strength",
+            spells = {
+              "Monolithic Strength",
+            },
+          },
           Ranged = {
             ids = {
               60536,
@@ -8502,7 +9095,7 @@ return {
               "Cryptic Clutch of Noxious Demise",
               "Vacant Vessel of Noxious Demise",
             },
-            notes = "+10-60% poison spell damage | +5 hINT, +25 hPR",
+            notes = "+10–60% poison spell damage | +5 hINT, +25 hPR",
             slot = "Aug2",
           },
           Aug3 = {
@@ -8729,6 +9322,132 @@ return {
               "Ancient: Arachnid Fang",
             },
           },
+          Pack10 = {
+            ids = {
+              88901,
+            },
+            item = "Tome of Wheel of Fists",
+            names = {
+              "Tome of Wheel of Fists",
+            },
+            slot = "Pack10",
+            spell = "Wheel of Fists",
+            spells = {
+              "Wheel of Fists",
+            },
+          },
+          Pack2 = {
+            ids = {
+              79226,
+            },
+            item = "Tome of Arcane Reprisal",
+            names = {
+              "Tome of Arcane Reprisal",
+            },
+            slot = "Pack2",
+            spell = "Arcane Reprisal",
+            spells = {
+              "Arcane Reprisal",
+            },
+          },
+          Pack3 = {
+            ids = {
+              88921,
+            },
+            item = "Tome of Dragondance Discipline",
+            names = {
+              "Tome of Dragondance Discipline",
+            },
+            slot = "Pack3",
+            spell = "Dragondance Discipline",
+            spells = {
+              "Dragondance Discipline",
+            },
+          },
+          Pack4 = {
+            ids = {
+              50117,
+            },
+            item = "Tome of Fists of Thundercrest",
+            names = {
+              "Tome of Fists of Thundercrest",
+            },
+            slot = "Pack4",
+            spell = "Fists of Thundercrest",
+            spells = {
+              "Fists of Thundercrest",
+            },
+          },
+          Pack5 = {
+            ids = {
+              80081,
+            },
+            item = "Tome of Fourth Wind",
+            names = {
+              "Tome of Fourth Wind",
+            },
+            slot = "Pack5",
+            spell = "Fourth Wind",
+            spells = {
+              "Fourth Wind",
+            },
+          },
+          Pack6 = {
+            ids = {
+              80078,
+            },
+            item = "Tome of Grandmaster's Aura",
+            names = {
+              "Tome of Grandmaster's Aura",
+            },
+            slot = "Pack6",
+            spell = "Grandmaster's Aura",
+            spells = {
+              "Grandmaster's Aura",
+            },
+          },
+          Pack7 = {
+            ids = {
+              118654,
+            },
+            item = "Tome of Phantom Whispers",
+            names = {
+              "Tome of Phantom Whispers",
+            },
+            slot = "Pack7",
+            spell = "Phantom Whispers",
+            spells = {
+              "Phantom Whispers",
+            },
+          },
+          Pack8 = {
+            ids = {
+              79445,
+            },
+            item = "Tome of Stormfist Discipline",
+            names = {
+              "Tome of Stormfist Discipline",
+            },
+            slot = "Pack8",
+            spell = "Stormfist Discipline",
+            spells = {
+              "Stormfist Discipline",
+            },
+          },
+          Pack9 = {
+            ids = {
+              80083,
+            },
+            item = "Tome of Velocity Focus",
+            names = {
+              "Tome of Velocity Focus",
+            },
+            slot = "Pack9",
+            spell = "Velocity Focus",
+            spells = {
+              "Velocity Focus",
+            },
+          },
           Ranged = {
             ids = {
               55052,
@@ -8892,7 +9611,7 @@ return {
               "Cryptic Clutch of Malevolent Efficiency",
               "Vacant Vessel of Malevolent Efficiency",
             },
-            notes = "-11-33% detrimental spell mana cost | +10 hINT",
+            notes = "-11–33% detrimental spell mana cost | +10 hINT",
             slot = "Aug3",
           },
           Aug4 = {
@@ -8934,7 +9653,7 @@ return {
               "Cryptic Clutch of Fiery Demise",
               "Vacant Vessel of Fiery Demise",
             },
-            notes = "+10-60% fire spell damage | +5 hINT, +25 hFR",
+            notes = "+10–60% fire spell damage | +5 hINT, +25 hFR",
             slot = "Aug6",
           },
           Aug7 = {
@@ -8948,7 +9667,7 @@ return {
               "Cryptic Clutch of Noxious Demise",
               "Vacant Vessel of Noxious Demise",
             },
-            notes = "+10-60% poison spell damage | +5 hINT, +25 hPR",
+            notes = "+10–60% poison spell damage | +5 hINT, +25 hPR",
             slot = "Aug7",
           },
           Aug8 = {
@@ -8962,7 +9681,7 @@ return {
               "Cryptic Clutch of Arcane Demise",
               "Vacant Vessel of Arcane Demise",
             },
-            notes = "+10-60% magic spell damage | +5 hINT, +25 hMR",
+            notes = "+10–60% magic spell damage | +5 hINT, +25 hMR",
             slot = "Aug8",
           },
           Aug9 = {
@@ -8976,7 +9695,7 @@ return {
               "Cryptic Clutch of Festering Demise",
               "Vacant Vessel of Festering Demise",
             },
-            notes = "+10-60% disease spell damage | +5 hINT, +25 hDR",
+            notes = "+10–60% disease spell damage | +5 hINT, +25 hDR",
             slot = "Aug9",
           },
           Back = {
@@ -9181,6 +9900,90 @@ return {
               "Goner's Urgent Renewal",
             },
           },
+          Pack4 = {
+            ids = {
+              80786,
+            },
+            item = "Spell: Malignant Plague",
+            names = {
+              "Spell: Malignant Plague",
+            },
+            slot = "Pack4",
+            spell = "Malignant Plague",
+            spells = {
+              "Malignant Plague",
+            },
+          },
+          Pack5 = {
+            ids = {
+              80785,
+            },
+            item = "Spell: Molten Pyre",
+            names = {
+              "Spell: Molten Pyre",
+            },
+            slot = "Pack5",
+            spell = "Molten Pyre",
+            spells = {
+              "Molten Pyre",
+            },
+          },
+          Pack6 = {
+            ids = {
+              119599,
+            },
+            item = "Spell: Pestilent Pustules",
+            names = {
+              "Spell: Pestilent Pustules",
+            },
+            slot = "Pack6",
+            spell = "Pestilent Pustules",
+            spells = {
+              "Pestilent Pustules",
+            },
+          },
+          Pack7 = {
+            ids = {
+              78819,
+            },
+            item = "Spell: Ritual of Blood",
+            names = {
+              "Spell: Ritual of Blood",
+            },
+            slot = "Pack7",
+            spell = "Ritual of Blood",
+            spells = {
+              "Ritual of Blood",
+            },
+          },
+          Pack8 = {
+            ids = {
+              78892,
+            },
+            item = "Spell: Venom of the Accursed Nest",
+            names = {
+              "Spell: Venom of the Accursed Nest",
+            },
+            slot = "Pack8",
+            spell = "Venom of the Accursed Nest",
+            spells = {
+              "Venom of the Accursed Nest",
+            },
+          },
+          Pack9 = {
+            ids = {
+              80784,
+            },
+            item = "Spell: Yearning of Death",
+            names = {
+              "Spell: Yearning of Death",
+            },
+            slot = "Pack9",
+            spell = "Yearning of Death",
+            spells = {
+              "Yearning of Death",
+            },
+          },
           Ranged = {
             ids = {
               60536,
@@ -9274,7 +10077,7 @@ return {
               "Cryptic Clutch of Benevolent Efficiency",
               "Vacant Vessel of Benevolent Efficiency",
             },
-            notes = "-11-33% beneficial spell mana cost | +10 hWIS",
+            notes = "-11–33% beneficial spell mana cost | +10 hWIS",
             slot = "Aug1",
           },
           Aug10 = {
@@ -9316,7 +10119,7 @@ return {
               "Cryptic Clutch of Arcane Demise",
               "Vacant Vessel of Arcane Demise",
             },
-            notes = "+10-60% magic spell damage | +5 hINT, +25 hMR",
+            notes = "+10–60% magic spell damage | +5 hINT, +25 hMR",
             slot = "Aug3",
           },
           Aug4 = {
@@ -9344,7 +10147,7 @@ return {
               "Cryptic Clutch of Merciful Mending",
               "Vacant Vessel of Merciful Mending",
             },
-            notes = "+10-60% healing | +10 hWIS",
+            notes = "+10–60% healing | +10 hWIS",
             slot = "Aug5",
           },
           Aug6 = {
@@ -9605,6 +10408,90 @@ return {
               "Wave of the Stillmoon",
             },
           },
+          Pack4 = {
+            ids = {
+              81864,
+            },
+            item = "Spell: Benevolent Aura",
+            names = {
+              "Spell: Benevolent Aura",
+            },
+            slot = "Pack4",
+            spell = "Benevolent Aura",
+            spells = {
+              "Benevolent Aura",
+            },
+          },
+          Pack5 = {
+            ids = {
+              81862,
+            },
+            item = "Spell: Brell's Unshakable Barricade",
+            names = {
+              "Spell: Brell's Unshakable Barricade",
+            },
+            slot = "Pack5",
+            spell = "Brell's Unshakable Barricade",
+            spells = {
+              "Brell's Unshakable Barricade",
+            },
+          },
+          Pack6 = {
+            ids = {
+              81861,
+            },
+            item = "Spell: Force of the Sacred",
+            names = {
+              "Spell: Force of the Sacred",
+            },
+            slot = "Pack6",
+            spell = "Force of the Sacred",
+            spells = {
+              "Force of the Sacred",
+            },
+          },
+          Pack7 = {
+            ids = {
+              81863,
+            },
+            item = "Spell: Force of the Sentinel",
+            names = {
+              "Spell: Force of the Sentinel",
+            },
+            slot = "Pack7",
+            spell = "Force of the Sentinel",
+            spells = {
+              "Force of the Sentinel",
+            },
+          },
+          Pack8 = {
+            ids = {
+              78039,
+            },
+            item = "Spell: The Silent Decree",
+            names = {
+              "Spell: The Silent Decree",
+            },
+            slot = "Pack8",
+            spell = "The Silent Decree",
+            spells = {
+              "The Silent Decree",
+            },
+          },
+          Pack9 = {
+            ids = {
+              79399,
+            },
+            item = "Tome of Aegis of Righteousness",
+            names = {
+              "Tome of Aegis of Righteousness",
+            },
+            slot = "Pack9",
+            spell = "Aegis of Righteousness",
+            spells = {
+              "Aegis of Righteousness",
+            },
+          },
           Ranged = {
             ids = {
               71627,
@@ -9754,7 +10641,7 @@ return {
               "Cryptic Clutch of Malevolent Efficiency",
               "Vacant Vessel of Malevolent Efficiency",
             },
-            notes = "-11-33% detrimental spell mana cost | +10 hINT",
+            notes = "-11–33% detrimental spell mana cost | +10 hINT",
             slot = "Aug2",
           },
           Aug3 = {
@@ -9782,7 +10669,7 @@ return {
               "Cryptic Clutch of Fiery Demise",
               "Vacant Vessel of Fiery Demise",
             },
-            notes = "+10-60% fire spell damage | +5 hINT, +25 hFR",
+            notes = "+10–60% fire spell damage | +5 hINT, +25 hFR",
             slot = "Aug4",
           },
           Aug5 = {
@@ -9796,7 +10683,7 @@ return {
               "Cryptic Clutch of Arcane Demise",
               "Vacant Vessel of Arcane Demise",
             },
-            notes = "+10-60% magic spell damage | +5 hINT, +25 hMR",
+            notes = "+10–60% magic spell damage | +5 hINT, +25 hMR",
             slot = "Aug5",
           },
           Aug6 = {
@@ -9824,7 +10711,7 @@ return {
               "Cryptic Clutch of Merciful Mending",
               "Vacant Vessel of Merciful Mending",
             },
-            notes = "+10-60% healing | +10 hWIS",
+            notes = "+10–60% healing | +10 hWIS",
             slot = "Aug7",
           },
           Aug8 = {
@@ -10095,6 +10982,62 @@ return {
               "Flame and Frost",
             },
           },
+          Pack6 = {
+            ids = {
+              81866,
+            },
+            item = "Spell: Eyes of the Drake",
+            names = {
+              "Spell: Eyes of the Drake",
+            },
+            slot = "Pack6",
+            spell = "Eyes of the Drake",
+            spells = {
+              "Eyes of the Drake",
+            },
+          },
+          Pack7 = {
+            ids = {
+              116082,
+            },
+            item = "Spell: Heartshatter",
+            names = {
+              "Spell: Heartshatter",
+            },
+            slot = "Pack7",
+            spell = "Heartshatter",
+            spells = {
+              "Heartshatter",
+            },
+          },
+          Pack8 = {
+            ids = {
+              81867,
+            },
+            item = "Spell: Swift Salve of the Stillmoon",
+            names = {
+              "Spell: Swift Salve of the Stillmoon",
+            },
+            slot = "Pack8",
+            spell = "Swift Salve of the Stillmoon",
+            spells = {
+              "Swift Salve of the Stillmoon",
+            },
+          },
+          Pack9 = {
+            ids = {
+              81865,
+            },
+            item = "Spell: Ward of the Stalker",
+            names = {
+              "Spell: Ward of the Stalker",
+            },
+            slot = "Pack9",
+            spell = "Ward of the Stalker",
+            spells = {
+              "Ward of the Stalker",
+            },
+          },
           Ranged = {
             ids = {
               71627,
@@ -10216,7 +11159,7 @@ return {
               "Cryptic Clutch of Noxious Demise",
               "Vacant Vessel of Noxious Demise",
             },
-            notes = "+10-60% poison spell damage | +5 hINT, +25 hPR",
+            notes = "+10–60% poison spell damage | +5 hINT, +25 hPR",
             slot = "Aug3",
           },
           Aug4 = {
@@ -10443,6 +11386,132 @@ return {
               "Ancient: Incursion",
             },
           },
+          Pack10 = {
+            ids = {
+              79236,
+            },
+            item = "Tome of Vigorous Dagger Throw",
+            names = {
+              "Tome of Vigorous Dagger Throw",
+            },
+            slot = "Pack10",
+            spell = "Vigorous Dagger Throw",
+            spells = {
+              "Vigorous Dagger Throw",
+            },
+          },
+          Pack2 = {
+            ids = {
+              79226,
+            },
+            item = "Tome of Arcane Reprisal",
+            names = {
+              "Tome of Arcane Reprisal",
+            },
+            slot = "Pack2",
+            spell = "Arcane Reprisal",
+            spells = {
+              "Arcane Reprisal",
+            },
+          },
+          Pack3 = {
+            ids = {
+              80087,
+            },
+            item = "Tome of Assailant Discipline",
+            names = {
+              "Tome of Assailant Discipline",
+            },
+            slot = "Pack3",
+            spell = "Assailant Discipline",
+            spells = {
+              "Assailant Discipline",
+            },
+          },
+          Pack4 = {
+            ids = {
+              80081,
+            },
+            item = "Tome of Fourth Wind",
+            names = {
+              "Tome of Fourth Wind",
+            },
+            slot = "Pack4",
+            spell = "Fourth Wind",
+            spells = {
+              "Fourth Wind",
+            },
+          },
+          Pack5 = {
+            ids = {
+              80088,
+            },
+            item = "Tome of Frenetic Stabbing Discipline",
+            names = {
+              "Tome of Frenetic Stabbing Discipline",
+            },
+            slot = "Pack5",
+            spell = "Frenetic Stabbing Discipline",
+            spells = {
+              "Frenetic Stabbing Discipline",
+            },
+          },
+          Pack6 = {
+            ids = {
+              80085,
+            },
+            item = "Tome of Lithe Discipline",
+            names = {
+              "Tome of Lithe Discipline",
+            },
+            slot = "Pack6",
+            spell = "Lithe Discipline",
+            spells = {
+              "Lithe Discipline",
+            },
+          },
+          Pack7 = {
+            ids = {
+              88900,
+            },
+            item = "Tome of Outlaw's Glare",
+            names = {
+              "Tome of Outlaw's Glare",
+            },
+            slot = "Pack7",
+            spell = "Outlaw's Glare",
+            spells = {
+              "Outlaw's Glare",
+            },
+          },
+          Pack8 = {
+            ids = {
+              88902,
+            },
+            item = "Tome of Pinpoint Weakness",
+            names = {
+              "Tome of Pinpoint Weakness",
+            },
+            slot = "Pack8",
+            spell = "Pinpoint Weakness",
+            spells = {
+              "Pinpoint Weakness",
+            },
+          },
+          Pack9 = {
+            ids = {
+              50116,
+            },
+            item = "Tome of Twisted Fortune Discipline",
+            names = {
+              "Tome of Twisted Fortune Discipline",
+            },
+            slot = "Pack9",
+            spell = "Twisted Fortune Discipline",
+            spells = {
+              "Twisted Fortune Discipline",
+            },
+          },
           Ranged = {
             ids = {
               55052,
@@ -10592,7 +11661,7 @@ return {
               "Cryptic Clutch of Noxious Demise",
               "Vacant Vessel of Noxious Demise",
             },
-            notes = "+10-60% poison spell damage | +5 hINT, +25 hPR",
+            notes = "+10–60% poison spell damage | +5 hINT, +25 hPR",
             slot = "Aug3",
           },
           Aug4 = {
@@ -10606,7 +11675,7 @@ return {
               "Cryptic Clutch of Arcane Demise",
               "Vacant Vessel of Arcane Demise",
             },
-            notes = "+10-60% magic spell damage | +5 hINT, +25 hMR",
+            notes = "+10–60% magic spell damage | +5 hINT, +25 hMR",
             slot = "Aug4",
           },
           Aug5 = {
@@ -10620,7 +11689,7 @@ return {
               "Cryptic Clutch of Festering Demise",
               "Vacant Vessel of Festering Demise",
             },
-            notes = "+10-60% disease spell damage | +5 hINT, +25 hDR",
+            notes = "+10–60% disease spell damage | +5 hINT, +25 hDR",
             slot = "Aug5",
           },
           Aug6 = {
@@ -10881,6 +11950,90 @@ return {
               "Theft of Misery",
             },
           },
+          Pack4 = {
+            ids = {
+              80788,
+            },
+            item = "Spell: Blood of the Harbinger",
+            names = {
+              "Spell: Blood of the Harbinger",
+            },
+            slot = "Pack4",
+            spell = "Blood of the Harbinger",
+            spells = {
+              "Blood of the Harbinger",
+            },
+          },
+          Pack5 = {
+            ids = {
+              78565,
+            },
+            item = "Spell: Grasp of Ju'rek",
+            names = {
+              "Spell: Grasp of Ju'rek",
+            },
+            slot = "Pack5",
+            spell = "Grasp of Ju'rek",
+            spells = {
+              "Grasp of Ju'rek",
+            },
+          },
+          Pack6 = {
+            ids = {
+              78594,
+            },
+            item = "Spell: Terror of Lavaspinner's Lair",
+            names = {
+              "Spell: Terror of Lavaspinner's Lair",
+            },
+            slot = "Pack6",
+            spell = "Terror of Lavaspinner's Lair",
+            spells = {
+              "Terror of Lavaspinner's Lair",
+            },
+          },
+          Pack7 = {
+            ids = {
+              80787,
+            },
+            item = "Spell: Touch of the Shadows",
+            names = {
+              "Spell: Touch of the Shadows",
+            },
+            slot = "Pack7",
+            spell = "Touch of the Shadows",
+            spells = {
+              "Touch of the Shadows",
+            },
+          },
+          Pack8 = {
+            ids = {
+              81860,
+            },
+            item = "Spell: Voice of Emoush",
+            names = {
+              "Spell: Voice of Emoush",
+            },
+            slot = "Pack8",
+            spell = "Voice of Emoush",
+            spells = {
+              "Voice of Emoush",
+            },
+          },
+          Pack9 = {
+            ids = {
+              79408,
+            },
+            item = "Tome of Soul Carapace",
+            names = {
+              "Tome of Soul Carapace",
+            },
+            slot = "Pack9",
+            spell = "Soul Carapace",
+            spells = {
+              "Soul Carapace",
+            },
+          },
           Ranged = {
             ids = {
               71627,
@@ -10974,7 +12127,7 @@ return {
               "Cryptic Clutch of Benevolent Efficiency",
               "Vacant Vessel of Benevolent Efficiency",
             },
-            notes = "-11-33% beneficial spell mana cost | +10 hWIS",
+            notes = "-11–33% beneficial spell mana cost | +10 hWIS",
             slot = "Aug1",
           },
           Aug10 = {
@@ -10988,7 +12141,7 @@ return {
               "Cryptic Clutch of Merciful Mending",
               "Vacant Vessel of Merciful Mending",
             },
-            notes = "+10-60% healing | +10 hWIS",
+            notes = "+10–60% healing | +10 hWIS",
             slot = "Aug10",
           },
           Aug11 = {
@@ -11058,7 +12211,7 @@ return {
               "Cryptic Clutch of Malevolent Efficiency",
               "Vacant Vessel of Malevolent Efficiency",
             },
-            notes = "-11-33% detrimental spell mana cost | +10 hINT",
+            notes = "-11–33% detrimental spell mana cost | +10 hINT",
             slot = "Aug4",
           },
           Aug5 = {
@@ -11100,7 +12253,7 @@ return {
               "Cryptic Clutch of Noxious Demise",
               "Vacant Vessel of Noxious Demise",
             },
-            notes = "+10-60% poison spell damage | +5 hINT, +25 hPR",
+            notes = "+10–60% poison spell damage | +5 hINT, +25 hPR",
             slot = "Aug7",
           },
           Aug8 = {
@@ -11114,7 +12267,7 @@ return {
               "Cryptic Clutch of Festering Demise",
               "Vacant Vessel of Festering Demise",
             },
-            notes = "+10-60% disease spell damage | +5 hINT, +25 hDR",
+            notes = "+10–60% disease spell damage | +5 hINT, +25 hDR",
             slot = "Aug8",
           },
           Aug9 = {
@@ -11382,6 +12535,62 @@ return {
               "Wild Companions",
             },
           },
+          Pack6 = {
+            ids = {
+              80285,
+            },
+            item = "Spell: Breath of Ju'rek",
+            names = {
+              "Spell: Breath of Ju'rek",
+            },
+            slot = "Pack6",
+            spell = "Breath of Ju'rek",
+            spells = {
+              "Breath of Ju'rek",
+            },
+          },
+          Pack7 = {
+            ids = {
+              80288,
+            },
+            item = "Spell: Curse of Emoush",
+            names = {
+              "Spell: Curse of Emoush",
+            },
+            slot = "Pack7",
+            spell = "Curse of Emoush",
+            spells = {
+              "Curse of Emoush",
+            },
+          },
+          Pack8 = {
+            ids = {
+              80287,
+            },
+            item = "Spell: Shadowy Sloth",
+            names = {
+              "Spell: Shadowy Sloth",
+            },
+            slot = "Pack8",
+            spell = "Shadowy Sloth",
+            spells = {
+              "Shadowy Sloth",
+            },
+          },
+          Pack9 = {
+            ids = {
+              80286,
+            },
+            item = "Spell: Transcendental Torpor",
+            names = {
+              "Spell: Transcendental Torpor",
+            },
+            slot = "Pack9",
+            spell = "Transcendental Torpor",
+            spells = {
+              "Transcendental Torpor",
+            },
+          },
           Ranged = {
             ids = {
               60535,
@@ -11489,7 +12698,7 @@ return {
               "Cryptic Clutch of Fiery Demise",
               "Vacant Vessel of Fiery Demise",
             },
-            notes = "+10-60% fire spell damage | +5 hINT, +25 hFR",
+            notes = "+10–60% fire spell damage | +5 hINT, +25 hFR",
             slot = "Aug2",
           },
           Aug3 = {
@@ -11503,7 +12712,7 @@ return {
               "Cryptic Clutch of Noxious Demise",
               "Vacant Vessel of Noxious Demise",
             },
-            notes = "+10-60% poison spell damage | +5 hINT, +25 hPR",
+            notes = "+10–60% poison spell damage | +5 hINT, +25 hPR",
             slot = "Aug3",
           },
           Aug4 = {
@@ -11720,14 +12929,126 @@ return {
             ids = {
               82654,
             },
-            item = "Tome Pack: Malicious Onslaught Discipline",
+            item = "Tome Pack: Ancient: Malicious Onslaught",
             names = {
-              "Tome Pack: Malicious Onslaught Discipline",
+              "Tome Pack: Ancient: Malicious Onslaught",
             },
             slot = "Pack1",
             spell = "Malicious Onslaught Discipline",
             spells = {
               "Malicious Onslaught Discipline",
+            },
+          },
+          Pack2 = {
+            ids = {
+              88919,
+            },
+            item = "Tome of Field Conqueror",
+            names = {
+              "Tome of Field Conqueror",
+            },
+            slot = "Pack2",
+            spell = "Field Conqueror",
+            spells = {
+              "Field Conqueror",
+            },
+          },
+          Pack3 = {
+            ids = {
+              79302,
+            },
+            item = "Tome of Final Stand Discipline",
+            names = {
+              "Tome of Final Stand Discipline",
+            },
+            slot = "Pack3",
+            spell = "Final Stand Discipline",
+            spells = {
+              "Final Stand Discipline",
+            },
+          },
+          Pack4 = {
+            ids = {
+              80081,
+            },
+            item = "Tome of Fourth Wind",
+            names = {
+              "Tome of Fourth Wind",
+            },
+            slot = "Pack4",
+            spell = "Fourth Wind",
+            spells = {
+              "Fourth Wind",
+            },
+          },
+          Pack5 = {
+            ids = {
+              88909,
+            },
+            item = "Tome of Jeer",
+            names = {
+              "Tome of Jeer",
+            },
+            slot = "Pack5",
+            spell = "Jeer",
+            spells = {
+              "Jeer",
+            },
+          },
+          Pack6 = {
+            ids = {
+              79310,
+            },
+            item = "Tome of Maelstrom Blade",
+            names = {
+              "Tome of Maelstrom Blade",
+            },
+            slot = "Pack6",
+            spell = "Maelstrom Blade",
+            spells = {
+              "Maelstrom Blade",
+            },
+          },
+          Pack7 = {
+            ids = {
+              80080,
+            },
+            item = "Tome of Maximum Effort",
+            names = {
+              "Tome of Maximum Effort",
+            },
+            slot = "Pack7",
+            spell = "Maximum Effort",
+            spells = {
+              "Maximum Effort",
+            },
+          },
+          Pack8 = {
+            ids = {
+              88910,
+            },
+            item = "Tome of Roaring Hatred",
+            names = {
+              "Tome of Roaring Hatred",
+            },
+            slot = "Pack8",
+            spell = "Roaring Hatred",
+            spells = {
+              "Roaring Hatred",
+            },
+          },
+          Pack9 = {
+            ids = {
+              88925,
+            },
+            item = "Tome of Vanquisher's Aura",
+            names = {
+              "Tome of Vanquisher's Aura",
+            },
+            slot = "Pack9",
+            spell = "Vanquisher's Aura",
+            spells = {
+              "Vanquisher's Aura",
             },
           },
           Ranged = {
@@ -11837,7 +13158,7 @@ return {
               "Cryptic Clutch of Malevolent Efficiency",
               "Vacant Vessel of Malevolent Efficiency",
             },
-            notes = "-11-33% detrimental spell mana cost | +10 hINT",
+            notes = "-11–33% detrimental spell mana cost | +10 hINT",
             slot = "Aug2",
           },
           Aug3 = {
@@ -11879,7 +13200,7 @@ return {
               "Cryptic Clutch of Fiery Demise",
               "Vacant Vessel of Fiery Demise",
             },
-            notes = "+10-60% fire spell damage | +5 hINT, +25 hFR",
+            notes = "+10–60% fire spell damage | +5 hINT, +25 hFR",
             slot = "Aug5",
           },
           Aug6 = {
@@ -11893,7 +13214,7 @@ return {
               "Cryptic Clutch of Arcane Demise",
               "Vacant Vessel of Arcane Demise",
             },
-            notes = "+10-60% magic spell damage | +5 hINT, +25 hMR",
+            notes = "+10–60% magic spell damage | +5 hINT, +25 hMR",
             slot = "Aug6",
           },
           Aug7 = {
@@ -12138,6 +13459,90 @@ return {
             spell = "Ethereal Weave",
             spells = {
               "Ethereal Weave",
+            },
+          },
+          Pack4 = {
+            ids = {
+              80763,
+            },
+            item = "Spell: Arcane Sanctuary",
+            names = {
+              "Spell: Arcane Sanctuary",
+            },
+            slot = "Pack4",
+            spell = "Arcane Sanctuary",
+            spells = {
+              "Arcane Sanctuary",
+            },
+          },
+          Pack5 = {
+            ids = {
+              80760,
+            },
+            item = "Spell: Eruption of Telakemara",
+            names = {
+              "Spell: Eruption of Telakemara",
+            },
+            slot = "Pack5",
+            spell = "Eruption of Telakemara",
+            spells = {
+              "Eruption of Telakemara",
+            },
+          },
+          Pack6 = {
+            ids = {
+              79388,
+            },
+            item = "Spell: Ether Blaze",
+            names = {
+              "Spell: Ether Blaze",
+            },
+            slot = "Pack6",
+            spell = "Ether Blaze",
+            spells = {
+              "Ether Blaze",
+            },
+          },
+          Pack7 = {
+            ids = {
+              80761,
+            },
+            item = "Spell: Evoker's Pyromantic Blade",
+            names = {
+              "Spell: Evoker's Pyromantic Blade",
+            },
+            slot = "Pack7",
+            spell = "Evoker's Pyromantic Blade",
+            spells = {
+              "Evoker's Pyromantic Blade",
+            },
+          },
+          Pack8 = {
+            ids = {
+              79129,
+            },
+            item = "Spell: Serenity Harvest",
+            names = {
+              "Spell: Serenity Harvest",
+            },
+            slot = "Pack8",
+            spell = "Serenity Harvest",
+            spells = {
+              "Serenity Harvest",
+            },
+          },
+          Pack9 = {
+            ids = {
+              79390,
+            },
+            item = "Spell: Wildmagic Salvo",
+            names = {
+              "Spell: Wildmagic Salvo",
+            },
+            slot = "Pack9",
+            spell = "Wildmagic Salvo",
+            spells = {
+              "Wildmagic Salvo",
             },
           },
           Ranged = {
