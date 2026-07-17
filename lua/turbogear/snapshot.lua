@@ -283,7 +283,9 @@ local function build_snap(depth, opts)
         pcall(function()
             diag.time("snapshot.spells", function()
                 local spell_snap = require('spell_snapshot')
-                snap.spells = spell_snap.gather(snap.class)
+                local spells, spell_ids = spell_snap.gather(snap.class)
+                snap.spells = spells
+                snap.spell_ids = spell_ids
                 snap.spells_sig = spell_snap.signature(snap.spells)
             end)
         end)

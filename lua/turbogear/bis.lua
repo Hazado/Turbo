@@ -175,6 +175,19 @@ function M.normalize_entry(e)
     if spell == "" and spells then spell = spells[1] end
     if spell == "" then spell = nil end
     if not spells and spell then spells = { spell } end
+    local spell_ids = nil
+    if type(e.spell_ids) == "table" then
+        spell_ids = {}
+        local seen = {}
+        for _, raw in ipairs(e.spell_ids) do
+            local id = tonumber(raw)
+            if id and id > 0 and not seen[id] then
+                seen[id] = true
+                spell_ids[#spell_ids + 1] = id
+            end
+        end
+        if #spell_ids == 0 then spell_ids = nil end
+    end
     return {
         item = item,
         names = normalize_names(e.names, item),
@@ -185,6 +198,7 @@ function M.normalize_entry(e)
         notes = e.notes,
         spell = spell,
         spells = spells,
+        spell_ids = spell_ids,
     }
 end
 
@@ -598,6 +612,21 @@ end
 
 local function entry_spells_known_in_snap(entry, snap)
     local list = entry_spell_list(entry)
+    local ids = entry and entry.spell_ids
+    if type(ids) == "table" and #ids > 0 and (not list or #list <= 1) then
+        local by_id = snap and snap.spell_ids
+        if type(by_id) == "table" then
+            for _, id in ipairs(ids) do
+                if by_id[tonumber(id)] then return true end
+            end
+        end
+        if list then
+            for _, spell in ipairs(list) do
+                if snap_knows_spell(snap, spell) then return true end
+            end
+        end
+        return false
+    end
     if not list then return false end
     for _, spell in ipairs(list) do
         if not snap_knows_spell(snap, spell) then return false end
@@ -606,14 +635,16 @@ local function entry_spells_known_in_snap(entry, snap)
 end
 
 local SpellKnown = nil
+local function ensure_spell_known()
+    if SpellKnown ~= nil then return SpellKnown end
+    local ok, mod = pcall(require, 'spell_known')
+    SpellKnown = ok and mod or false
+    return SpellKnown
+end
+
 local function spell_known_live(name)
-    if not SpellKnown then
-        local ok, mod = pcall(require, 'spell_known')
-        SpellKnown = ok and mod or nil
-    end
-    if SpellKnown and SpellKnown.live then
-        return SpellKnown.live(name) == true
-    end
+    local mod = ensure_spell_known()
+    if mod and mod.live then return mod.live(name) == true end
     local known = false
     pcall(function()
         if (tonumber(mq.TLO.Me.Book(name)()) or 0) > 0
@@ -624,8 +655,27 @@ local function spell_known_live(name)
     return known
 end
 
+local function spell_known_live_id(spell_id)
+    local mod = ensure_spell_known()
+    if mod and mod.live_id then return mod.live_id(spell_id) == true end
+    return false
+end
+
 local function live_spells_known(entry)
     local list = entry_spell_list(entry)
+    local ids = entry and entry.spell_ids
+    -- Single-ability rows (typical vendor scroll/tome): id OR name is enough.
+    if type(ids) == "table" and #ids > 0 and (not list or #list <= 1) then
+        for _, id in ipairs(ids) do
+            if spell_known_live_id(id) then return true end
+        end
+        if list then
+            for _, spell in ipairs(list) do
+                if spell_known_live(spell) then return true end
+            end
+        end
+        return false
+    end
     if not list then return false end
     for _, spell in ipairs(list) do
         if not spell_known_live(spell) then return false end

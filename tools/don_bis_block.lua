@@ -38,22 +38,27 @@
 			['Pack4'] = {
 				item = 'Song: Niv\'s Symphonic/81935',
 				spells = {'Niv\'s Symphonic'},
+				spell_ids = {15264},
 			},
 			['Pack5'] = {
 				item = 'Song: One Bard Band/78739',
 				spells = {'One Bard Band'},
+				spell_ids = {35234},
 			},
 			['Pack6'] = {
 				item = 'Song: Squall Blade/50157',
-				spells = {'Squall Blade'},
+				spells = {'Squall Blade Flourish'},
+				spell_ids = {10940},
 			},
 			['Pack7'] = {
 				item = 'Tome of Arcane Reprisal/79226',
 				spells = {'Arcane Reprisal'},
+				spell_ids = {10889},
 			},
 			['Pack8'] = {
 				item = 'Tome of Endless Blades/50156',
 				spells = {'Endless Blades'},
+				spell_ids = {10939},
 			},
 			['Glyph1'] = 'Mnemonic Glyph: Cantata of Nife/80071',
 			['Glyph2'] = 'Mnemonic Glyph: Symphony of Sound/80084',
@@ -150,22 +155,27 @@
 			['Pack5'] = {
 				item = 'Spell: Feral Mettle/81933',
 				spells = {'Feral Mettle'},
+				spell_ids = {15261},
 			},
 			['Pack6'] = {
 				item = 'Spell: Ravenous Ice/81934',
 				spells = {'Ravenous Ice'},
+				spell_ids = {15263},
 			},
 			['Pack7'] = {
 				item = 'Spell: Roaring Sleet/78701',
 				spells = {'Roaring Sleet'},
+				spell_ids = {10364},
 			},
 			['Pack8'] = {
 				item = 'Spell: Spiritual Enlightenment/81868',
 				spells = {'Spiritual Enlightenment'},
+				spell_ids = {15260},
 			},
 			['Pack9'] = {
 				item = 'Spell: Swift Salve of the Stillmoon/81867',
 				spells = {'Swift Salve of the Stillmoon'},
+				spell_ids = {15257},
 			},
 			['Glyph1'] = 'Mnemonic Glyph: Spiritual Vibrance/80067',
 			['Glyph2'] = 'Mnemonic Glyph: Roaring Spirit of Tirranun/80068',
@@ -275,38 +285,47 @@
 			['Pack2'] = {
 				item = 'Tome of Arcane Reprisal/79226',
 				spells = {'Arcane Reprisal'},
+				spell_ids = {10889},
 			},
 			['Pack3'] = {
 				item = 'Tome of Battle Focus Discipline/59925',
 				spells = {'Battle Focus Discipline'},
+				spell_ids = {5038},
 			},
 			['Pack4'] = {
 				item = 'Tome of Bloodcurdling Scream/79251',
 				spells = {'Bloodcurdling Scream'},
+				spell_ids = {10915},
 			},
 			['Pack5'] = {
 				item = 'Tome of Cleaving Madness Discipline/50120',
 				spells = {'Cleaving Madness Discipline'},
+				spell_ids = {10860},
 			},
 			['Pack6'] = {
 				item = 'Tome of Cry of Catastrophe/50118',
 				spells = {'Cry of Catastrophe'},
+				spell_ids = {10857},
 			},
 			['Pack7'] = {
 				item = 'Tome of Fourth Wind/80081',
-				spells = {'Fourth Wind'},
+				spells = {'Fourth Wind Discipline'},
+				spell_ids = {15134},
 			},
 			['Pack8'] = {
 				item = 'Tome of Rancorous Flurry Discipline/80280',
 				spells = {'Rancorous Flurry Discipline'},
+				spell_ids = {15120},
 			},
 			['Pack9'] = {
 				item = 'Tome of Vigorous Axe Throw/50119',
 				spells = {'Vigorous Axe Throw'},
+				spell_ids = {10858},
 			},
 			['Pack10'] = {
 				item = 'Tome of Wounded Rage Discipline/80281',
-				spells = {'Wounded Rage Discipline'},
+				spells = {'Wounding Rage'},
+				spell_ids = {15122},
 			},
 			['Glyph1'] = 'Imbued Glyph: Ancient: Annihilator\'s Volley/80076',
 			['Aug1'] = {
@@ -403,26 +422,32 @@
 			['Pack4'] = {
 				item = 'Spell: Chromablast/80284',
 				spells = {'Chromablast'},
+				spell_ids = {15140},
 			},
 			['Pack5'] = {
 				item = 'Spell: Divine Redemption/124941',
 				spells = {'Divine Redemption'},
+				spell_ids = {25252},
 			},
 			['Pack6'] = {
 				item = 'Spell: Elixir of Redemption/78149',
 				spells = {'Elixir of Redemption'},
+				spell_ids = {9812},
 			},
 			['Pack7'] = {
 				item = 'Spell: Sound of Zeal/78086',
 				spells = {'Sound of Zeal'},
+				spell_ids = {9749},
 			},
 			['Pack8'] = {
 				item = 'Spell: Urgent Renewal/80282',
 				spells = {'Urgent Renewal'},
+				spell_ids = {15135},
 			},
 			['Pack9'] = {
 				item = 'Spell: Vigilant Censure/80283',
 				spells = {'Vigilant Censure'},
+				spell_ids = {15137},
 			},
 			['Glyph1'] = 'Mnemonic Glyph: Allegiance/76563',
 			['Glyph2'] = 'Mnemonic Glyph: Hand of Allegiance/76564',
@@ -535,26 +560,32 @@
 			['Pack4'] = {
 				item = 'Spell: Ascent Frost/80757',
 				spells = {'Ascent Frost'},
+				spell_ids = {15153},
 			},
 			['Pack5'] = {
 				item = 'Spell: Breath of the Ascent/78200',
-				spells = {'Breath of the Ascent'},
+				spells = {'Breath of The Ascent'},
+				spell_ids = {9863},
 			},
 			['Pack6'] = {
 				item = 'Spell: Dawnflame/80758',
 				spells = {'Dawnflame'},
+				spell_ids = {15156},
 			},
 			['Pack7'] = {
 				item = 'Spell: Lunar Shadow/80759',
 				spells = {'Lunar Shadow'},
+				spell_ids = {15165},
 			},
 			['Pack8'] = {
 				item = 'Spell: Nature Seeker\'s Behest/117592',
 				spells = {'Nature Seeker\'s Behest'},
+				spell_ids = {10839},
 			},
 			['Pack9'] = {
 				item = 'Spell: Sunburst Devotion/80756',
 				spells = {'Sunburst Devotion'},
+				spell_ids = {15152},
 			},
 			['Glyph1'] = 'Mnemonic Glyph: Spiritoak Skin/76573',
 			['Glyph2'] = 'Mnemonic Glyph: Blessing of Spiritoak/78227',
@@ -677,22 +708,27 @@
 			['Pack5'] = {
 				item = 'Spell: Boon of the Sentinel/50149',
 				spells = {'Boon of the Sentinel'},
+				spell_ids = {10902},
 			},
 			['Pack6'] = {
 				item = 'Spell: Chromatic Chaos/80781',
 				spells = {'Chromatic Chaos'},
+				spell_ids = {15212},
 			},
 			['Pack7'] = {
 				item = 'Spell: Hysteria/80783',
 				spells = {'Hysteria'},
+				spell_ids = {15216},
 			},
 			['Pack8'] = {
 				item = 'Spell: Urgent Rune of Destiny/80782',
 				spells = {'Urgent Rune of Destiny'},
+				spell_ids = {15213},
 			},
 			['Pack9'] = {
 				item = 'Spell: Whispers of Emoush/80780',
 				spells = {'Whispers of Emoush'},
+				spell_ids = {10656},
 			},
 			['Glyph1'] = 'Mnemonic Glyph: Seer\'s Intuition/79529',
 			['Glyph2'] = 'Mnemonic Glyph: Voice of Intuition/79530',
@@ -800,26 +836,32 @@
 			['Pack4'] = {
 				item = 'Spell: Blade Rend/80766',
 				spells = {'Blade Rend'},
+				spell_ids = {15191},
 			},
 			['Pack5'] = {
 				item = 'Spell: Burning Bladestorm/50144',
 				spells = {'Burning Bladestorm'},
+				spell_ids = {10890},
 			},
 			['Pack6'] = {
 				item = 'Spell: Fickle Inferno/79091',
 				spells = {'Fickle Inferno'},
+				spell_ids = {10754},
 			},
 			['Pack7'] = {
 				item = 'Spell: Frantic Blaze/80764',
 				spells = {'Frantic Blaze'},
+				spell_ids = {15182},
 			},
 			['Pack8'] = {
 				item = 'Spell: Grant Battle Materiel/80779',
 				spells = {'Grant Battle Materiel'},
+				spell_ids = {15192},
 			},
 			['Pack9'] = {
 				item = 'Spell: Monolithic Strength/80765',
 				spells = {'Monolithic Strength'},
+				spell_ids = {15188},
 			},
 			['Glyph1'] = 'Mnemonic Glyph: Ward of the Conjurer/79524',
 			['Glyph2'] = 'Mnemonic Glyph: Circle of Magmaskin/79525',
@@ -910,38 +952,47 @@
 			['Pack2'] = {
 				item = 'Tome of Arcane Reprisal/79226',
 				spells = {'Arcane Reprisal'},
+				spell_ids = {10889},
 			},
 			['Pack3'] = {
 				item = 'Tome of Dragondance Discipline/88921',
 				spells = {'Dragondance Discipline'},
+				spell_ids = {15113},
 			},
 			['Pack4'] = {
 				item = 'Tome of Fists of Thundercrest/50117',
 				spells = {'Fists of Thundercrest'},
+				spell_ids = {10854},
 			},
 			['Pack5'] = {
 				item = 'Tome of Fourth Wind/80081',
-				spells = {'Fourth Wind'},
+				spells = {'Fourth Wind Discipline'},
+				spell_ids = {15134},
 			},
 			['Pack6'] = {
 				item = 'Tome of Grandmaster\'s Aura/80078',
 				spells = {'Grandmaster\'s Aura'},
+				spell_ids = {15095},
 			},
 			['Pack7'] = {
 				item = 'Tome of Phantom Whispers/118654',
 				spells = {'Phantom Whispers'},
+				spell_ids = {18904},
 			},
 			['Pack8'] = {
 				item = 'Tome of Stormfist Discipline/79445',
 				spells = {'Stormfist Discipline'},
+				spell_ids = {11923},
 			},
 			['Pack9'] = {
 				item = 'Tome of Velocity Focus/80083',
-				spells = {'Velocity Focus'},
+				spells = {'Velocity Focus Discipline'},
+				spell_ids = {15101},
 			},
 			['Pack10'] = {
 				item = 'Tome of Wheel of Fists/88901',
 				spells = {'Wheel of Fists'},
+				spell_ids = {14797},
 			},
 			['Glyph1'] = 'Imbued Glyph: Ancient: Arachnid Fang/80074',
 			['Aug1'] = {
@@ -1026,26 +1077,32 @@
 			['Pack4'] = {
 				item = 'Spell: Malignant Plague/80786',
 				spells = {'Malignant Plague'},
+				spell_ids = {15230},
 			},
 			['Pack5'] = {
 				item = 'Spell: Molten Pyre/80785',
 				spells = {'Molten Pyre'},
+				spell_ids = {15225},
 			},
 			['Pack6'] = {
 				item = 'Spell: Pestilent Pustules/119599',
 				spells = {'Pestilent Pustules'},
+				spell_ids = {10906},
 			},
 			['Pack7'] = {
 				item = 'Spell: Ritual of Blood/78819',
 				spells = {'Ritual of Blood'},
+				spell_ids = {10482},
 			},
 			['Pack8'] = {
 				item = 'Spell: Venom of the Accursed Nest/78892',
 				spells = {'Venom of the Accursed Nest'},
+				spell_ids = {10555},
 			},
 			['Pack9'] = {
 				item = 'Spell: Yearning of Death/80784',
 				spells = {'Yearning of Death'},
+				spell_ids = {15222},
 			},
 			['Glyph1'] = 'Mnemonic Glyph: Sacrilege of the Wraith/79527',
 			['Glyph2'] = 'Mnemonic Glyph: Dull Agony/79528',
@@ -1162,26 +1219,32 @@
 			['Pack4'] = {
 				item = 'Spell: Benevolent Aura/81864',
 				spells = {'Benevolent Aura'},
+				spell_ids = {15251},
 			},
 			['Pack5'] = {
 				item = 'Spell: Brell\'s Unshakable Barricade/81862',
 				spells = {'Brell\'s Unshakable Barricade'},
+				spell_ids = {15248},
 			},
 			['Pack6'] = {
 				item = 'Spell: Force of the Sacred/81861',
 				spells = {'Force of the Sacred'},
+				spell_ids = {15240},
 			},
 			['Pack7'] = {
 				item = 'Spell: Force of the Sentinel/81863',
 				spells = {'Force of the Sentinel'},
+				spell_ids = {15249},
 			},
 			['Pack8'] = {
 				item = 'Spell: The Silent Decree/78039',
 				spells = {'The Silent Decree'},
+				spell_ids = {10919},
 			},
 			['Pack9'] = {
 				item = 'Tome of Aegis of Righteousness/79399',
 				spells = {'Aegis of Righteousness'},
+				spell_ids = {11854},
 			},
 			['Glyph1'] = 'Mnemonic Glyph: Armor of the Savior/79538',
 			['Glyph2'] = 'Mnemonic Glyph: Virtuous Fervor/79539',
@@ -1294,18 +1357,22 @@
 			['Pack6'] = {
 				item = 'Spell: Eyes of the Drake/81866',
 				spells = {'Eyes of the Drake'},
+				spell_ids = {15255},
 			},
 			['Pack7'] = {
 				item = 'Spell: Heartshatter/116082',
 				spells = {'Heartshatter'},
+				spell_ids = {15082},
 			},
 			['Pack8'] = {
 				item = 'Spell: Swift Salve of the Stillmoon/81867',
 				spells = {'Swift Salve of the Stillmoon'},
+				spell_ids = {15257},
 			},
 			['Pack9'] = {
 				item = 'Spell: Ward of the Stalker/81865',
 				spells = {'Ward of the Stalker'},
+				spell_ids = {15254},
 			},
 			['Glyph1'] = 'Mnemonic Glyph: Snarl of the Predator/80063',
 			['Glyph2'] = 'Mnemonic Glyph: Guard of Thundercrest/80064',
@@ -1415,38 +1482,47 @@
 			['Pack2'] = {
 				item = 'Tome of Arcane Reprisal/79226',
 				spells = {'Arcane Reprisal'},
+				spell_ids = {10889},
 			},
 			['Pack3'] = {
 				item = 'Tome of Assailant Discipline/80087',
 				spells = {'Assailant Discipline'},
+				spell_ids = {15117},
 			},
 			['Pack4'] = {
 				item = 'Tome of Fourth Wind/80081',
-				spells = {'Fourth Wind'},
+				spells = {'Fourth Wind Discipline'},
+				spell_ids = {15134},
 			},
 			['Pack5'] = {
 				item = 'Tome of Frenetic Stabbing Discipline/80088',
 				spells = {'Frenetic Stabbing Discipline'},
+				spell_ids = {15119},
 			},
 			['Pack6'] = {
 				item = 'Tome of Lithe Discipline/80085',
 				spells = {'Lithe Discipline'},
+				spell_ids = {15102},
 			},
 			['Pack7'] = {
 				item = 'Tome of Outlaw\'s Glare/88900',
 				spells = {'Outlaw\'s Glare'},
+				spell_ids = {40294},
 			},
 			['Pack8'] = {
 				item = 'Tome of Pinpoint Weakness/88902',
 				spells = {'Pinpoint Weakness'},
+				spell_ids = {15115},
 			},
 			['Pack9'] = {
 				item = 'Tome of Twisted Fortune Discipline/50116',
 				spells = {'Twisted Fortune Discipline'},
+				spell_ids = {10852},
 			},
 			['Pack10'] = {
 				item = 'Tome of Vigorous Dagger Throw/79236',
 				spells = {'Vigorous Dagger Throw'},
+				spell_ids = {10851},
 			},
 			['Glyph1'] = 'Imbued Glyph: Ancient: Incursion/80075',
 			['Aug1'] = {
@@ -1537,26 +1613,32 @@
 			['Pack4'] = {
 				item = 'Spell: Blood of the Harbinger/80788',
 				spells = {'Blood of the Harbinger'},
+				spell_ids = {15233},
 			},
 			['Pack5'] = {
 				item = 'Spell: Grasp of Ju\'rek/78565',
 				spells = {'Grasp of Ju\'rek'},
+				spell_ids = {10913},
 			},
 			['Pack6'] = {
 				item = 'Spell: Terror of Lavaspinner\'s Lair/78594',
 				spells = {'Terror of Lavaspinner\'s Lair'},
+				spell_ids = {10257},
 			},
 			['Pack7'] = {
 				item = 'Spell: Touch of the Shadows/80787',
 				spells = {'Touch of the Shadows'},
+				spell_ids = {15231},
 			},
 			['Pack8'] = {
 				item = 'Spell: Voice of Emoush/81860',
 				spells = {'Voice of Emoush'},
+				spell_ids = {15239},
 			},
 			['Pack9'] = {
 				item = 'Tome of Soul Carapace/79408',
 				spells = {'Soul Carapace'},
+				spell_ids = {11866},
 			},
 			['Glyph1'] = 'Mnemonic Glyph: Cloak of the Corrupter/79535',
 			['Glyph2'] = 'Mnemonic Glyph: Shroud of the Accursed/79536',
@@ -1674,19 +1756,23 @@
 			},
 			['Pack6'] = {
 				item = 'Spell: Breath of Ju\'rek/80285',
-				spells = {'Breath of Ju\'rek'},
+				spells = {'Breath of Shadows'},
+				spell_ids = {41232},
 			},
 			['Pack7'] = {
 				item = 'Spell: Curse of Emoush/80288',
 				spells = {'Curse of Emoush'},
+				spell_ids = {15147},
 			},
 			['Pack8'] = {
 				item = 'Spell: Shadowy Sloth/80287',
 				spells = {'Shadowy Sloth'},
+				spell_ids = {15144},
 			},
 			['Pack9'] = {
 				item = 'Spell: Transcendental Torpor/80286',
 				spells = {'Transcendental Torpor'},
+				spell_ids = {15141},
 			},
 			['Glyph1'] = 'Mnemonic Glyph: Stillmoon Focusing/76568',
 			['Glyph2'] = 'Mnemonic Glyph: Talisman of the Stillmoon/76569',
@@ -1797,34 +1883,42 @@
 			['Pack2'] = {
 				item = 'Tome of Field Conqueror/88919',
 				spells = {'Field Conqueror'},
+				spell_ids = {25036},
 			},
 			['Pack3'] = {
 				item = 'Tome of Final Stand Discipline/79302',
 				spells = {'Final Stand Discipline'},
+				spell_ids = {10965},
 			},
 			['Pack4'] = {
 				item = 'Tome of Fourth Wind/80081',
-				spells = {'Fourth Wind'},
+				spells = {'Fourth Wind Discipline'},
+				spell_ids = {15134},
 			},
 			['Pack5'] = {
 				item = 'Tome of Jeer/88909',
 				spells = {'Jeer'},
+				spell_ids = {10848},
 			},
 			['Pack6'] = {
 				item = 'Tome of Maelstrom Blade/79310',
 				spells = {'Maelstrom Blade'},
+				spell_ids = {10973},
 			},
 			['Pack7'] = {
 				item = 'Tome of Maximum Effort/80080',
-				spells = {'Maximum Effort'},
+				spells = {'Maximum Effort Discipline'},
+				spell_ids = {15104},
 			},
 			['Pack8'] = {
 				item = 'Tome of Roaring Hatred/88910',
 				spells = {'Roaring Hatred'},
+				spell_ids = {19537},
 			},
 			['Pack9'] = {
 				item = 'Tome of Vanquisher\'s Aura/88925',
 				spells = {'Vanquisher\'s Aura'},
+				spell_ids = {14351},
 			},
 			['Glyph1'] = 'Imbued Glyph: Malicious Onslaught Discipline/80073',
 			['Aug1'] = {
@@ -1915,26 +2009,32 @@
 			['Pack4'] = {
 				item = 'Spell: Arcane Sanctuary/80763',
 				spells = {'Arcane Sanctuary'},
+				spell_ids = {15180},
 			},
 			['Pack5'] = {
 				item = 'Spell: Eruption of Telakemara/80760',
 				spells = {'Eruption of Telakemara'},
+				spell_ids = {15167},
 			},
 			['Pack6'] = {
 				item = 'Spell: Ether Blaze/79388',
 				spells = {'Ether Blaze'},
+				spell_ids = {11835},
 			},
 			['Pack7'] = {
 				item = 'Spell: Evoker\'s Pyromantic Blade/80761',
 				spells = {'Evoker\'s Pyromantic Blade'},
+				spell_ids = {15168},
 			},
 			['Pack8'] = {
 				item = 'Spell: Serenity Harvest/79129',
 				spells = {'Serenity Harvest'},
+				spell_ids = {10792},
 			},
 			['Pack9'] = {
 				item = 'Spell: Wildmagic Salvo/79390',
 				spells = {'Wildmagic Salvo'},
+				spell_ids = {11840},
 			},
 			['Glyph1'] = 'Mnemonic Glyph: Bolster of the Sorceror/79521',
 			['Glyph2'] = 'Mnemonic Glyph: Supernal Skin/79522',

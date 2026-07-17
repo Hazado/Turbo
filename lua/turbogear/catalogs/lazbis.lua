@@ -5780,6 +5780,9 @@ return {
             },
             slot = "Pack4",
             spell = "Niv's Symphonic",
+            spell_ids = {
+              15264,
+            },
             spells = {
               "Niv's Symphonic",
             },
@@ -5794,6 +5797,9 @@ return {
             },
             slot = "Pack5",
             spell = "One Bard Band",
+            spell_ids = {
+              35234,
+            },
             spells = {
               "One Bard Band",
             },
@@ -5807,9 +5813,12 @@ return {
               "Song: Squall Blade",
             },
             slot = "Pack6",
-            spell = "Squall Blade",
+            spell = "Squall Blade Flourish",
+            spell_ids = {
+              10940,
+            },
             spells = {
-              "Squall Blade",
+              "Squall Blade Flourish",
             },
           },
           Pack7 = {
@@ -5822,6 +5831,9 @@ return {
             },
             slot = "Pack7",
             spell = "Arcane Reprisal",
+            spell_ids = {
+              10889,
+            },
             spells = {
               "Arcane Reprisal",
             },
@@ -5836,6 +5848,9 @@ return {
             },
             slot = "Pack8",
             spell = "Endless Blades",
+            spell_ids = {
+              10939,
+            },
             spells = {
               "Endless Blades",
             },
@@ -6346,6 +6361,9 @@ return {
             },
             slot = "Pack5",
             spell = "Feral Mettle",
+            spell_ids = {
+              15261,
+            },
             spells = {
               "Feral Mettle",
             },
@@ -6360,6 +6378,9 @@ return {
             },
             slot = "Pack6",
             spell = "Ravenous Ice",
+            spell_ids = {
+              15263,
+            },
             spells = {
               "Ravenous Ice",
             },
@@ -6374,6 +6395,9 @@ return {
             },
             slot = "Pack7",
             spell = "Roaring Sleet",
+            spell_ids = {
+              10364,
+            },
             spells = {
               "Roaring Sleet",
             },
@@ -6388,6 +6412,9 @@ return {
             },
             slot = "Pack8",
             spell = "Spiritual Enlightenment",
+            spell_ids = {
+              15260,
+            },
             spells = {
               "Spiritual Enlightenment",
             },
@@ -6402,6 +6429,9 @@ return {
             },
             slot = "Pack9",
             spell = "Swift Salve of the Stillmoon",
+            spell_ids = {
+              15257,
+            },
             spells = {
               "Swift Salve of the Stillmoon",
             },
@@ -6797,9 +6827,12 @@ return {
               "Tome of Wounded Rage Discipline",
             },
             slot = "Pack10",
-            spell = "Wounded Rage Discipline",
+            spell = "Wounding Rage",
+            spell_ids = {
+              15122,
+            },
             spells = {
-              "Wounded Rage Discipline",
+              "Wounding Rage",
             },
           },
           Pack2 = {
@@ -6812,6 +6845,9 @@ return {
             },
             slot = "Pack2",
             spell = "Arcane Reprisal",
+            spell_ids = {
+              10889,
+            },
             spells = {
               "Arcane Reprisal",
             },
@@ -6826,6 +6862,9 @@ return {
             },
             slot = "Pack3",
             spell = "Battle Focus Discipline",
+            spell_ids = {
+              5038,
+            },
             spells = {
               "Battle Focus Discipline",
             },
@@ -6840,6 +6879,9 @@ return {
             },
             slot = "Pack4",
             spell = "Bloodcurdling Scream",
+            spell_ids = {
+              10915,
+            },
             spells = {
               "Bloodcurdling Scream",
             },
@@ -6854,6 +6896,9 @@ return {
             },
             slot = "Pack5",
             spell = "Cleaving Madness Discipline",
+            spell_ids = {
+              10860,
+            },
             spells = {
               "Cleaving Madness Discipline",
             },
@@ -6868,6 +6913,9 @@ return {
             },
             slot = "Pack6",
             spell = "Cry of Catastrophe",
+            spell_ids = {
+              10857,
+            },
             spells = {
               "Cry of Catastrophe",
             },
@@ -6881,9 +6929,12 @@ return {
               "Tome of Fourth Wind",
             },
             slot = "Pack7",
-            spell = "Fourth Wind",
+            spell = "Fourth Wind Discipline",
+            spell_ids = {
+              15134,
+            },
             spells = {
-              "Fourth Wind",
+              "Fourth Wind Discipline",
             },
           },
           Pack8 = {
@@ -6896,6 +6947,9 @@ return {
             },
             slot = "Pack8",
             spell = "Rancorous Flurry Discipline",
+            spell_ids = {
+              15120,
+            },
             spells = {
               "Rancorous Flurry Discipline",
             },
@@ -6910,6 +6964,9 @@ return {
             },
             slot = "Pack9",
             spell = "Vigorous Axe Throw",
+            spell_ids = {
+              10858,
+            },
             spells = {
               "Vigorous Axe Throw",
             },
@@ -7404,6 +7461,9 @@ return {
             },
             slot = "Pack4",
             spell = "Chromablast",
+            spell_ids = {
+              15140,
+            },
             spells = {
               "Chromablast",
             },
@@ -7418,6 +7478,9 @@ return {
             },
             slot = "Pack5",
             spell = "Divine Redemption",
+            spell_ids = {
+              25252,
+            },
             spells = {
               "Divine Redemption",
             },
@@ -7432,6 +7495,9 @@ return {
             },
             slot = "Pack6",
             spell = "Elixir of Redemption",
+            spell_ids = {
+              9812,
+            },
             spells = {
               "Elixir of Redemption",
             },
@@ -7446,6 +7512,9 @@ return {
             },
             slot = "Pack7",
             spell = "Sound of Zeal",
+            spell_ids = {
+              9749,
+            },
             spells = {
               "Sound of Zeal",
             },
@@ -7460,6 +7529,9 @@ return {
             },
             slot = "Pack8",
             spell = "Urgent Renewal",
+            spell_ids = {
+              15135,
+            },
             spells = {
               "Urgent Renewal",
             },
@@ -7474,6 +7546,9 @@ return {
             },
             slot = "Pack9",
             spell = "Vigilant Censure",
+            spell_ids = {
+              15137,
+            },
             spells = {
               "Vigilant Censure",
             },
@@ -7982,6 +8057,9 @@ return {
             },
             slot = "Pack4",
             spell = "Ascent Frost",
+            spell_ids = {
+              15153,
+            },
             spells = {
               "Ascent Frost",
             },
@@ -7995,9 +8073,12 @@ return {
               "Spell: Breath of the Ascent",
             },
             slot = "Pack5",
-            spell = "Breath of the Ascent",
+            spell = "Breath of The Ascent",
+            spell_ids = {
+              9863,
+            },
             spells = {
-              "Breath of the Ascent",
+              "Breath of The Ascent",
             },
           },
           Pack6 = {
@@ -8010,6 +8091,9 @@ return {
             },
             slot = "Pack6",
             spell = "Dawnflame",
+            spell_ids = {
+              15156,
+            },
             spells = {
               "Dawnflame",
             },
@@ -8024,6 +8108,9 @@ return {
             },
             slot = "Pack7",
             spell = "Lunar Shadow",
+            spell_ids = {
+              15165,
+            },
             spells = {
               "Lunar Shadow",
             },
@@ -8038,6 +8125,9 @@ return {
             },
             slot = "Pack8",
             spell = "Nature Seeker's Behest",
+            spell_ids = {
+              10839,
+            },
             spells = {
               "Nature Seeker's Behest",
             },
@@ -8052,6 +8142,9 @@ return {
             },
             slot = "Pack9",
             spell = "Sunburst Devotion",
+            spell_ids = {
+              15152,
+            },
             spells = {
               "Sunburst Devotion",
             },
@@ -8556,6 +8649,9 @@ return {
             },
             slot = "Pack5",
             spell = "Boon of the Sentinel",
+            spell_ids = {
+              10902,
+            },
             spells = {
               "Boon of the Sentinel",
             },
@@ -8570,6 +8666,9 @@ return {
             },
             slot = "Pack6",
             spell = "Chromatic Chaos",
+            spell_ids = {
+              15212,
+            },
             spells = {
               "Chromatic Chaos",
             },
@@ -8584,6 +8683,9 @@ return {
             },
             slot = "Pack7",
             spell = "Hysteria",
+            spell_ids = {
+              15216,
+            },
             spells = {
               "Hysteria",
             },
@@ -8598,6 +8700,9 @@ return {
             },
             slot = "Pack8",
             spell = "Urgent Rune of Destiny",
+            spell_ids = {
+              15213,
+            },
             spells = {
               "Urgent Rune of Destiny",
             },
@@ -8612,6 +8717,9 @@ return {
             },
             slot = "Pack9",
             spell = "Whispers of Emoush",
+            spell_ids = {
+              10656,
+            },
             spells = {
               "Whispers of Emoush",
             },
@@ -9056,6 +9164,9 @@ return {
             },
             slot = "Pack4",
             spell = "Blade Rend",
+            spell_ids = {
+              15191,
+            },
             spells = {
               "Blade Rend",
             },
@@ -9070,6 +9181,9 @@ return {
             },
             slot = "Pack5",
             spell = "Burning Bladestorm",
+            spell_ids = {
+              10890,
+            },
             spells = {
               "Burning Bladestorm",
             },
@@ -9084,6 +9198,9 @@ return {
             },
             slot = "Pack6",
             spell = "Fickle Inferno",
+            spell_ids = {
+              10754,
+            },
             spells = {
               "Fickle Inferno",
             },
@@ -9098,6 +9215,9 @@ return {
             },
             slot = "Pack7",
             spell = "Frantic Blaze",
+            spell_ids = {
+              15182,
+            },
             spells = {
               "Frantic Blaze",
             },
@@ -9112,6 +9232,9 @@ return {
             },
             slot = "Pack8",
             spell = "Grant Battle Materiel",
+            spell_ids = {
+              15192,
+            },
             spells = {
               "Grant Battle Materiel",
             },
@@ -9126,6 +9249,9 @@ return {
             },
             slot = "Pack9",
             spell = "Monolithic Strength",
+            spell_ids = {
+              15188,
+            },
             spells = {
               "Monolithic Strength",
             },
@@ -9494,6 +9620,9 @@ return {
             },
             slot = "Pack10",
             spell = "Wheel of Fists",
+            spell_ids = {
+              14797,
+            },
             spells = {
               "Wheel of Fists",
             },
@@ -9508,6 +9637,9 @@ return {
             },
             slot = "Pack2",
             spell = "Arcane Reprisal",
+            spell_ids = {
+              10889,
+            },
             spells = {
               "Arcane Reprisal",
             },
@@ -9522,6 +9654,9 @@ return {
             },
             slot = "Pack3",
             spell = "Dragondance Discipline",
+            spell_ids = {
+              15113,
+            },
             spells = {
               "Dragondance Discipline",
             },
@@ -9536,6 +9671,9 @@ return {
             },
             slot = "Pack4",
             spell = "Fists of Thundercrest",
+            spell_ids = {
+              10854,
+            },
             spells = {
               "Fists of Thundercrest",
             },
@@ -9549,9 +9687,12 @@ return {
               "Tome of Fourth Wind",
             },
             slot = "Pack5",
-            spell = "Fourth Wind",
+            spell = "Fourth Wind Discipline",
+            spell_ids = {
+              15134,
+            },
             spells = {
-              "Fourth Wind",
+              "Fourth Wind Discipline",
             },
           },
           Pack6 = {
@@ -9564,6 +9705,9 @@ return {
             },
             slot = "Pack6",
             spell = "Grandmaster's Aura",
+            spell_ids = {
+              15095,
+            },
             spells = {
               "Grandmaster's Aura",
             },
@@ -9578,6 +9722,9 @@ return {
             },
             slot = "Pack7",
             spell = "Phantom Whispers",
+            spell_ids = {
+              18904,
+            },
             spells = {
               "Phantom Whispers",
             },
@@ -9592,6 +9739,9 @@ return {
             },
             slot = "Pack8",
             spell = "Stormfist Discipline",
+            spell_ids = {
+              11923,
+            },
             spells = {
               "Stormfist Discipline",
             },
@@ -9605,9 +9755,12 @@ return {
               "Tome of Velocity Focus",
             },
             slot = "Pack9",
-            spell = "Velocity Focus",
+            spell = "Velocity Focus Discipline",
+            spell_ids = {
+              15101,
+            },
             spells = {
-              "Velocity Focus",
+              "Velocity Focus Discipline",
             },
           },
           Ranged = {
@@ -10092,6 +10245,9 @@ return {
             },
             slot = "Pack4",
             spell = "Malignant Plague",
+            spell_ids = {
+              15230,
+            },
             spells = {
               "Malignant Plague",
             },
@@ -10106,6 +10262,9 @@ return {
             },
             slot = "Pack5",
             spell = "Molten Pyre",
+            spell_ids = {
+              15225,
+            },
             spells = {
               "Molten Pyre",
             },
@@ -10120,6 +10279,9 @@ return {
             },
             slot = "Pack6",
             spell = "Pestilent Pustules",
+            spell_ids = {
+              10906,
+            },
             spells = {
               "Pestilent Pustules",
             },
@@ -10134,6 +10296,9 @@ return {
             },
             slot = "Pack7",
             spell = "Ritual of Blood",
+            spell_ids = {
+              10482,
+            },
             spells = {
               "Ritual of Blood",
             },
@@ -10148,6 +10313,9 @@ return {
             },
             slot = "Pack8",
             spell = "Venom of the Accursed Nest",
+            spell_ids = {
+              10555,
+            },
             spells = {
               "Venom of the Accursed Nest",
             },
@@ -10162,6 +10330,9 @@ return {
             },
             slot = "Pack9",
             spell = "Yearning of Death",
+            spell_ids = {
+              15222,
+            },
             spells = {
               "Yearning of Death",
             },
@@ -10620,6 +10791,9 @@ return {
             },
             slot = "Pack4",
             spell = "Benevolent Aura",
+            spell_ids = {
+              15251,
+            },
             spells = {
               "Benevolent Aura",
             },
@@ -10634,6 +10808,9 @@ return {
             },
             slot = "Pack5",
             spell = "Brell's Unshakable Barricade",
+            spell_ids = {
+              15248,
+            },
             spells = {
               "Brell's Unshakable Barricade",
             },
@@ -10648,6 +10825,9 @@ return {
             },
             slot = "Pack6",
             spell = "Force of the Sacred",
+            spell_ids = {
+              15240,
+            },
             spells = {
               "Force of the Sacred",
             },
@@ -10662,6 +10842,9 @@ return {
             },
             slot = "Pack7",
             spell = "Force of the Sentinel",
+            spell_ids = {
+              15249,
+            },
             spells = {
               "Force of the Sentinel",
             },
@@ -10676,6 +10859,9 @@ return {
             },
             slot = "Pack8",
             spell = "The Silent Decree",
+            spell_ids = {
+              10919,
+            },
             spells = {
               "The Silent Decree",
             },
@@ -10690,6 +10876,9 @@ return {
             },
             slot = "Pack9",
             spell = "Aegis of Righteousness",
+            spell_ids = {
+              11854,
+            },
             spells = {
               "Aegis of Righteousness",
             },
@@ -11214,6 +11403,9 @@ return {
             },
             slot = "Pack6",
             spell = "Eyes of the Drake",
+            spell_ids = {
+              15255,
+            },
             spells = {
               "Eyes of the Drake",
             },
@@ -11228,6 +11420,9 @@ return {
             },
             slot = "Pack7",
             spell = "Heartshatter",
+            spell_ids = {
+              15082,
+            },
             spells = {
               "Heartshatter",
             },
@@ -11242,6 +11437,9 @@ return {
             },
             slot = "Pack8",
             spell = "Swift Salve of the Stillmoon",
+            spell_ids = {
+              15257,
+            },
             spells = {
               "Swift Salve of the Stillmoon",
             },
@@ -11256,6 +11454,9 @@ return {
             },
             slot = "Pack9",
             spell = "Ward of the Stalker",
+            spell_ids = {
+              15254,
+            },
             spells = {
               "Ward of the Stalker",
             },
@@ -11638,6 +11839,9 @@ return {
             },
             slot = "Pack10",
             spell = "Vigorous Dagger Throw",
+            spell_ids = {
+              10851,
+            },
             spells = {
               "Vigorous Dagger Throw",
             },
@@ -11652,6 +11856,9 @@ return {
             },
             slot = "Pack2",
             spell = "Arcane Reprisal",
+            spell_ids = {
+              10889,
+            },
             spells = {
               "Arcane Reprisal",
             },
@@ -11666,6 +11873,9 @@ return {
             },
             slot = "Pack3",
             spell = "Assailant Discipline",
+            spell_ids = {
+              15117,
+            },
             spells = {
               "Assailant Discipline",
             },
@@ -11679,9 +11889,12 @@ return {
               "Tome of Fourth Wind",
             },
             slot = "Pack4",
-            spell = "Fourth Wind",
+            spell = "Fourth Wind Discipline",
+            spell_ids = {
+              15134,
+            },
             spells = {
-              "Fourth Wind",
+              "Fourth Wind Discipline",
             },
           },
           Pack5 = {
@@ -11694,6 +11907,9 @@ return {
             },
             slot = "Pack5",
             spell = "Frenetic Stabbing Discipline",
+            spell_ids = {
+              15119,
+            },
             spells = {
               "Frenetic Stabbing Discipline",
             },
@@ -11708,6 +11924,9 @@ return {
             },
             slot = "Pack6",
             spell = "Lithe Discipline",
+            spell_ids = {
+              15102,
+            },
             spells = {
               "Lithe Discipline",
             },
@@ -11722,6 +11941,9 @@ return {
             },
             slot = "Pack7",
             spell = "Outlaw's Glare",
+            spell_ids = {
+              40294,
+            },
             spells = {
               "Outlaw's Glare",
             },
@@ -11736,6 +11958,9 @@ return {
             },
             slot = "Pack8",
             spell = "Pinpoint Weakness",
+            spell_ids = {
+              15115,
+            },
             spells = {
               "Pinpoint Weakness",
             },
@@ -11750,6 +11975,9 @@ return {
             },
             slot = "Pack9",
             spell = "Twisted Fortune Discipline",
+            spell_ids = {
+              10852,
+            },
             spells = {
               "Twisted Fortune Discipline",
             },
@@ -12222,6 +12450,9 @@ return {
             },
             slot = "Pack4",
             spell = "Blood of the Harbinger",
+            spell_ids = {
+              15233,
+            },
             spells = {
               "Blood of the Harbinger",
             },
@@ -12236,6 +12467,9 @@ return {
             },
             slot = "Pack5",
             spell = "Grasp of Ju'rek",
+            spell_ids = {
+              10913,
+            },
             spells = {
               "Grasp of Ju'rek",
             },
@@ -12250,6 +12484,9 @@ return {
             },
             slot = "Pack6",
             spell = "Terror of Lavaspinner's Lair",
+            spell_ids = {
+              10257,
+            },
             spells = {
               "Terror of Lavaspinner's Lair",
             },
@@ -12264,6 +12501,9 @@ return {
             },
             slot = "Pack7",
             spell = "Touch of the Shadows",
+            spell_ids = {
+              15231,
+            },
             spells = {
               "Touch of the Shadows",
             },
@@ -12278,6 +12518,9 @@ return {
             },
             slot = "Pack8",
             spell = "Voice of Emoush",
+            spell_ids = {
+              15239,
+            },
             spells = {
               "Voice of Emoush",
             },
@@ -12292,6 +12535,9 @@ return {
             },
             slot = "Pack9",
             spell = "Soul Carapace",
+            spell_ids = {
+              11866,
+            },
             spells = {
               "Soul Carapace",
             },
@@ -12826,9 +13072,12 @@ return {
               "Spell: Breath of Ju'rek",
             },
             slot = "Pack6",
-            spell = "Breath of Ju'rek",
+            spell = "Breath of Shadows",
+            spell_ids = {
+              41232,
+            },
             spells = {
-              "Breath of Ju'rek",
+              "Breath of Shadows",
             },
           },
           Pack7 = {
@@ -12841,6 +13090,9 @@ return {
             },
             slot = "Pack7",
             spell = "Curse of Emoush",
+            spell_ids = {
+              15147,
+            },
             spells = {
               "Curse of Emoush",
             },
@@ -12855,6 +13107,9 @@ return {
             },
             slot = "Pack8",
             spell = "Shadowy Sloth",
+            spell_ids = {
+              15144,
+            },
             spells = {
               "Shadowy Sloth",
             },
@@ -12869,6 +13124,9 @@ return {
             },
             slot = "Pack9",
             spell = "Transcendental Torpor",
+            spell_ids = {
+              15141,
+            },
             spells = {
               "Transcendental Torpor",
             },
@@ -13251,6 +13509,9 @@ return {
             },
             slot = "Pack2",
             spell = "Field Conqueror",
+            spell_ids = {
+              25036,
+            },
             spells = {
               "Field Conqueror",
             },
@@ -13265,6 +13526,9 @@ return {
             },
             slot = "Pack3",
             spell = "Final Stand Discipline",
+            spell_ids = {
+              10965,
+            },
             spells = {
               "Final Stand Discipline",
             },
@@ -13278,9 +13542,12 @@ return {
               "Tome of Fourth Wind",
             },
             slot = "Pack4",
-            spell = "Fourth Wind",
+            spell = "Fourth Wind Discipline",
+            spell_ids = {
+              15134,
+            },
             spells = {
-              "Fourth Wind",
+              "Fourth Wind Discipline",
             },
           },
           Pack5 = {
@@ -13293,6 +13560,9 @@ return {
             },
             slot = "Pack5",
             spell = "Jeer",
+            spell_ids = {
+              10848,
+            },
             spells = {
               "Jeer",
             },
@@ -13307,6 +13577,9 @@ return {
             },
             slot = "Pack6",
             spell = "Maelstrom Blade",
+            spell_ids = {
+              10973,
+            },
             spells = {
               "Maelstrom Blade",
             },
@@ -13320,9 +13593,12 @@ return {
               "Tome of Maximum Effort",
             },
             slot = "Pack7",
-            spell = "Maximum Effort",
+            spell = "Maximum Effort Discipline",
+            spell_ids = {
+              15104,
+            },
             spells = {
-              "Maximum Effort",
+              "Maximum Effort Discipline",
             },
           },
           Pack8 = {
@@ -13335,6 +13611,9 @@ return {
             },
             slot = "Pack8",
             spell = "Roaring Hatred",
+            spell_ids = {
+              19537,
+            },
             spells = {
               "Roaring Hatred",
             },
@@ -13349,6 +13628,9 @@ return {
             },
             slot = "Pack9",
             spell = "Vanquisher's Aura",
+            spell_ids = {
+              14351,
+            },
             spells = {
               "Vanquisher's Aura",
             },
@@ -13793,6 +14075,9 @@ return {
             },
             slot = "Pack4",
             spell = "Arcane Sanctuary",
+            spell_ids = {
+              15180,
+            },
             spells = {
               "Arcane Sanctuary",
             },
@@ -13807,6 +14092,9 @@ return {
             },
             slot = "Pack5",
             spell = "Eruption of Telakemara",
+            spell_ids = {
+              15167,
+            },
             spells = {
               "Eruption of Telakemara",
             },
@@ -13821,6 +14109,9 @@ return {
             },
             slot = "Pack6",
             spell = "Ether Blaze",
+            spell_ids = {
+              11835,
+            },
             spells = {
               "Ether Blaze",
             },
@@ -13835,6 +14126,9 @@ return {
             },
             slot = "Pack7",
             spell = "Evoker's Pyromantic Blade",
+            spell_ids = {
+              15168,
+            },
             spells = {
               "Evoker's Pyromantic Blade",
             },
@@ -13849,6 +14143,9 @@ return {
             },
             slot = "Pack8",
             spell = "Serenity Harvest",
+            spell_ids = {
+              10792,
+            },
             spells = {
               "Serenity Harvest",
             },
@@ -13863,6 +14160,9 @@ return {
             },
             slot = "Pack9",
             spell = "Wildmagic Salvo",
+            spell_ids = {
+              11840,
+            },
             spells = {
               "Wildmagic Salvo",
             },

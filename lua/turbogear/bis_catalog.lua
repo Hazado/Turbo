@@ -568,6 +568,7 @@ function M.resolve_entry(list_id, class_name, slot)
     out.source = entry.source
     out.spell = entry.spell
     out.spells = entry.spells
+    out.spell_ids = entry.spell_ids
     out.notes = entry.notes
     expand_fungal_chain(list, class_bucket or list.template or list.visible, out)
     if list_id == "jonas" then

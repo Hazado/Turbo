@@ -55,7 +55,7 @@ local function copy_categories(src)
 end
 
 local function normalize_entry_value(line, slot, droppers)
-    local item_line, spells, notes, extra_names, extra_ids = line, nil, nil, nil, nil
+    local item_line, spells, spell_ids, notes, extra_names, extra_ids = line, nil, nil, nil, nil, nil
     if type(line) == "table" then
         item_line = line.item or line.name or ""
         notes = line.notes
@@ -70,6 +70,18 @@ local function normalize_entry_value(line, slot, droppers)
             if #spells == 0 then spells = nil end
         elseif type(line.spell) == "string" and trim(line.spell) ~= "" then
             spells = { trim(line.spell) }
+        end
+        if type(line.spell_ids) == "table" then
+            spell_ids = {}
+            local seen = {}
+            for _, raw in ipairs(line.spell_ids) do
+                local id = tonumber(raw)
+                if id and id > 0 and not seen[id] then
+                    seen[id] = true
+                    spell_ids[#spell_ids + 1] = id
+                end
+            end
+            if #spell_ids == 0 then spell_ids = nil end
         end
     elseif type(line) ~= "string" then
         return nil
@@ -112,6 +124,9 @@ local function normalize_entry_value(line, slot, droppers)
     if spells then
         entry.spells = spells
         entry.spell = spells[1]
+    end
+    if spell_ids then
+        entry.spell_ids = spell_ids
     end
     if type(notes) == "string" and trim(notes) ~= "" then
         entry.notes = trim(notes)

@@ -332,9 +332,11 @@ local function merge_lite_snapshot(existing, snap)
     if snap.spells_sig and snap.spells_sig ~= "" then
         out.spells = snap.spells
         out.spells_sig = snap.spells_sig
+        out.spell_ids = snap.spell_ids
     else
         out.spells = existing.spells
         out.spells_sig = existing.spells_sig
+        out.spell_ids = existing.spell_ids
     end
     return out
 end
@@ -347,6 +349,7 @@ local function merge_snapshot(existing, snap)
     if not snap.spells_sig or snap.spells_sig == "" then
         snap.spells = existing.spells
         snap.spells_sig = existing.spells_sig
+        snap.spell_ids = existing.spell_ids
     end
     if snap.bankValid == true then return snap end
     if type(existing.bank) ~= "table" or #existing.bank == 0 then return snap end
@@ -604,7 +607,7 @@ function Store.save()
                        bankPreserved=s.bankPreserved, bankCapturedAt=s.bankCapturedAt,
                        bankReason=s.bankReason,
                        lockouts=s.lockouts, spells=s.spells, spells_sig=s.spells_sig,
-                       liveStats=s.liveStats }
+                       spell_ids=s.spell_ids, liveStats=s.liveStats }
         end
         local ok_save, save_reason = backend:save(out)
         Store.cache_last_reload_reason = ok_save and "saved atomically" or ("save failed: " .. tostring(save_reason or "?"))

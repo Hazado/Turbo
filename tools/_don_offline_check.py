@@ -25,11 +25,16 @@ assert(cat.lists.don.name == 'DoN' or cat.lists.don.name == 'Dragons of Norrath'
 local war = cat.lists.don.classes.Warrior
 assert(war.Pack1 and war.Pack1.spell == 'Malicious Onslaught Discipline')
 assert(war.Pack1.item == 'Tome Pack: Ancient: Malicious Onslaught')
-assert(war.Pack4 and war.Pack4.spell == 'Fourth Wind')
+assert(war.Pack4 and war.Pack4.spell == 'Fourth Wind Discipline')
+assert(war.Pack4.spell_ids and war.Pack4.spell_ids[1] == 15134)
 assert(war.Glyph1 and not war.Glyph1.spell, 'glyph must stay item-only')
 local clr = cat.lists.don.classes.Cleric
 assert(#clr.Pack1.spells == 3)
 assert(clr.Pack4 and clr.Pack4.spell == 'Chromablast')
+local brd = cat.lists.don.classes.Bard
+assert(brd.Pack6 and brd.Pack6.spell == 'Squall Blade Flourish')
+local shm = cat.lists.don.classes.Shaman
+assert(shm.Pack6 and shm.Pack6.spell == 'Breath of Shadows')
 local spells_slots = nil
 for _, catrow in ipairs(cat.lists.don.categories or {}) do
   if catrow.name == 'Spells' then spells_slots = catrow.slots break end

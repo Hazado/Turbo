@@ -53,4 +53,42 @@ function M.live(name)
     return known
 end
 
+--- Resolve spells_new id via Spell[id] (+ RankName) then probe Book/CombatAbility.
+function M.live_id(spell_id)
+    spell_id = tonumber(spell_id)
+    if not spell_id or spell_id <= 0 then return false end
+    local known = false
+    pcall(function()
+        local base = mq.TLO.Spell(spell_id)
+        if not base or not base() then return end
+        local names = {}
+        local rank = base.RankName
+        if rank and rank() then
+            local rn = rank.Name and rank.Name() or nil
+            if not rn or rn == '' then rn = tostring(rank()) end
+            if rn and rn ~= '' then names[#names + 1] = rn end
+        end
+        local bn = base.Name and base.Name() or nil
+        if bn and bn ~= '' then names[#names + 1] = bn end
+        for _, n in ipairs(names) do
+            if M.live(n) then
+                known = true
+                return
+            end
+        end
+    end)
+    return known
+end
+
+--- True if any listed spell name or spell id is known.
+function M.live_any(names, ids)
+    for _, id in ipairs(ids or {}) do
+        if M.live_id(id) then return true end
+    end
+    for _, name in ipairs(names or {}) do
+        if M.live(name) then return true end
+    end
+    return false
+end
+
 return M
