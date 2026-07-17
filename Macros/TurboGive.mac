@@ -5099,7 +5099,7 @@ Sub SendMyDC(string collectorName, int maxAmount)
 | =====================================================================
 Sub RequestTurboGearTradeSync(string recipientName)
     | Keep TurboGear's dashboard from showing stale post-trade ownership. The
-    | autostart helper is idempotent: it starts bg only when TurboGear is absent.
+    | autostart helper is idempotent: starts bg when absent, noops when healthy.
     /squelch /timed 5 /lua run turbogear_autostart
     /if (${recipientName.Length} && !${recipientName.Equal[NULL]} && !${recipientName.Equal[${Me.Name}]}) {
         /squelch /e3bct ${recipientName} /squelch /lua run turbogear_autostart

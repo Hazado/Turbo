@@ -715,7 +715,7 @@ function M.render(state, actions)
             {
                 label = 'TurboDoctor##tools_doctor',
                 intent = 'info',
-                tooltip = 'Print Turbo diagnostics to chat: installed versions, expected macro files, active profile paths, and common setup checks.',
+                tooltip = 'Print Turbo diagnostics to chat: installed versions, expected macro files, active profile paths, and common setup checks. For auto-loot gates only: /turbodoctor loot or /tlootwhy.',
                 onClick = function() if actions.runDoctor then actions.runDoctor() end end,
             },
         }, 2, 128, ACTION_BTN_H)

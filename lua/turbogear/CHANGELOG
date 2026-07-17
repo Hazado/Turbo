@@ -1,3 +1,18 @@
+1.2.41
+- Zone lag fix: autoLaunch no longer treats post-zone group-roster churn as
+  "everyone joined" (empty roster no longer wipes last_sig; staggered
+  repopulation settles for peer_autostart_settle_s before soft-launch).
+- turbogear_autostart is truly idempotent: healthy bg → noop (was forcing a
+  full inventory publish via /tgearbg publish). Inventory still self-heals via
+  dirty watch, startup, REQUEST, bank capture, and manual sync.
+- Metadata heartbeats now carry zoneShortName/zoneName, and the bg fires one
+  meta heartbeat on real zone change so same-zone handoff guards stay fresh
+  without a full inventory republish.
+- Slim loot doctor: /turbodoctor loot (aliases: /tlootwhy, /lua run Turbo
+  doctor loot). Prints AUTO READY + first failing slain-event gate, live
+  Turbo/CombatLoot/Mode/Looter/LootRadius, corpse+aggro counts, hide mode,
+  and closest npccorpse distance when radius count is 0.
+
 1.2.40
 - Pill row decluttered: the Full Names/Compact toggle is now a "Compact"
   checkbox in the List pill's new VIEW section (Full names by default; routes

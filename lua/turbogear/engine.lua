@@ -174,13 +174,31 @@ local function write_local_cache_snapshot(force, depth, opts)
     return true
 end
 
+local last_zone_short = nil
+
+local function zone_fields()
+    local zoneShort, zoneName = "", ""
+    pcall(function()
+        zoneShort = tostring(mq.TLO.Zone.ShortName() or "")
+        zoneName = tostring(mq.TLO.Zone.Name() or "")
+    end)
+    local zl = zoneShort:lower()
+    if zl == "unknown" or zl == "nil" or zl == "null" then
+        zoneShort, zoneName = "", ""
+    end
+    return zoneShort, zoneName
+end
+
 local function metadata_snap()
     local cached = snapshot.cached()
+    local zoneShort, zoneName = zone_fields()
     return {
         name = (cached and cached.name) or mq.TLO.Me.CleanName() or "?",
         server = (cached and cached.server) or mq.TLO.MacroQuest.Server() or "?",
         class = (cached and cached.class) or mq.TLO.Me.Class.Name() or "?",
         level = (cached and cached.level) or mq.TLO.Me.Level() or 0,
+        zoneShortName = zoneShort ~= "" and zoneShort or (cached and cached.zoneShortName) or "",
+        zoneName = zoneName ~= "" and zoneName or (cached and cached.zoneName) or "",
         updated = os.time(),
         depth = "meta",
     }
@@ -204,6 +222,23 @@ local function send_metadata_heartbeat(reason)
         diag.event("engine.heartbeat_meta", reason)
         return true
     end)
+end
+
+-- Cheap zone freshness for same-zone handoff guards. Inventory does not change
+-- on zone; peers only need updated zoneShortName/zoneName via Store.touch.
+local function tick_zone_meta()
+    local gs = mq.TLO.EverQuest.GameState()
+    if gs and gs ~= "INGAME" then return end
+    local zoneShort = zone_fields()
+    if zoneShort == "" then return end
+    if last_zone_short == nil then
+        last_zone_short = zoneShort
+        return
+    end
+    if last_zone_short == zoneShort then return end
+    last_zone_short = zoneShort
+    send_metadata_heartbeat("zone_change")
+    schedule_next_keepalive()
 end
 
 local function on_message(message)
@@ -850,6 +885,7 @@ function Engine.heartbeat()
     end
     tick_bank_capture()
     prune_dedupe_maps()
+    tick_zone_meta()
     if not Engine.next_publish then schedule_next_publish(Engine.last_publish > 0 and Engine.last_publish or os.clock()) end
     if os.clock() >= Engine.next_publish then
         if (state.lean and state.lean()) or cfg.Settings.autoPeerRefresh ~= true then

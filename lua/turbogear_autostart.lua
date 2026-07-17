@@ -1,6 +1,7 @@
 -- TurboGear peer autostart helper.
--- Safe to broadcast often: ensures the bg responder is running. The visible UI
--- is no longer treated as the sync responder; bg owns inventory publishing.
+-- Safe to broadcast often: idempotent ensure-bg. Starts the bg responder when
+-- absent; noops when it is already running (bg owns keepalive + inventory dirty
+-- publishes — do not force a full inventory republish on every soft-launch).
 
 local mq = require('mq')
 local args = { ... }
@@ -24,8 +25,7 @@ if decision == 'repair_bg' then
     end
     mq.cmd('/timed 5 /squelch /lua run turbogear_bg')
     return
-elseif decision == 'publish_bg' then
-    mq.cmd('/squelch /tgearbg publish')
+elseif decision == 'noop' then
     return
 end
 
