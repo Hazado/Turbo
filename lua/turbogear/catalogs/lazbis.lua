@@ -5388,23 +5388,6 @@ return {
           },
         },
         {
-          name = "Cryptic Clutch Foci Augs",
-          slots = {
-            "Aug1",
-            "Aug2",
-            "Aug3",
-            "Aug4",
-            "Aug5",
-            "Aug6",
-            "Aug7",
-            "Aug8",
-            "Aug9",
-            "Aug10",
-            "Aug11",
-            "Aug12",
-          },
-        },
-        {
           name = "Shadow",
           slots = {
             "Materium1",
@@ -5423,6 +5406,30 @@ return {
             "Misc5",
           },
         },
+        {
+          name = "Cryptic Clutch Foci",
+          slots = {
+            "Aug1",
+            "Aug2",
+            "Aug3",
+            "Aug4",
+            "Aug5",
+            "Aug6",
+            "Aug7",
+            "Aug8",
+            "Aug9",
+            "Aug10",
+            "Aug11",
+            "Aug12",
+            "Aug13",
+            "Aug14",
+            "Aug15",
+            "Aug16",
+            "Aug17",
+            "Aug18",
+            "Aug19",
+          },
+        },
       },
       classes = {
         Bard = {
@@ -5435,118 +5442,6 @@ return {
               "Keeper's Ascendant Armbands of Harmony",
             },
             slot = "Arms",
-          },
-          Aug1 = {
-            ids = {
-              62551,
-              63017,
-            },
-            item = "Benevolent Extension",
-            names = {
-              "Benevolent Extension",
-              "Cryptic Clutch of Benevolent Extension",
-              "Vacant Vessel of Benevolent Extension",
-            },
-            notes = "+40% beneficial spell duration | +10 hWIS",
-            slot = "Aug1",
-          },
-          Aug2 = {
-            ids = {
-              62540,
-              62560,
-            },
-            item = "Malevolent Efficiency",
-            names = {
-              "Malevolent Efficiency",
-              "Cryptic Clutch of Malevolent Efficiency",
-              "Vacant Vessel of Malevolent Efficiency",
-            },
-            notes = "-11–33% detrimental spell mana cost | +10 hINT",
-            slot = "Aug2",
-          },
-          Aug3 = {
-            ids = {
-              62552,
-              63018,
-            },
-            item = "Expanded Reach",
-            names = {
-              "Expanded Reach",
-              "Cryptic Clutch of Expanded Reach",
-              "Vacant Vessel of Expanded Reach",
-            },
-            notes = "+50% spell range | +10 hWIS, +10 hINT",
-            slot = "Aug3",
-          },
-          Aug4 = {
-            ids = {
-              62556,
-              64050,
-            },
-            item = "Nimble Elusion",
-            names = {
-              "Nimble Elusion",
-              "Cryptic Clutch of Nimble Elusion",
-              "Vacant Vessel of Nimble Elusion",
-            },
-            notes = "+70% dodge | +10 hAGI",
-            slot = "Aug4",
-          },
-          Aug5 = {
-            ids = {
-              62555,
-              64049,
-            },
-            item = "Adept Guard",
-            names = {
-              "Adept Guard",
-              "Cryptic Clutch of Adept Guard",
-              "Vacant Vessel of Adept Guard",
-            },
-            notes = "+70% parry, +70% block | +10 hSTA",
-            slot = "Aug5",
-          },
-          Aug6 = {
-            ids = {
-              62554,
-              63020,
-            },
-            item = "Visceral Malice",
-            names = {
-              "Visceral Malice",
-              "Cryptic Clutch of Visceral Malice",
-              "Vacant Vessel of Visceral Malice",
-            },
-            notes = "+300% melee critical damage | +10 hSTR",
-            slot = "Aug6",
-          },
-          Aug7 = {
-            ids = {
-              62553,
-              63019,
-            },
-            item = "Wanton Assault",
-            names = {
-              "Wanton Assault",
-              "Cryptic Clutch of Wanton Assault",
-              "Vacant Vessel of Wanton Assault",
-            },
-            notes = "+21% double attack, +7% triple attack, +5% chance to hit | +10 hSTR",
-            slot = "Aug7",
-          },
-          Aug8 = {
-            ids = {
-              62558,
-              66533,
-            },
-            item = "Physical Prowess",
-            names = {
-              "Physical Prowess",
-              "Cryptic Clutch of Physical Prowess",
-              "Vacant Vessel of Physical Prowess",
-            },
-            notes = "No focus effect | +5 hSTR, +5 hSTA, +5 hAGI, +5 hDEX",
-            slot = "Aug8",
           },
           Back = {
             ids = {
@@ -5925,61 +5820,8 @@ return {
             },
             slot = "Wrist2",
           },
-        },
-        Beastlord = {
-          Arms = {
-            ids = {
-              60529,
-            },
-            item = "Keeper's Ascendant Sleeves of the Wilds",
-            names = {
-              "Keeper's Ascendant Sleeves of the Wilds",
-            },
-            slot = "Arms",
-          },
-          Aug1 = {
-            ids = {
-              62551,
-              63017,
-            },
-            item = "Benevolent Extension",
-            names = {
-              "Benevolent Extension",
-              "Cryptic Clutch of Benevolent Extension",
-              "Vacant Vessel of Benevolent Extension",
-            },
-            notes = "+40% beneficial spell duration | +10 hWIS",
-            slot = "Aug1",
-          },
-          Aug10 = {
-            ids = {
-              62553,
-              63019,
-            },
-            item = "Wanton Assault",
-            names = {
-              "Wanton Assault",
-              "Cryptic Clutch of Wanton Assault",
-              "Vacant Vessel of Wanton Assault",
-            },
-            notes = "+21% double attack, +7% triple attack, +5% chance to hit | +10 hSTR",
-            slot = "Aug10",
-          },
-          Aug11 = {
-            ids = {
-              62546,
-              62566,
-            },
-            item = "Chilling Demise",
-            names = {
-              "Chilling Demise",
-              "Cryptic Clutch of Chilling Demise",
-              "Vacant Vessel of Chilling Demise",
-            },
-            notes = "+10–60% cold spell damage | +5 hINT, +25 hCR",
-            slot = "Aug11",
-          },
-          Aug12 = {
+        
+          Aug19 = {
             ids = {
               62558,
               66533,
@@ -5991,119 +5833,19 @@ return {
               "Vacant Vessel of Physical Prowess",
             },
             notes = "No focus effect | +5 hSTR, +5 hSTA, +5 hAGI, +5 hDEX",
-            slot = "Aug12",
+            slot = "Aug19",
           },
-          Aug2 = {
+},
+        Beastlord = {
+          Arms = {
             ids = {
-              62540,
-              62560,
+              60529,
             },
-            item = "Malevolent Efficiency",
+            item = "Keeper's Ascendant Sleeves of the Wilds",
             names = {
-              "Malevolent Efficiency",
-              "Cryptic Clutch of Malevolent Efficiency",
-              "Vacant Vessel of Malevolent Efficiency",
+              "Keeper's Ascendant Sleeves of the Wilds",
             },
-            notes = "-11–33% detrimental spell mana cost | +10 hINT",
-            slot = "Aug2",
-          },
-          Aug3 = {
-            ids = {
-              62550,
-              63016,
-            },
-            item = "Malevolent Extension",
-            names = {
-              "Malevolent Extension",
-              "Cryptic Clutch of Malevolent Extension",
-              "Vacant Vessel of Malevolent Extension",
-            },
-            notes = "+40% detrimental spell duration | +10 hINT",
-            slot = "Aug3",
-          },
-          Aug4 = {
-            ids = {
-              62547,
-              62567,
-            },
-            item = "Noxious Demise",
-            names = {
-              "Noxious Demise",
-              "Cryptic Clutch of Noxious Demise",
-              "Vacant Vessel of Noxious Demise",
-            },
-            notes = "+10–60% poison spell damage | +5 hINT, +25 hPR",
-            slot = "Aug4",
-          },
-          Aug5 = {
-            ids = {
-              62548,
-              62568,
-            },
-            item = "Festering Demise",
-            names = {
-              "Festering Demise",
-              "Cryptic Clutch of Festering Demise",
-              "Vacant Vessel of Festering Demise",
-            },
-            notes = "+10–60% disease spell damage | +5 hINT, +25 hDR",
-            slot = "Aug5",
-          },
-          Aug6 = {
-            ids = {
-              62549,
-              62569,
-            },
-            item = "Merciful Mending",
-            names = {
-              "Merciful Mending",
-              "Cryptic Clutch of Merciful Mending",
-              "Vacant Vessel of Merciful Mending",
-            },
-            notes = "+10–60% healing | +10 hWIS",
-            slot = "Aug6",
-          },
-          Aug7 = {
-            ids = {
-              62556,
-              64050,
-            },
-            item = "Nimble Elusion",
-            names = {
-              "Nimble Elusion",
-              "Cryptic Clutch of Nimble Elusion",
-              "Vacant Vessel of Nimble Elusion",
-            },
-            notes = "+70% dodge | +10 hAGI",
-            slot = "Aug7",
-          },
-          Aug8 = {
-            ids = {
-              62555,
-              64049,
-            },
-            item = "Adept Guard",
-            names = {
-              "Adept Guard",
-              "Cryptic Clutch of Adept Guard",
-              "Vacant Vessel of Adept Guard",
-            },
-            notes = "+70% parry, +70% block | +10 hSTA",
-            slot = "Aug8",
-          },
-          Aug9 = {
-            ids = {
-              62554,
-              63020,
-            },
-            item = "Visceral Malice",
-            names = {
-              "Visceral Malice",
-              "Cryptic Clutch of Visceral Malice",
-              "Vacant Vessel of Visceral Malice",
-            },
-            notes = "+300% melee critical damage | +10 hSTR",
-            slot = "Aug9",
+            slot = "Arms",
           },
           Back = {
             ids = {
@@ -6506,131 +6248,8 @@ return {
             },
             slot = "Wrist2",
           },
-        },
-        Berserker = {
-          Arms = {
-            ids = {
-              60451,
-            },
-            item = "Keeper's Ascendant Sleeves of the Vindicator",
-            names = {
-              "Keeper's Ascendant Sleeves of the Vindicator",
-            },
-            slot = "Arms",
-          },
-          Aug1 = {
-            ids = {
-              62551,
-              63017,
-            },
-            item = "Benevolent Extension",
-            names = {
-              "Benevolent Extension",
-              "Cryptic Clutch of Benevolent Extension",
-              "Vacant Vessel of Benevolent Extension",
-            },
-            notes = "+40% beneficial spell duration | +10 hWIS",
-            slot = "Aug1",
-          },
-          Aug2 = {
-            ids = {
-              62550,
-              63016,
-            },
-            item = "Malevolent Extension",
-            names = {
-              "Malevolent Extension",
-              "Cryptic Clutch of Malevolent Extension",
-              "Vacant Vessel of Malevolent Extension",
-            },
-            notes = "+40% detrimental spell duration | +10 hINT",
-            slot = "Aug2",
-          },
-          Aug3 = {
-            ids = {
-              62547,
-              62567,
-            },
-            item = "Noxious Demise",
-            names = {
-              "Noxious Demise",
-              "Cryptic Clutch of Noxious Demise",
-              "Vacant Vessel of Noxious Demise",
-            },
-            notes = "+10–60% poison spell damage | +5 hINT, +25 hPR",
-            slot = "Aug3",
-          },
-          Aug4 = {
-            ids = {
-              62556,
-              64050,
-            },
-            item = "Nimble Elusion",
-            names = {
-              "Nimble Elusion",
-              "Cryptic Clutch of Nimble Elusion",
-              "Vacant Vessel of Nimble Elusion",
-            },
-            notes = "+70% dodge | +10 hAGI",
-            slot = "Aug4",
-          },
-          Aug5 = {
-            ids = {
-              62555,
-              64049,
-            },
-            item = "Adept Guard",
-            names = {
-              "Adept Guard",
-              "Cryptic Clutch of Adept Guard",
-              "Vacant Vessel of Adept Guard",
-            },
-            notes = "+70% parry, +70% block | +10 hSTA",
-            slot = "Aug5",
-          },
-          Aug6 = {
-            ids = {
-              62554,
-              63020,
-            },
-            item = "Visceral Malice",
-            names = {
-              "Visceral Malice",
-              "Cryptic Clutch of Visceral Malice",
-              "Vacant Vessel of Visceral Malice",
-            },
-            notes = "+300% melee critical damage | +10 hSTR",
-            slot = "Aug6",
-          },
-          Aug7 = {
-            ids = {
-              62553,
-              63019,
-            },
-            item = "Wanton Assault",
-            names = {
-              "Wanton Assault",
-              "Cryptic Clutch of Wanton Assault",
-              "Vacant Vessel of Wanton Assault",
-            },
-            notes = "+21% double attack, +7% triple attack, +5% chance to hit | +10 hSTR",
-            slot = "Aug7",
-          },
-          Aug8 = {
-            ids = {
-              62557,
-              64326,
-            },
-            item = "Lethal Barrage",
-            names = {
-              "Lethal Barrage",
-              "Cryptic Clutch of Lethal Barrage",
-              "Vacant Vessel of Lethal Barrage",
-            },
-            notes = "+28% archery and throwing chance to hit | +20 hDEX",
-            slot = "Aug8",
-          },
-          Aug9 = {
+        
+          Aug19 = {
             ids = {
               62558,
               66533,
@@ -6642,7 +6261,19 @@ return {
               "Vacant Vessel of Physical Prowess",
             },
             notes = "No focus effect | +5 hSTR, +5 hSTA, +5 hAGI, +5 hDEX",
-            slot = "Aug9",
+            slot = "Aug19",
+          },
+},
+        Berserker = {
+          Arms = {
+            ids = {
+              60451,
+            },
+            item = "Keeper's Ascendant Sleeves of the Vindicator",
+            names = {
+              "Keeper's Ascendant Sleeves of the Vindicator",
+            },
+            slot = "Arms",
           },
           Back = {
             ids = {
@@ -7041,7 +6672,22 @@ return {
             },
             slot = "Wrist2",
           },
-        },
+        
+          Aug19 = {
+            ids = {
+              62558,
+              66533,
+            },
+            item = "Physical Prowess",
+            names = {
+              "Physical Prowess",
+              "Cryptic Clutch of Physical Prowess",
+              "Vacant Vessel of Physical Prowess",
+            },
+            notes = "No focus effect | +5 hSTR, +5 hSTA, +5 hAGI, +5 hDEX",
+            slot = "Aug19",
+          },
+},
         Cleric = {
           Arms = {
             ids = {
@@ -7052,160 +6698,6 @@ return {
               "Keeper's Ascendant Armguards of Conviction",
             },
             slot = "Arms",
-          },
-          Aug1 = {
-            ids = {
-              62541,
-              62561,
-            },
-            item = "Benevolent Efficiency",
-            names = {
-              "Benevolent Efficiency",
-              "Cryptic Clutch of Benevolent Efficiency",
-              "Vacant Vessel of Benevolent Efficiency",
-            },
-            notes = "-11–33% beneficial spell mana cost | +10 hWIS",
-            slot = "Aug1",
-          },
-          Aug10 = {
-            ids = {
-              62556,
-              64050,
-            },
-            item = "Nimble Elusion",
-            names = {
-              "Nimble Elusion",
-              "Cryptic Clutch of Nimble Elusion",
-              "Vacant Vessel of Nimble Elusion",
-            },
-            notes = "+70% dodge | +10 hAGI",
-            slot = "Aug10",
-          },
-          Aug11 = {
-            ids = {
-              62559,
-              66720,
-            },
-            item = "Mental Prowess",
-            names = {
-              "Mental Prowess",
-              "Cryptic Clutch of Mental Prowess",
-              "Vacant Vessel of Mental Prowess",
-            },
-            notes = "No focus effect | +10 hINT, +10 hWIS, +10 heroic resists",
-            slot = "Aug11",
-          },
-          Aug2 = {
-            ids = {
-              62551,
-              63017,
-            },
-            item = "Benevolent Extension",
-            names = {
-              "Benevolent Extension",
-              "Cryptic Clutch of Benevolent Extension",
-              "Vacant Vessel of Benevolent Extension",
-            },
-            notes = "+40% beneficial spell duration | +10 hWIS",
-            slot = "Aug2",
-          },
-          Aug3 = {
-            ids = {
-              62543,
-              62563,
-            },
-            item = "Benevolent Alacrity",
-            names = {
-              "Benevolent Alacrity",
-              "Cryptic Clutch of Benevolent Alacrity",
-              "Vacant Vessel of Benevolent Alacrity",
-            },
-            notes = "-40% beneficial spell cast time | +10 hWIS",
-            slot = "Aug3",
-          },
-          Aug4 = {
-            ids = {
-              62540,
-              62560,
-            },
-            item = "Malevolent Efficiency",
-            names = {
-              "Malevolent Efficiency",
-              "Cryptic Clutch of Malevolent Efficiency",
-              "Vacant Vessel of Malevolent Efficiency",
-            },
-            notes = "-11–33% detrimental spell mana cost | +10 hINT",
-            slot = "Aug4",
-          },
-          Aug5 = {
-            ids = {
-              62550,
-              63016,
-            },
-            item = "Malevolent Extension",
-            names = {
-              "Malevolent Extension",
-              "Cryptic Clutch of Malevolent Extension",
-              "Vacant Vessel of Malevolent Extension",
-            },
-            notes = "+40% detrimental spell duration | +10 hINT",
-            slot = "Aug5",
-          },
-          Aug6 = {
-            ids = {
-              62542,
-              62562,
-            },
-            item = "Malevolent Alacrity",
-            names = {
-              "Malevolent Alacrity",
-              "Cryptic Clutch of Malevolent Alacrity",
-              "Vacant Vessel of Malevolent Alacrity",
-            },
-            notes = "-40% detrimental spell cast time | +10 hINT",
-            slot = "Aug6",
-          },
-          Aug7 = {
-            ids = {
-              62544,
-              62564,
-            },
-            item = "Arcane Demise",
-            names = {
-              "Arcane Demise",
-              "Cryptic Clutch of Arcane Demise",
-              "Vacant Vessel of Arcane Demise",
-            },
-            notes = "+10–60% magic spell damage | +5 hINT, +25 hMR",
-            slot = "Aug7",
-          },
-          Aug8 = {
-            ids = {
-              62552,
-              63018,
-            },
-            item = "Expanded Reach",
-            names = {
-              "Expanded Reach",
-              "Cryptic Clutch of Expanded Reach",
-              "Vacant Vessel of Expanded Reach",
-            },
-            notes = "+50% spell range | +10 hWIS, +10 hINT",
-            slot = "Aug8",
-          },
-          Aug9 = {
-            ids = {
-              62549,
-              62569,
-            },
-            item = "Merciful Mending",
-            names = {
-              "Merciful Mending",
-              "Cryptic Clutch of Merciful Mending",
-              "Vacant Vessel of Merciful Mending",
-            },
-            notes = "+10–60% healing | +10 hWIS",
-            slot = "Aug9",
           },
           Back = {
             ids = {
@@ -7623,61 +7115,8 @@ return {
             },
             slot = "Wrist2",
           },
-        },
-        Druid = {
-          Arms = {
-            ids = {
-              57162,
-            },
-            item = "Keeper's Ascendant Sleeves of the Tangled Briars",
-            names = {
-              "Keeper's Ascendant Sleeves of the Tangled Briars",
-            },
-            slot = "Arms",
-          },
-          Aug1 = {
-            ids = {
-              62541,
-              62561,
-            },
-            item = "Benevolent Efficiency",
-            names = {
-              "Benevolent Efficiency",
-              "Cryptic Clutch of Benevolent Efficiency",
-              "Vacant Vessel of Benevolent Efficiency",
-            },
-            notes = "-11–33% beneficial spell mana cost | +10 hWIS",
-            slot = "Aug1",
-          },
-          Aug10 = {
-            ids = {
-              62549,
-              62569,
-            },
-            item = "Merciful Mending",
-            names = {
-              "Merciful Mending",
-              "Cryptic Clutch of Merciful Mending",
-              "Vacant Vessel of Merciful Mending",
-            },
-            notes = "+10–60% healing | +10 hWIS",
-            slot = "Aug10",
-          },
-          Aug11 = {
-            ids = {
-              62556,
-              64050,
-            },
-            item = "Nimble Elusion",
-            names = {
-              "Nimble Elusion",
-              "Cryptic Clutch of Nimble Elusion",
-              "Vacant Vessel of Nimble Elusion",
-            },
-            notes = "+70% dodge | +10 hAGI",
-            slot = "Aug11",
-          },
-          Aug12 = {
+        
+          Aug19 = {
             ids = {
               62559,
               66720,
@@ -7689,119 +7128,19 @@ return {
               "Vacant Vessel of Mental Prowess",
             },
             notes = "No focus effect | +10 hINT, +10 hWIS, +10 heroic resists",
-            slot = "Aug12",
+            slot = "Aug19",
           },
-          Aug2 = {
+},
+        Druid = {
+          Arms = {
             ids = {
-              62551,
-              63017,
+              57162,
             },
-            item = "Benevolent Extension",
+            item = "Keeper's Ascendant Sleeves of the Tangled Briars",
             names = {
-              "Benevolent Extension",
-              "Cryptic Clutch of Benevolent Extension",
-              "Vacant Vessel of Benevolent Extension",
+              "Keeper's Ascendant Sleeves of the Tangled Briars",
             },
-            notes = "+40% beneficial spell duration | +10 hWIS",
-            slot = "Aug2",
-          },
-          Aug3 = {
-            ids = {
-              62543,
-              62563,
-            },
-            item = "Benevolent Alacrity",
-            names = {
-              "Benevolent Alacrity",
-              "Cryptic Clutch of Benevolent Alacrity",
-              "Vacant Vessel of Benevolent Alacrity",
-            },
-            notes = "-40% beneficial spell cast time | +10 hWIS",
-            slot = "Aug3",
-          },
-          Aug4 = {
-            ids = {
-              62540,
-              62560,
-            },
-            item = "Malevolent Efficiency",
-            names = {
-              "Malevolent Efficiency",
-              "Cryptic Clutch of Malevolent Efficiency",
-              "Vacant Vessel of Malevolent Efficiency",
-            },
-            notes = "-11–33% detrimental spell mana cost | +10 hINT",
-            slot = "Aug4",
-          },
-          Aug5 = {
-            ids = {
-              62550,
-              63016,
-            },
-            item = "Malevolent Extension",
-            names = {
-              "Malevolent Extension",
-              "Cryptic Clutch of Malevolent Extension",
-              "Vacant Vessel of Malevolent Extension",
-            },
-            notes = "+40% detrimental spell duration | +10 hINT",
-            slot = "Aug5",
-          },
-          Aug6 = {
-            ids = {
-              62542,
-              62562,
-            },
-            item = "Malevolent Alacrity",
-            names = {
-              "Malevolent Alacrity",
-              "Cryptic Clutch of Malevolent Alacrity",
-              "Vacant Vessel of Malevolent Alacrity",
-            },
-            notes = "-40% detrimental spell cast time | +10 hINT",
-            slot = "Aug6",
-          },
-          Aug7 = {
-            ids = {
-              62545,
-              62565,
-            },
-            item = "Fiery Demise",
-            names = {
-              "Fiery Demise",
-              "Cryptic Clutch of Fiery Demise",
-              "Vacant Vessel of Fiery Demise",
-            },
-            notes = "+10–60% fire spell damage | +5 hINT, +25 hFR",
-            slot = "Aug7",
-          },
-          Aug8 = {
-            ids = {
-              62544,
-              62564,
-            },
-            item = "Arcane Demise",
-            names = {
-              "Arcane Demise",
-              "Cryptic Clutch of Arcane Demise",
-              "Vacant Vessel of Arcane Demise",
-            },
-            notes = "+10–60% magic spell damage | +5 hINT, +25 hMR",
-            slot = "Aug8",
-          },
-          Aug9 = {
-            ids = {
-              62552,
-              63018,
-            },
-            item = "Expanded Reach",
-            names = {
-              "Expanded Reach",
-              "Cryptic Clutch of Expanded Reach",
-              "Vacant Vessel of Expanded Reach",
-            },
-            notes = "+50% spell range | +10 hWIS, +10 hINT",
-            slot = "Aug9",
+            slot = "Arms",
           },
           Back = {
             ids = {
@@ -8219,33 +7558,8 @@ return {
             },
             slot = "Wrist2",
           },
-        },
-        Enchanter = {
-          Arms = {
-            ids = {
-              60505,
-            },
-            item = "Keeper's Ascendant Armguards of Coercion",
-            names = {
-              "Keeper's Ascendant Armguards of Coercion",
-            },
-            slot = "Arms",
-          },
-          Aug1 = {
-            ids = {
-              62541,
-              62561,
-            },
-            item = "Benevolent Efficiency",
-            names = {
-              "Benevolent Efficiency",
-              "Cryptic Clutch of Benevolent Efficiency",
-              "Vacant Vessel of Benevolent Efficiency",
-            },
-            notes = "-11–33% beneficial spell mana cost | +10 hWIS",
-            slot = "Aug1",
-          },
-          Aug10 = {
+        
+          Aug19 = {
             ids = {
               62559,
               66720,
@@ -8257,119 +7571,19 @@ return {
               "Vacant Vessel of Mental Prowess",
             },
             notes = "No focus effect | +10 hINT, +10 hWIS, +10 heroic resists",
-            slot = "Aug10",
+            slot = "Aug19",
           },
-          Aug2 = {
+},
+        Enchanter = {
+          Arms = {
             ids = {
-              62551,
-              63017,
+              60505,
             },
-            item = "Benevolent Extension",
+            item = "Keeper's Ascendant Armguards of Coercion",
             names = {
-              "Benevolent Extension",
-              "Cryptic Clutch of Benevolent Extension",
-              "Vacant Vessel of Benevolent Extension",
+              "Keeper's Ascendant Armguards of Coercion",
             },
-            notes = "+40% beneficial spell duration | +10 hWIS",
-            slot = "Aug2",
-          },
-          Aug3 = {
-            ids = {
-              62543,
-              62563,
-            },
-            item = "Benevolent Alacrity",
-            names = {
-              "Benevolent Alacrity",
-              "Cryptic Clutch of Benevolent Alacrity",
-              "Vacant Vessel of Benevolent Alacrity",
-            },
-            notes = "-40% beneficial spell cast time | +10 hWIS",
-            slot = "Aug3",
-          },
-          Aug4 = {
-            ids = {
-              62540,
-              62560,
-            },
-            item = "Malevolent Efficiency",
-            names = {
-              "Malevolent Efficiency",
-              "Cryptic Clutch of Malevolent Efficiency",
-              "Vacant Vessel of Malevolent Efficiency",
-            },
-            notes = "-11–33% detrimental spell mana cost | +10 hINT",
-            slot = "Aug4",
-          },
-          Aug5 = {
-            ids = {
-              62550,
-              63016,
-            },
-            item = "Malevolent Extension",
-            names = {
-              "Malevolent Extension",
-              "Cryptic Clutch of Malevolent Extension",
-              "Vacant Vessel of Malevolent Extension",
-            },
-            notes = "+40% detrimental spell duration | +10 hINT",
-            slot = "Aug5",
-          },
-          Aug6 = {
-            ids = {
-              62542,
-              62562,
-            },
-            item = "Malevolent Alacrity",
-            names = {
-              "Malevolent Alacrity",
-              "Cryptic Clutch of Malevolent Alacrity",
-              "Vacant Vessel of Malevolent Alacrity",
-            },
-            notes = "-40% detrimental spell cast time | +10 hINT",
-            slot = "Aug6",
-          },
-          Aug7 = {
-            ids = {
-              62544,
-              62564,
-            },
-            item = "Arcane Demise",
-            names = {
-              "Arcane Demise",
-              "Cryptic Clutch of Arcane Demise",
-              "Vacant Vessel of Arcane Demise",
-            },
-            notes = "+10–60% magic spell damage | +5 hINT, +25 hMR",
-            slot = "Aug7",
-          },
-          Aug8 = {
-            ids = {
-              62552,
-              63018,
-            },
-            item = "Expanded Reach",
-            names = {
-              "Expanded Reach",
-              "Cryptic Clutch of Expanded Reach",
-              "Vacant Vessel of Expanded Reach",
-            },
-            notes = "+50% spell range | +10 hWIS, +10 hINT",
-            slot = "Aug8",
-          },
-          Aug9 = {
-            ids = {
-              62556,
-              64050,
-            },
-            item = "Nimble Elusion",
-            names = {
-              "Nimble Elusion",
-              "Cryptic Clutch of Nimble Elusion",
-              "Vacant Vessel of Nimble Elusion",
-            },
-            notes = "+70% dodge | +10 hAGI",
-            slot = "Aug9",
+            slot = "Arms",
           },
           Back = {
             ids = {
@@ -8794,131 +8008,8 @@ return {
             },
             slot = "Wrist2",
           },
-        },
-        Magician = {
-          Arms = {
-            ids = {
-              60475,
-            },
-            item = "Keeper's Ascendant Sleeves of the Summoner",
-            names = {
-              "Keeper's Ascendant Sleeves of the Summoner",
-            },
-            slot = "Arms",
-          },
-          Aug1 = {
-            ids = {
-              62551,
-              63017,
-            },
-            item = "Benevolent Extension",
-            names = {
-              "Benevolent Extension",
-              "Cryptic Clutch of Benevolent Extension",
-              "Vacant Vessel of Benevolent Extension",
-            },
-            notes = "+40% beneficial spell duration | +10 hWIS",
-            slot = "Aug1",
-          },
-          Aug2 = {
-            ids = {
-              62543,
-              62563,
-            },
-            item = "Benevolent Alacrity",
-            names = {
-              "Benevolent Alacrity",
-              "Cryptic Clutch of Benevolent Alacrity",
-              "Vacant Vessel of Benevolent Alacrity",
-            },
-            notes = "-40% beneficial spell cast time | +10 hWIS",
-            slot = "Aug2",
-          },
-          Aug3 = {
-            ids = {
-              62540,
-              62560,
-            },
-            item = "Malevolent Efficiency",
-            names = {
-              "Malevolent Efficiency",
-              "Cryptic Clutch of Malevolent Efficiency",
-              "Vacant Vessel of Malevolent Efficiency",
-            },
-            notes = "-11–33% detrimental spell mana cost | +10 hINT",
-            slot = "Aug3",
-          },
-          Aug4 = {
-            ids = {
-              62550,
-              63016,
-            },
-            item = "Malevolent Extension",
-            names = {
-              "Malevolent Extension",
-              "Cryptic Clutch of Malevolent Extension",
-              "Vacant Vessel of Malevolent Extension",
-            },
-            notes = "+40% detrimental spell duration | +10 hINT",
-            slot = "Aug4",
-          },
-          Aug5 = {
-            ids = {
-              62542,
-              62562,
-            },
-            item = "Malevolent Alacrity",
-            names = {
-              "Malevolent Alacrity",
-              "Cryptic Clutch of Malevolent Alacrity",
-              "Vacant Vessel of Malevolent Alacrity",
-            },
-            notes = "-40% detrimental spell cast time | +10 hINT",
-            slot = "Aug5",
-          },
-          Aug6 = {
-            ids = {
-              62545,
-              62565,
-            },
-            item = "Fiery Demise",
-            names = {
-              "Fiery Demise",
-              "Cryptic Clutch of Fiery Demise",
-              "Vacant Vessel of Fiery Demise",
-            },
-            notes = "+10–60% fire spell damage | +5 hINT, +25 hFR",
-            slot = "Aug6",
-          },
-          Aug7 = {
-            ids = {
-              62552,
-              63018,
-            },
-            item = "Expanded Reach",
-            names = {
-              "Expanded Reach",
-              "Cryptic Clutch of Expanded Reach",
-              "Vacant Vessel of Expanded Reach",
-            },
-            notes = "+50% spell range | +10 hWIS, +10 hINT",
-            slot = "Aug7",
-          },
-          Aug8 = {
-            ids = {
-              62556,
-              64050,
-            },
-            item = "Nimble Elusion",
-            names = {
-              "Nimble Elusion",
-              "Cryptic Clutch of Nimble Elusion",
-              "Vacant Vessel of Nimble Elusion",
-            },
-            notes = "+70% dodge | +10 hAGI",
-            slot = "Aug8",
-          },
-          Aug9 = {
+        
+          Aug19 = {
             ids = {
               62559,
               66720,
@@ -8930,7 +8021,19 @@ return {
               "Vacant Vessel of Mental Prowess",
             },
             notes = "No focus effect | +10 hINT, +10 hWIS, +10 heroic resists",
-            slot = "Aug9",
+            slot = "Aug19",
+          },
+},
+        Magician = {
+          Arms = {
+            ids = {
+              60475,
+            },
+            item = "Keeper's Ascendant Sleeves of the Summoner",
+            names = {
+              "Keeper's Ascendant Sleeves of the Summoner",
+            },
+            slot = "Arms",
           },
           Back = {
             ids = {
@@ -9326,7 +8429,22 @@ return {
             },
             slot = "Wrist2",
           },
-        },
+        
+          Aug19 = {
+            ids = {
+              62559,
+              66720,
+            },
+            item = "Mental Prowess",
+            names = {
+              "Mental Prowess",
+              "Cryptic Clutch of Mental Prowess",
+              "Vacant Vessel of Mental Prowess",
+            },
+            notes = "No focus effect | +10 hINT, +10 hWIS, +10 heroic resists",
+            slot = "Aug19",
+          },
+},
         Monk = {
           Arms = {
             ids = {
@@ -9337,104 +8455,6 @@ return {
               "Keeper's Ascendant Sleeves of the Focused",
             },
             slot = "Arms",
-          },
-          Aug1 = {
-            ids = {
-              62551,
-              63017,
-            },
-            item = "Benevolent Extension",
-            names = {
-              "Benevolent Extension",
-              "Cryptic Clutch of Benevolent Extension",
-              "Vacant Vessel of Benevolent Extension",
-            },
-            notes = "+40% beneficial spell duration | +10 hWIS",
-            slot = "Aug1",
-          },
-          Aug2 = {
-            ids = {
-              62547,
-              62567,
-            },
-            item = "Noxious Demise",
-            names = {
-              "Noxious Demise",
-              "Cryptic Clutch of Noxious Demise",
-              "Vacant Vessel of Noxious Demise",
-            },
-            notes = "+10–60% poison spell damage | +5 hINT, +25 hPR",
-            slot = "Aug2",
-          },
-          Aug3 = {
-            ids = {
-              62556,
-              64050,
-            },
-            item = "Nimble Elusion",
-            names = {
-              "Nimble Elusion",
-              "Cryptic Clutch of Nimble Elusion",
-              "Vacant Vessel of Nimble Elusion",
-            },
-            notes = "+70% dodge | +10 hAGI",
-            slot = "Aug3",
-          },
-          Aug4 = {
-            ids = {
-              62555,
-              64049,
-            },
-            item = "Adept Guard",
-            names = {
-              "Adept Guard",
-              "Cryptic Clutch of Adept Guard",
-              "Vacant Vessel of Adept Guard",
-            },
-            notes = "+70% parry, +70% block | +10 hSTA",
-            slot = "Aug4",
-          },
-          Aug5 = {
-            ids = {
-              62554,
-              63020,
-            },
-            item = "Visceral Malice",
-            names = {
-              "Visceral Malice",
-              "Cryptic Clutch of Visceral Malice",
-              "Vacant Vessel of Visceral Malice",
-            },
-            notes = "+300% melee critical damage | +10 hSTR",
-            slot = "Aug5",
-          },
-          Aug6 = {
-            ids = {
-              62553,
-              63019,
-            },
-            item = "Wanton Assault",
-            names = {
-              "Wanton Assault",
-              "Cryptic Clutch of Wanton Assault",
-              "Vacant Vessel of Wanton Assault",
-            },
-            notes = "+21% double attack, +7% triple attack, +5% chance to hit | +10 hSTR",
-            slot = "Aug6",
-          },
-          Aug7 = {
-            ids = {
-              62558,
-              66533,
-            },
-            item = "Physical Prowess",
-            names = {
-              "Physical Prowess",
-              "Cryptic Clutch of Physical Prowess",
-              "Vacant Vessel of Physical Prowess",
-            },
-            notes = "No focus effect | +5 hSTR, +5 hSTA, +5 hAGI, +5 hDEX",
-            slot = "Aug7",
           },
           Back = {
             ids = {
@@ -9833,7 +8853,22 @@ return {
             },
             slot = "Wrist2",
           },
-        },
+        
+          Aug19 = {
+            ids = {
+              62558,
+              66533,
+            },
+            item = "Physical Prowess",
+            names = {
+              "Physical Prowess",
+              "Cryptic Clutch of Physical Prowess",
+              "Vacant Vessel of Physical Prowess",
+            },
+            notes = "No focus effect | +5 hSTR, +5 hSTA, +5 hAGI, +5 hDEX",
+            slot = "Aug19",
+          },
+},
         Necromancer = {
           Arms = {
             ids = {
@@ -9844,174 +8879,6 @@ return {
               "Keeper's Ascendant Armband of the Grave",
             },
             slot = "Arms",
-          },
-          Aug1 = {
-            ids = {
-              62551,
-              63017,
-            },
-            item = "Benevolent Extension",
-            names = {
-              "Benevolent Extension",
-              "Cryptic Clutch of Benevolent Extension",
-              "Vacant Vessel of Benevolent Extension",
-            },
-            notes = "+40% beneficial spell duration | +10 hWIS",
-            slot = "Aug1",
-          },
-          Aug10 = {
-            ids = {
-              62552,
-              63018,
-            },
-            item = "Expanded Reach",
-            names = {
-              "Expanded Reach",
-              "Cryptic Clutch of Expanded Reach",
-              "Vacant Vessel of Expanded Reach",
-            },
-            notes = "+50% spell range | +10 hWIS, +10 hINT",
-            slot = "Aug10",
-          },
-          Aug11 = {
-            ids = {
-              62556,
-              64050,
-            },
-            item = "Nimble Elusion",
-            names = {
-              "Nimble Elusion",
-              "Cryptic Clutch of Nimble Elusion",
-              "Vacant Vessel of Nimble Elusion",
-            },
-            notes = "+70% dodge | +10 hAGI",
-            slot = "Aug11",
-          },
-          Aug12 = {
-            ids = {
-              62559,
-              66720,
-            },
-            item = "Mental Prowess",
-            names = {
-              "Mental Prowess",
-              "Cryptic Clutch of Mental Prowess",
-              "Vacant Vessel of Mental Prowess",
-            },
-            notes = "No focus effect | +10 hINT, +10 hWIS, +10 heroic resists",
-            slot = "Aug12",
-          },
-          Aug2 = {
-            ids = {
-              62543,
-              62563,
-            },
-            item = "Benevolent Alacrity",
-            names = {
-              "Benevolent Alacrity",
-              "Cryptic Clutch of Benevolent Alacrity",
-              "Vacant Vessel of Benevolent Alacrity",
-            },
-            notes = "-40% beneficial spell cast time | +10 hWIS",
-            slot = "Aug2",
-          },
-          Aug3 = {
-            ids = {
-              62540,
-              62560,
-            },
-            item = "Malevolent Efficiency",
-            names = {
-              "Malevolent Efficiency",
-              "Cryptic Clutch of Malevolent Efficiency",
-              "Vacant Vessel of Malevolent Efficiency",
-            },
-            notes = "-11–33% detrimental spell mana cost | +10 hINT",
-            slot = "Aug3",
-          },
-          Aug4 = {
-            ids = {
-              62550,
-              63016,
-            },
-            item = "Malevolent Extension",
-            names = {
-              "Malevolent Extension",
-              "Cryptic Clutch of Malevolent Extension",
-              "Vacant Vessel of Malevolent Extension",
-            },
-            notes = "+40% detrimental spell duration | +10 hINT",
-            slot = "Aug4",
-          },
-          Aug5 = {
-            ids = {
-              62542,
-              62562,
-            },
-            item = "Malevolent Alacrity",
-            names = {
-              "Malevolent Alacrity",
-              "Cryptic Clutch of Malevolent Alacrity",
-              "Vacant Vessel of Malevolent Alacrity",
-            },
-            notes = "-40% detrimental spell cast time | +10 hINT",
-            slot = "Aug5",
-          },
-          Aug6 = {
-            ids = {
-              62545,
-              62565,
-            },
-            item = "Fiery Demise",
-            names = {
-              "Fiery Demise",
-              "Cryptic Clutch of Fiery Demise",
-              "Vacant Vessel of Fiery Demise",
-            },
-            notes = "+10–60% fire spell damage | +5 hINT, +25 hFR",
-            slot = "Aug6",
-          },
-          Aug7 = {
-            ids = {
-              62547,
-              62567,
-            },
-            item = "Noxious Demise",
-            names = {
-              "Noxious Demise",
-              "Cryptic Clutch of Noxious Demise",
-              "Vacant Vessel of Noxious Demise",
-            },
-            notes = "+10–60% poison spell damage | +5 hINT, +25 hPR",
-            slot = "Aug7",
-          },
-          Aug8 = {
-            ids = {
-              62544,
-              62564,
-            },
-            item = "Arcane Demise",
-            names = {
-              "Arcane Demise",
-              "Cryptic Clutch of Arcane Demise",
-              "Vacant Vessel of Arcane Demise",
-            },
-            notes = "+10–60% magic spell damage | +5 hINT, +25 hMR",
-            slot = "Aug8",
-          },
-          Aug9 = {
-            ids = {
-              62548,
-              62568,
-            },
-            item = "Festering Demise",
-            names = {
-              "Festering Demise",
-              "Cryptic Clutch of Festering Demise",
-              "Vacant Vessel of Festering Demise",
-            },
-            notes = "+10–60% disease spell damage | +5 hINT, +25 hDR",
-            slot = "Aug9",
           },
           Back = {
             ids = {
@@ -10407,7 +9274,22 @@ return {
             },
             slot = "Wrist2",
           },
-        },
+        
+          Aug19 = {
+            ids = {
+              62559,
+              66720,
+            },
+            item = "Mental Prowess",
+            names = {
+              "Mental Prowess",
+              "Cryptic Clutch of Mental Prowess",
+              "Vacant Vessel of Mental Prowess",
+            },
+            notes = "No focus effect | +10 hINT, +10 hWIS, +10 heroic resists",
+            slot = "Aug19",
+          },
+},
         Paladin = {
           Arms = {
             ids = {
@@ -10418,146 +9300,6 @@ return {
               "Keeper's Ascendant Sleeves of the Defender",
             },
             slot = "Arms",
-          },
-          Aug1 = {
-            ids = {
-              62541,
-              62561,
-            },
-            item = "Benevolent Efficiency",
-            names = {
-              "Benevolent Efficiency",
-              "Cryptic Clutch of Benevolent Efficiency",
-              "Vacant Vessel of Benevolent Efficiency",
-            },
-            notes = "-11–33% beneficial spell mana cost | +10 hWIS",
-            slot = "Aug1",
-          },
-          Aug10 = {
-            ids = {
-              62558,
-              66533,
-            },
-            item = "Physical Prowess",
-            names = {
-              "Physical Prowess",
-              "Cryptic Clutch of Physical Prowess",
-              "Vacant Vessel of Physical Prowess",
-            },
-            notes = "No focus effect | +5 hSTR, +5 hSTA, +5 hAGI, +5 hDEX",
-            slot = "Aug10",
-          },
-          Aug2 = {
-            ids = {
-              62551,
-              63017,
-            },
-            item = "Benevolent Extension",
-            names = {
-              "Benevolent Extension",
-              "Cryptic Clutch of Benevolent Extension",
-              "Vacant Vessel of Benevolent Extension",
-            },
-            notes = "+40% beneficial spell duration | +10 hWIS",
-            slot = "Aug2",
-          },
-          Aug3 = {
-            ids = {
-              62544,
-              62564,
-            },
-            item = "Arcane Demise",
-            names = {
-              "Arcane Demise",
-              "Cryptic Clutch of Arcane Demise",
-              "Vacant Vessel of Arcane Demise",
-            },
-            notes = "+10–60% magic spell damage | +5 hINT, +25 hMR",
-            slot = "Aug3",
-          },
-          Aug4 = {
-            ids = {
-              62552,
-              63018,
-            },
-            item = "Expanded Reach",
-            names = {
-              "Expanded Reach",
-              "Cryptic Clutch of Expanded Reach",
-              "Vacant Vessel of Expanded Reach",
-            },
-            notes = "+50% spell range | +10 hWIS, +10 hINT",
-            slot = "Aug4",
-          },
-          Aug5 = {
-            ids = {
-              62549,
-              62569,
-            },
-            item = "Merciful Mending",
-            names = {
-              "Merciful Mending",
-              "Cryptic Clutch of Merciful Mending",
-              "Vacant Vessel of Merciful Mending",
-            },
-            notes = "+10–60% healing | +10 hWIS",
-            slot = "Aug5",
-          },
-          Aug6 = {
-            ids = {
-              62556,
-              64050,
-            },
-            item = "Nimble Elusion",
-            names = {
-              "Nimble Elusion",
-              "Cryptic Clutch of Nimble Elusion",
-              "Vacant Vessel of Nimble Elusion",
-            },
-            notes = "+70% dodge | +10 hAGI",
-            slot = "Aug6",
-          },
-          Aug7 = {
-            ids = {
-              62555,
-              64049,
-            },
-            item = "Adept Guard",
-            names = {
-              "Adept Guard",
-              "Cryptic Clutch of Adept Guard",
-              "Vacant Vessel of Adept Guard",
-            },
-            notes = "+70% parry, +70% block | +10 hSTA",
-            slot = "Aug7",
-          },
-          Aug8 = {
-            ids = {
-              62554,
-              63020,
-            },
-            item = "Visceral Malice",
-            names = {
-              "Visceral Malice",
-              "Cryptic Clutch of Visceral Malice",
-              "Vacant Vessel of Visceral Malice",
-            },
-            notes = "+300% melee critical damage | +10 hSTR",
-            slot = "Aug8",
-          },
-          Aug9 = {
-            ids = {
-              62553,
-              63019,
-            },
-            item = "Wanton Assault",
-            names = {
-              "Wanton Assault",
-              "Cryptic Clutch of Wanton Assault",
-              "Vacant Vessel of Wanton Assault",
-            },
-            notes = "+21% double attack, +7% triple attack, +5% chance to hit | +10 hSTR",
-            slot = "Aug9",
           },
           Back = {
             ids = {
@@ -10953,7 +9695,22 @@ return {
             },
             slot = "Wrist2",
           },
-        },
+        
+          Aug19 = {
+            ids = {
+              62558,
+              66533,
+            },
+            item = "Physical Prowess",
+            names = {
+              "Physical Prowess",
+              "Cryptic Clutch of Physical Prowess",
+              "Vacant Vessel of Physical Prowess",
+            },
+            notes = "No focus effect | +5 hSTR, +5 hSTA, +5 hAGI, +5 hDEX",
+            slot = "Aug19",
+          },
+},
         Ranger = {
           Arms = {
             ids = {
@@ -10964,174 +9721,6 @@ return {
               "Keeper's Ascendant Sleeves of Journeys",
             },
             slot = "Arms",
-          },
-          Aug1 = {
-            ids = {
-              62551,
-              63017,
-            },
-            item = "Benevolent Extension",
-            names = {
-              "Benevolent Extension",
-              "Cryptic Clutch of Benevolent Extension",
-              "Vacant Vessel of Benevolent Extension",
-            },
-            notes = "+40% beneficial spell duration | +10 hWIS",
-            slot = "Aug1",
-          },
-          Aug10 = {
-            ids = {
-              62554,
-              63020,
-            },
-            item = "Visceral Malice",
-            names = {
-              "Visceral Malice",
-              "Cryptic Clutch of Visceral Malice",
-              "Vacant Vessel of Visceral Malice",
-            },
-            notes = "+300% melee critical damage | +10 hSTR",
-            slot = "Aug10",
-          },
-          Aug11 = {
-            ids = {
-              62553,
-              63019,
-            },
-            item = "Wanton Assault",
-            names = {
-              "Wanton Assault",
-              "Cryptic Clutch of Wanton Assault",
-              "Vacant Vessel of Wanton Assault",
-            },
-            notes = "+21% double attack, +7% triple attack, +5% chance to hit | +10 hSTR",
-            slot = "Aug11",
-          },
-          Aug12 = {
-            ids = {
-              62557,
-              64326,
-            },
-            item = "Lethal Barrage",
-            names = {
-              "Lethal Barrage",
-              "Cryptic Clutch of Lethal Barrage",
-              "Vacant Vessel of Lethal Barrage",
-            },
-            notes = "+28% archery and throwing chance to hit | +20 hDEX",
-            slot = "Aug12",
-          },
-          Aug2 = {
-            ids = {
-              62540,
-              62560,
-            },
-            item = "Malevolent Efficiency",
-            names = {
-              "Malevolent Efficiency",
-              "Cryptic Clutch of Malevolent Efficiency",
-              "Vacant Vessel of Malevolent Efficiency",
-            },
-            notes = "-11–33% detrimental spell mana cost | +10 hINT",
-            slot = "Aug2",
-          },
-          Aug3 = {
-            ids = {
-              62550,
-              63016,
-            },
-            item = "Malevolent Extension",
-            names = {
-              "Malevolent Extension",
-              "Cryptic Clutch of Malevolent Extension",
-              "Vacant Vessel of Malevolent Extension",
-            },
-            notes = "+40% detrimental spell duration | +10 hINT",
-            slot = "Aug3",
-          },
-          Aug4 = {
-            ids = {
-              62545,
-              62565,
-            },
-            item = "Fiery Demise",
-            names = {
-              "Fiery Demise",
-              "Cryptic Clutch of Fiery Demise",
-              "Vacant Vessel of Fiery Demise",
-            },
-            notes = "+10–60% fire spell damage | +5 hINT, +25 hFR",
-            slot = "Aug4",
-          },
-          Aug5 = {
-            ids = {
-              62544,
-              62564,
-            },
-            item = "Arcane Demise",
-            names = {
-              "Arcane Demise",
-              "Cryptic Clutch of Arcane Demise",
-              "Vacant Vessel of Arcane Demise",
-            },
-            notes = "+10–60% magic spell damage | +5 hINT, +25 hMR",
-            slot = "Aug5",
-          },
-          Aug6 = {
-            ids = {
-              62552,
-              63018,
-            },
-            item = "Expanded Reach",
-            names = {
-              "Expanded Reach",
-              "Cryptic Clutch of Expanded Reach",
-              "Vacant Vessel of Expanded Reach",
-            },
-            notes = "+50% spell range | +10 hWIS, +10 hINT",
-            slot = "Aug6",
-          },
-          Aug7 = {
-            ids = {
-              62549,
-              62569,
-            },
-            item = "Merciful Mending",
-            names = {
-              "Merciful Mending",
-              "Cryptic Clutch of Merciful Mending",
-              "Vacant Vessel of Merciful Mending",
-            },
-            notes = "+10–60% healing | +10 hWIS",
-            slot = "Aug7",
-          },
-          Aug8 = {
-            ids = {
-              62556,
-              64050,
-            },
-            item = "Nimble Elusion",
-            names = {
-              "Nimble Elusion",
-              "Cryptic Clutch of Nimble Elusion",
-              "Vacant Vessel of Nimble Elusion",
-            },
-            notes = "+70% dodge | +10 hAGI",
-            slot = "Aug8",
-          },
-          Aug9 = {
-            ids = {
-              62555,
-              64049,
-            },
-            item = "Adept Guard",
-            names = {
-              "Adept Guard",
-              "Cryptic Clutch of Adept Guard",
-              "Vacant Vessel of Adept Guard",
-            },
-            notes = "+70% parry, +70% block | +10 hSTA",
-            slot = "Aug9",
           },
           Back = {
             ids = {
@@ -11531,117 +10120,8 @@ return {
             },
             slot = "Wrist2",
           },
-        },
-        Rogue = {
-          Arms = {
-            ids = {
-              60443,
-            },
-            item = "Keeper's Ascendant Armguard of Shadows",
-            names = {
-              "Keeper's Ascendant Armguard of Shadows",
-            },
-            slot = "Arms",
-          },
-          Aug1 = {
-            ids = {
-              62551,
-              63017,
-            },
-            item = "Benevolent Extension",
-            names = {
-              "Benevolent Extension",
-              "Cryptic Clutch of Benevolent Extension",
-              "Vacant Vessel of Benevolent Extension",
-            },
-            notes = "+40% beneficial spell duration | +10 hWIS",
-            slot = "Aug1",
-          },
-          Aug2 = {
-            ids = {
-              62550,
-              63016,
-            },
-            item = "Malevolent Extension",
-            names = {
-              "Malevolent Extension",
-              "Cryptic Clutch of Malevolent Extension",
-              "Vacant Vessel of Malevolent Extension",
-            },
-            notes = "+40% detrimental spell duration | +10 hINT",
-            slot = "Aug2",
-          },
-          Aug3 = {
-            ids = {
-              62547,
-              62567,
-            },
-            item = "Noxious Demise",
-            names = {
-              "Noxious Demise",
-              "Cryptic Clutch of Noxious Demise",
-              "Vacant Vessel of Noxious Demise",
-            },
-            notes = "+10–60% poison spell damage | +5 hINT, +25 hPR",
-            slot = "Aug3",
-          },
-          Aug4 = {
-            ids = {
-              62556,
-              64050,
-            },
-            item = "Nimble Elusion",
-            names = {
-              "Nimble Elusion",
-              "Cryptic Clutch of Nimble Elusion",
-              "Vacant Vessel of Nimble Elusion",
-            },
-            notes = "+70% dodge | +10 hAGI",
-            slot = "Aug4",
-          },
-          Aug5 = {
-            ids = {
-              62555,
-              64049,
-            },
-            item = "Adept Guard",
-            names = {
-              "Adept Guard",
-              "Cryptic Clutch of Adept Guard",
-              "Vacant Vessel of Adept Guard",
-            },
-            notes = "+70% parry, +70% block | +10 hSTA",
-            slot = "Aug5",
-          },
-          Aug6 = {
-            ids = {
-              62554,
-              63020,
-            },
-            item = "Visceral Malice",
-            names = {
-              "Visceral Malice",
-              "Cryptic Clutch of Visceral Malice",
-              "Vacant Vessel of Visceral Malice",
-            },
-            notes = "+300% melee critical damage | +10 hSTR",
-            slot = "Aug6",
-          },
-          Aug7 = {
-            ids = {
-              62553,
-              63019,
-            },
-            item = "Wanton Assault",
-            names = {
-              "Wanton Assault",
-              "Cryptic Clutch of Wanton Assault",
-              "Vacant Vessel of Wanton Assault",
-            },
-            notes = "+21% double attack, +7% triple attack, +5% chance to hit | +10 hSTR",
-            slot = "Aug7",
-          },
-          Aug8 = {
+        
+          Aug19 = {
             ids = {
               62558,
               66533,
@@ -11653,7 +10133,19 @@ return {
               "Vacant Vessel of Physical Prowess",
             },
             notes = "No focus effect | +5 hSTR, +5 hSTA, +5 hAGI, +5 hDEX",
-            slot = "Aug8",
+            slot = "Aug19",
+          },
+},
+        Rogue = {
+          Arms = {
+            ids = {
+              60443,
+            },
+            item = "Keeper's Ascendant Armguard of Shadows",
+            names = {
+              "Keeper's Ascendant Armguard of Shadows",
+            },
+            slot = "Arms",
           },
           Back = {
             ids = {
@@ -12052,47 +10544,8 @@ return {
             },
             slot = "Wrist2",
           },
-        },
-        ["Shadow Knight"] = {
-          Arms = {
-            ids = {
-              54955,
-            },
-            item = "Keeper's Ascendant Armguards of the Hateful",
-            names = {
-              "Keeper's Ascendant Armguards of the Hateful",
-            },
-            slot = "Arms",
-          },
-          Aug1 = {
-            ids = {
-              62551,
-              63017,
-            },
-            item = "Benevolent Extension",
-            names = {
-              "Benevolent Extension",
-              "Cryptic Clutch of Benevolent Extension",
-              "Vacant Vessel of Benevolent Extension",
-            },
-            notes = "+40% beneficial spell duration | +10 hWIS",
-            slot = "Aug1",
-          },
-          Aug10 = {
-            ids = {
-              62553,
-              63019,
-            },
-            item = "Wanton Assault",
-            names = {
-              "Wanton Assault",
-              "Cryptic Clutch of Wanton Assault",
-              "Vacant Vessel of Wanton Assault",
-            },
-            notes = "+21% double attack, +7% triple attack, +5% chance to hit | +10 hSTR",
-            slot = "Aug10",
-          },
-          Aug11 = {
+        
+          Aug19 = {
             ids = {
               62558,
               66533,
@@ -12104,119 +10557,19 @@ return {
               "Vacant Vessel of Physical Prowess",
             },
             notes = "No focus effect | +5 hSTR, +5 hSTA, +5 hAGI, +5 hDEX",
-            slot = "Aug11",
+            slot = "Aug19",
           },
-          Aug2 = {
+},
+        ["Shadow Knight"] = {
+          Arms = {
             ids = {
-              62550,
-              63016,
+              54955,
             },
-            item = "Malevolent Extension",
+            item = "Keeper's Ascendant Armguards of the Hateful",
             names = {
-              "Malevolent Extension",
-              "Cryptic Clutch of Malevolent Extension",
-              "Vacant Vessel of Malevolent Extension",
+              "Keeper's Ascendant Armguards of the Hateful",
             },
-            notes = "+40% detrimental spell duration | +10 hINT",
-            slot = "Aug2",
-          },
-          Aug3 = {
-            ids = {
-              62547,
-              62567,
-            },
-            item = "Noxious Demise",
-            names = {
-              "Noxious Demise",
-              "Cryptic Clutch of Noxious Demise",
-              "Vacant Vessel of Noxious Demise",
-            },
-            notes = "+10–60% poison spell damage | +5 hINT, +25 hPR",
-            slot = "Aug3",
-          },
-          Aug4 = {
-            ids = {
-              62544,
-              62564,
-            },
-            item = "Arcane Demise",
-            names = {
-              "Arcane Demise",
-              "Cryptic Clutch of Arcane Demise",
-              "Vacant Vessel of Arcane Demise",
-            },
-            notes = "+10–60% magic spell damage | +5 hINT, +25 hMR",
-            slot = "Aug4",
-          },
-          Aug5 = {
-            ids = {
-              62548,
-              62568,
-            },
-            item = "Festering Demise",
-            names = {
-              "Festering Demise",
-              "Cryptic Clutch of Festering Demise",
-              "Vacant Vessel of Festering Demise",
-            },
-            notes = "+10–60% disease spell damage | +5 hINT, +25 hDR",
-            slot = "Aug5",
-          },
-          Aug6 = {
-            ids = {
-              62552,
-              63018,
-            },
-            item = "Expanded Reach",
-            names = {
-              "Expanded Reach",
-              "Cryptic Clutch of Expanded Reach",
-              "Vacant Vessel of Expanded Reach",
-            },
-            notes = "+50% spell range | +10 hWIS, +10 hINT",
-            slot = "Aug6",
-          },
-          Aug7 = {
-            ids = {
-              62556,
-              64050,
-            },
-            item = "Nimble Elusion",
-            names = {
-              "Nimble Elusion",
-              "Cryptic Clutch of Nimble Elusion",
-              "Vacant Vessel of Nimble Elusion",
-            },
-            notes = "+70% dodge | +10 hAGI",
-            slot = "Aug7",
-          },
-          Aug8 = {
-            ids = {
-              62555,
-              64049,
-            },
-            item = "Adept Guard",
-            names = {
-              "Adept Guard",
-              "Cryptic Clutch of Adept Guard",
-              "Vacant Vessel of Adept Guard",
-            },
-            notes = "+70% parry, +70% block | +10 hSTA",
-            slot = "Aug8",
-          },
-          Aug9 = {
-            ids = {
-              62554,
-              63020,
-            },
-            item = "Visceral Malice",
-            names = {
-              "Visceral Malice",
-              "Cryptic Clutch of Visceral Malice",
-              "Vacant Vessel of Visceral Malice",
-            },
-            notes = "+300% melee critical damage | +10 hSTR",
-            slot = "Aug9",
+            slot = "Arms",
           },
           Back = {
             ids = {
@@ -12422,6 +10775,9 @@ return {
             },
             slot = "Pack2",
             spell = "Shroud of the Accursed",
+            spell_ids = {
+              10251,
+            },
             spells = {
               "Shroud of the Accursed",
             },
@@ -12617,7 +10973,22 @@ return {
             },
             slot = "Wrist2",
           },
-        },
+        
+          Aug19 = {
+            ids = {
+              62558,
+              66533,
+            },
+            item = "Physical Prowess",
+            names = {
+              "Physical Prowess",
+              "Cryptic Clutch of Physical Prowess",
+              "Vacant Vessel of Physical Prowess",
+            },
+            notes = "No focus effect | +5 hSTR, +5 hSTA, +5 hAGI, +5 hDEX",
+            slot = "Aug19",
+          },
+},
         Shaman = {
           Arms = {
             ids = {
@@ -12628,174 +10999,6 @@ return {
               "Keeper's Ascendant Armguards of the Ancestors",
             },
             slot = "Arms",
-          },
-          Aug1 = {
-            ids = {
-              62541,
-              62561,
-            },
-            item = "Benevolent Efficiency",
-            names = {
-              "Benevolent Efficiency",
-              "Cryptic Clutch of Benevolent Efficiency",
-              "Vacant Vessel of Benevolent Efficiency",
-            },
-            notes = "-11–33% beneficial spell mana cost | +10 hWIS",
-            slot = "Aug1",
-          },
-          Aug10 = {
-            ids = {
-              62549,
-              62569,
-            },
-            item = "Merciful Mending",
-            names = {
-              "Merciful Mending",
-              "Cryptic Clutch of Merciful Mending",
-              "Vacant Vessel of Merciful Mending",
-            },
-            notes = "+10–60% healing | +10 hWIS",
-            slot = "Aug10",
-          },
-          Aug11 = {
-            ids = {
-              62556,
-              64050,
-            },
-            item = "Nimble Elusion",
-            names = {
-              "Nimble Elusion",
-              "Cryptic Clutch of Nimble Elusion",
-              "Vacant Vessel of Nimble Elusion",
-            },
-            notes = "+70% dodge | +10 hAGI",
-            slot = "Aug11",
-          },
-          Aug12 = {
-            ids = {
-              62559,
-              66720,
-            },
-            item = "Mental Prowess",
-            names = {
-              "Mental Prowess",
-              "Cryptic Clutch of Mental Prowess",
-              "Vacant Vessel of Mental Prowess",
-            },
-            notes = "No focus effect | +10 hINT, +10 hWIS, +10 heroic resists",
-            slot = "Aug12",
-          },
-          Aug2 = {
-            ids = {
-              62551,
-              63017,
-            },
-            item = "Benevolent Extension",
-            names = {
-              "Benevolent Extension",
-              "Cryptic Clutch of Benevolent Extension",
-              "Vacant Vessel of Benevolent Extension",
-            },
-            notes = "+40% beneficial spell duration | +10 hWIS",
-            slot = "Aug2",
-          },
-          Aug3 = {
-            ids = {
-              62543,
-              62563,
-            },
-            item = "Benevolent Alacrity",
-            names = {
-              "Benevolent Alacrity",
-              "Cryptic Clutch of Benevolent Alacrity",
-              "Vacant Vessel of Benevolent Alacrity",
-            },
-            notes = "-40% beneficial spell cast time | +10 hWIS",
-            slot = "Aug3",
-          },
-          Aug4 = {
-            ids = {
-              62540,
-              62560,
-            },
-            item = "Malevolent Efficiency",
-            names = {
-              "Malevolent Efficiency",
-              "Cryptic Clutch of Malevolent Efficiency",
-              "Vacant Vessel of Malevolent Efficiency",
-            },
-            notes = "-11–33% detrimental spell mana cost | +10 hINT",
-            slot = "Aug4",
-          },
-          Aug5 = {
-            ids = {
-              62550,
-              63016,
-            },
-            item = "Malevolent Extension",
-            names = {
-              "Malevolent Extension",
-              "Cryptic Clutch of Malevolent Extension",
-              "Vacant Vessel of Malevolent Extension",
-            },
-            notes = "+40% detrimental spell duration | +10 hINT",
-            slot = "Aug5",
-          },
-          Aug6 = {
-            ids = {
-              62542,
-              62562,
-            },
-            item = "Malevolent Alacrity",
-            names = {
-              "Malevolent Alacrity",
-              "Cryptic Clutch of Malevolent Alacrity",
-              "Vacant Vessel of Malevolent Alacrity",
-            },
-            notes = "-40% detrimental spell cast time | +10 hINT",
-            slot = "Aug6",
-          },
-          Aug7 = {
-            ids = {
-              62547,
-              62567,
-            },
-            item = "Noxious Demise",
-            names = {
-              "Noxious Demise",
-              "Cryptic Clutch of Noxious Demise",
-              "Vacant Vessel of Noxious Demise",
-            },
-            notes = "+10–60% poison spell damage | +5 hINT, +25 hPR",
-            slot = "Aug7",
-          },
-          Aug8 = {
-            ids = {
-              62548,
-              62568,
-            },
-            item = "Festering Demise",
-            names = {
-              "Festering Demise",
-              "Cryptic Clutch of Festering Demise",
-              "Vacant Vessel of Festering Demise",
-            },
-            notes = "+10–60% disease spell damage | +5 hINT, +25 hDR",
-            slot = "Aug8",
-          },
-          Aug9 = {
-            ids = {
-              62552,
-              63018,
-            },
-            item = "Expanded Reach",
-            names = {
-              "Expanded Reach",
-              "Cryptic Clutch of Expanded Reach",
-              "Vacant Vessel of Expanded Reach",
-            },
-            notes = "+50% spell range | +10 hWIS, +10 hINT",
-            slot = "Aug9",
           },
           Back = {
             ids = {
@@ -13206,7 +11409,22 @@ return {
             },
             slot = "Wrist2",
           },
-        },
+        
+          Aug19 = {
+            ids = {
+              62559,
+              66720,
+            },
+            item = "Mental Prowess",
+            names = {
+              "Mental Prowess",
+              "Cryptic Clutch of Mental Prowess",
+              "Vacant Vessel of Mental Prowess",
+            },
+            notes = "No focus effect | +10 hINT, +10 hWIS, +10 heroic resists",
+            slot = "Aug19",
+          },
+},
         Warrior = {
           Arms = {
             ids = {
@@ -13217,118 +11435,6 @@ return {
               "Keeper's Ascendant Sleeves of War",
             },
             slot = "Arms",
-          },
-          Aug1 = {
-            ids = {
-              62551,
-              63017,
-            },
-            item = "Benevolent Extension",
-            names = {
-              "Benevolent Extension",
-              "Cryptic Clutch of Benevolent Extension",
-              "Vacant Vessel of Benevolent Extension",
-            },
-            notes = "+40% beneficial spell duration | +10 hWIS",
-            slot = "Aug1",
-          },
-          Aug2 = {
-            ids = {
-              62545,
-              62565,
-            },
-            item = "Fiery Demise",
-            names = {
-              "Fiery Demise",
-              "Cryptic Clutch of Fiery Demise",
-              "Vacant Vessel of Fiery Demise",
-            },
-            notes = "+10–60% fire spell damage | +5 hINT, +25 hFR",
-            slot = "Aug2",
-          },
-          Aug3 = {
-            ids = {
-              62547,
-              62567,
-            },
-            item = "Noxious Demise",
-            names = {
-              "Noxious Demise",
-              "Cryptic Clutch of Noxious Demise",
-              "Vacant Vessel of Noxious Demise",
-            },
-            notes = "+10–60% poison spell damage | +5 hINT, +25 hPR",
-            slot = "Aug3",
-          },
-          Aug4 = {
-            ids = {
-              62556,
-              64050,
-            },
-            item = "Nimble Elusion",
-            names = {
-              "Nimble Elusion",
-              "Cryptic Clutch of Nimble Elusion",
-              "Vacant Vessel of Nimble Elusion",
-            },
-            notes = "+70% dodge | +10 hAGI",
-            slot = "Aug4",
-          },
-          Aug5 = {
-            ids = {
-              62555,
-              64049,
-            },
-            item = "Adept Guard",
-            names = {
-              "Adept Guard",
-              "Cryptic Clutch of Adept Guard",
-              "Vacant Vessel of Adept Guard",
-            },
-            notes = "+70% parry, +70% block | +10 hSTA",
-            slot = "Aug5",
-          },
-          Aug6 = {
-            ids = {
-              62554,
-              63020,
-            },
-            item = "Visceral Malice",
-            names = {
-              "Visceral Malice",
-              "Cryptic Clutch of Visceral Malice",
-              "Vacant Vessel of Visceral Malice",
-            },
-            notes = "+300% melee critical damage | +10 hSTR",
-            slot = "Aug6",
-          },
-          Aug7 = {
-            ids = {
-              62553,
-              63019,
-            },
-            item = "Wanton Assault",
-            names = {
-              "Wanton Assault",
-              "Cryptic Clutch of Wanton Assault",
-              "Vacant Vessel of Wanton Assault",
-            },
-            notes = "+21% double attack, +7% triple attack, +5% chance to hit | +10 hSTR",
-            slot = "Aug7",
-          },
-          Aug8 = {
-            ids = {
-              62558,
-              66533,
-            },
-            item = "Physical Prowess",
-            names = {
-              "Physical Prowess",
-              "Cryptic Clutch of Physical Prowess",
-              "Vacant Vessel of Physical Prowess",
-            },
-            notes = "No focus effect | +5 hSTR, +5 hSTA, +5 hAGI, +5 hDEX",
-            slot = "Aug8",
           },
           Back = {
             ids = {
@@ -13710,7 +11816,22 @@ return {
             },
             slot = "Wrist2",
           },
-        },
+        
+          Aug19 = {
+            ids = {
+              62558,
+              66533,
+            },
+            item = "Physical Prowess",
+            names = {
+              "Physical Prowess",
+              "Cryptic Clutch of Physical Prowess",
+              "Vacant Vessel of Physical Prowess",
+            },
+            notes = "No focus effect | +5 hSTR, +5 hSTA, +5 hAGI, +5 hDEX",
+            slot = "Aug19",
+          },
+},
         Wizard = {
           Arms = {
             ids = {
@@ -13721,132 +11842,6 @@ return {
               "Keeper's Ascendant Sleeves of the Arcanists",
             },
             slot = "Arms",
-          },
-          Aug1 = {
-            ids = {
-              62551,
-              63017,
-            },
-            item = "Benevolent Extension",
-            names = {
-              "Benevolent Extension",
-              "Cryptic Clutch of Benevolent Extension",
-              "Vacant Vessel of Benevolent Extension",
-            },
-            notes = "+40% beneficial spell duration | +10 hWIS",
-            slot = "Aug1",
-          },
-          Aug2 = {
-            ids = {
-              62540,
-              62560,
-            },
-            item = "Malevolent Efficiency",
-            names = {
-              "Malevolent Efficiency",
-              "Cryptic Clutch of Malevolent Efficiency",
-              "Vacant Vessel of Malevolent Efficiency",
-            },
-            notes = "-11–33% detrimental spell mana cost | +10 hINT",
-            slot = "Aug2",
-          },
-          Aug3 = {
-            ids = {
-              62550,
-              63016,
-            },
-            item = "Malevolent Extension",
-            names = {
-              "Malevolent Extension",
-              "Cryptic Clutch of Malevolent Extension",
-              "Vacant Vessel of Malevolent Extension",
-            },
-            notes = "+40% detrimental spell duration | +10 hINT",
-            slot = "Aug3",
-          },
-          Aug4 = {
-            ids = {
-              62542,
-              62562,
-            },
-            item = "Malevolent Alacrity",
-            names = {
-              "Malevolent Alacrity",
-              "Cryptic Clutch of Malevolent Alacrity",
-              "Vacant Vessel of Malevolent Alacrity",
-            },
-            notes = "-40% detrimental spell cast time | +10 hINT",
-            slot = "Aug4",
-          },
-          Aug5 = {
-            ids = {
-              62545,
-              62565,
-            },
-            item = "Fiery Demise",
-            names = {
-              "Fiery Demise",
-              "Cryptic Clutch of Fiery Demise",
-              "Vacant Vessel of Fiery Demise",
-            },
-            notes = "+10–60% fire spell damage | +5 hINT, +25 hFR",
-            slot = "Aug5",
-          },
-          Aug6 = {
-            ids = {
-              62544,
-              62564,
-            },
-            item = "Arcane Demise",
-            names = {
-              "Arcane Demise",
-              "Cryptic Clutch of Arcane Demise",
-              "Vacant Vessel of Arcane Demise",
-            },
-            notes = "+10–60% magic spell damage | +5 hINT, +25 hMR",
-            slot = "Aug6",
-          },
-          Aug7 = {
-            ids = {
-              62552,
-              63018,
-            },
-            item = "Expanded Reach",
-            names = {
-              "Expanded Reach",
-              "Cryptic Clutch of Expanded Reach",
-              "Vacant Vessel of Expanded Reach",
-            },
-            notes = "+50% spell range | +10 hWIS, +10 hINT",
-            slot = "Aug7",
-          },
-          Aug8 = {
-            ids = {
-              62556,
-              64050,
-            },
-            item = "Nimble Elusion",
-            names = {
-              "Nimble Elusion",
-              "Cryptic Clutch of Nimble Elusion",
-              "Vacant Vessel of Nimble Elusion",
-            },
-            notes = "+70% dodge | +10 hAGI",
-            slot = "Aug8",
-          },
-          Aug9 = {
-            ids = {
-              62559,
-              66720,
-            },
-            item = "Mental Prowess",
-            names = {
-              "Mental Prowess",
-              "Cryptic Clutch of Mental Prowess",
-              "Vacant Vessel of Mental Prowess",
-            },
-            notes = "No focus effect | +10 hINT, +10 hWIS, +10 heroic resists",
-            slot = "Aug9",
           },
           Back = {
             ids = {
@@ -14242,7 +12237,22 @@ return {
             },
             slot = "Wrist2",
           },
-        },
+        
+          Aug19 = {
+            ids = {
+              62559,
+              66720,
+            },
+            item = "Mental Prowess",
+            names = {
+              "Mental Prowess",
+              "Cryptic Clutch of Mental Prowess",
+              "Vacant Vessel of Mental Prowess",
+            },
+            notes = "No focus effect | +10 hINT, +10 hWIS, +10 heroic resists",
+            slot = "Aug19",
+          },
+},
       },
       group = "Raid Best In Slot",
       id = "don",
@@ -14250,6 +12260,259 @@ return {
       show_base = {
       },
       template = {
+        Aug1 = {
+          ids = {
+            62541,
+            62561,
+          },
+          item = "Benevolent Efficiency",
+          names = {
+            "Benevolent Efficiency",
+            "Cryptic Clutch of Benevolent Efficiency",
+            "Vacant Vessel of Benevolent Efficiency",
+          },
+          notes = "-11–33% beneficial spell mana cost | +10 hWIS",
+          slot = "Aug1",
+        },
+        Aug2 = {
+          ids = {
+            62551,
+            63017,
+          },
+          item = "Benevolent Extension",
+          names = {
+            "Benevolent Extension",
+            "Cryptic Clutch of Benevolent Extension",
+            "Vacant Vessel of Benevolent Extension",
+          },
+          notes = "+40% beneficial spell duration | +10 hWIS",
+          slot = "Aug2",
+        },
+        Aug3 = {
+          ids = {
+            62543,
+            62563,
+          },
+          item = "Benevolent Alacrity",
+          names = {
+            "Benevolent Alacrity",
+            "Cryptic Clutch of Benevolent Alacrity",
+            "Vacant Vessel of Benevolent Alacrity",
+          },
+          notes = "-40% beneficial spell cast time | +10 hWIS",
+          slot = "Aug3",
+        },
+        Aug4 = {
+          ids = {
+            62540,
+            62560,
+          },
+          item = "Malevolent Efficiency",
+          names = {
+            "Malevolent Efficiency",
+            "Cryptic Clutch of Malevolent Efficiency",
+            "Vacant Vessel of Malevolent Efficiency",
+          },
+          notes = "-11–33% detrimental spell mana cost | +10 hINT",
+          slot = "Aug4",
+        },
+        Aug5 = {
+          ids = {
+            62550,
+            63016,
+          },
+          item = "Malevolent Extension",
+          names = {
+            "Malevolent Extension",
+            "Cryptic Clutch of Malevolent Extension",
+            "Vacant Vessel of Malevolent Extension",
+          },
+          notes = "+40% detrimental spell duration | +10 hINT",
+          slot = "Aug5",
+        },
+        Aug6 = {
+          ids = {
+            62542,
+            62562,
+          },
+          item = "Malevolent Alacrity",
+          names = {
+            "Malevolent Alacrity",
+            "Cryptic Clutch of Malevolent Alacrity",
+            "Vacant Vessel of Malevolent Alacrity",
+          },
+          notes = "-40% detrimental spell cast time | +10 hINT",
+          slot = "Aug6",
+        },
+        Aug7 = {
+          ids = {
+            62544,
+            62564,
+          },
+          item = "Arcane Demise",
+          names = {
+            "Arcane Demise",
+            "Cryptic Clutch of Arcane Demise",
+            "Vacant Vessel of Arcane Demise",
+          },
+          notes = "+10–60% magic spell damage | +5 hINT, +25 hMR",
+          slot = "Aug7",
+        },
+        Aug8 = {
+          ids = {
+            62545,
+            62565,
+          },
+          item = "Fiery Demise",
+          names = {
+            "Fiery Demise",
+            "Cryptic Clutch of Fiery Demise",
+            "Vacant Vessel of Fiery Demise",
+          },
+          notes = "+10–60% fire spell damage | +5 hINT, +25 hFR",
+          slot = "Aug8",
+        },
+        Aug9 = {
+          ids = {
+            62546,
+            62566,
+          },
+          item = "Chilling Demise",
+          names = {
+            "Chilling Demise",
+            "Cryptic Clutch of Chilling Demise",
+            "Vacant Vessel of Chilling Demise",
+          },
+          notes = "+10–60% cold spell damage | +5 hINT, +25 hCR",
+          slot = "Aug9",
+        },
+        Aug10 = {
+          ids = {
+            62547,
+            62567,
+          },
+          item = "Noxious Demise",
+          names = {
+            "Noxious Demise",
+            "Cryptic Clutch of Noxious Demise",
+            "Vacant Vessel of Noxious Demise",
+          },
+          notes = "+10–60% poison spell damage | +5 hINT, +25 hPR",
+          slot = "Aug10",
+        },
+        Aug11 = {
+          ids = {
+            62548,
+            62568,
+          },
+          item = "Festering Demise",
+          names = {
+            "Festering Demise",
+            "Cryptic Clutch of Festering Demise",
+            "Vacant Vessel of Festering Demise",
+          },
+          notes = "+10–60% disease spell damage | +5 hINT, +25 hDR",
+          slot = "Aug11",
+        },
+        Aug12 = {
+          ids = {
+            62549,
+            62569,
+          },
+          item = "Merciful Mending",
+          names = {
+            "Merciful Mending",
+            "Cryptic Clutch of Merciful Mending",
+            "Vacant Vessel of Merciful Mending",
+          },
+          notes = "+10–60% healing | +10 hWIS",
+          slot = "Aug12",
+        },
+        Aug13 = {
+          ids = {
+            62552,
+            63018,
+          },
+          item = "Expanded Reach",
+          names = {
+            "Expanded Reach",
+            "Cryptic Clutch of Expanded Reach",
+            "Vacant Vessel of Expanded Reach",
+          },
+          notes = "+50% spell range | +10 hWIS, +10 hINT",
+          slot = "Aug13",
+        },
+        Aug14 = {
+          ids = {
+            62556,
+            64050,
+          },
+          item = "Nimble Elusion",
+          names = {
+            "Nimble Elusion",
+            "Cryptic Clutch of Nimble Elusion",
+            "Vacant Vessel of Nimble Elusion",
+          },
+          notes = "+70% dodge | +10 hAGI",
+          slot = "Aug14",
+        },
+        Aug15 = {
+          ids = {
+            62555,
+            64049,
+          },
+          item = "Adept Guard",
+          names = {
+            "Adept Guard",
+            "Cryptic Clutch of Adept Guard",
+            "Vacant Vessel of Adept Guard",
+          },
+          notes = "+70% parry, +70% block | +10 hSTA",
+          slot = "Aug15",
+        },
+        Aug16 = {
+          ids = {
+            62554,
+            63020,
+          },
+          item = "Visceral Malice",
+          names = {
+            "Visceral Malice",
+            "Cryptic Clutch of Visceral Malice",
+            "Vacant Vessel of Visceral Malice",
+          },
+          notes = "+300% melee critical damage | +10 hSTR",
+          slot = "Aug16",
+        },
+        Aug17 = {
+          ids = {
+            62553,
+            63019,
+          },
+          item = "Wanton Assault",
+          names = {
+            "Wanton Assault",
+            "Cryptic Clutch of Wanton Assault",
+            "Vacant Vessel of Wanton Assault",
+          },
+          notes = "+21% double attack, +7% triple attack, +5% chance to hit | +10 hSTR",
+          slot = "Aug17",
+        },
+        Aug18 = {
+          ids = {
+            62557,
+            64326,
+          },
+          item = "Lethal Barrage",
+          names = {
+            "Lethal Barrage",
+            "Cryptic Clutch of Lethal Barrage",
+            "Vacant Vessel of Lethal Barrage",
+          },
+          notes = "+28% archery and throwing chance to hit | +20 hDEX",
+          slot = "Aug18",
+        },
+
         CharmExtreme = {
           ids = {
             55054,

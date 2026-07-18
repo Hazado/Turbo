@@ -2,7 +2,7 @@
    *  *  *  *  *  *  *  *  *  [  T u r b o T h e m e  ]  *  *  *  *  *  *  *  *  *
              Centralized design tokens for TurboSuite ImGui rendering.
              require('Turbo.theme') from any Turbo Lua file.
-             @version lua/Turbo/theme.lua 1.5.1
+             @version lua/Turbo/theme.lua 1.5.2
 --]]
 
 local M = {}
@@ -28,7 +28,9 @@ M.layout = {
     windowMaxW   = 620,
     fullTargetW  = 480,
     slimTargetW  = 280,
-    fullTargetH  = 680,
+    -- +24px clears the hairline outer scrollbar on Actions/Review/Setup/More
+    -- (shell height is applied every frame via SetWindowSize).
+    fullTargetH  = 704,
     slimTargetH  = 700,
     actionsFullW = 480,
     setupFullW   = 480,
@@ -40,12 +42,12 @@ M.layout = {
     bigViewW     = 480,
     -- Unified full-view height. Actions / Review / Setup / More share one
     -- shell so tab switches do not resize the window.
-    bigViewH     = 680,
+    bigViewH     = 704,
     actionsFullH = 640,
     toolsFullH   = 620,
     gainsFullH   = 720,
     actionsSlimH = 700,
-    setupSharedFullH = 680,
+    setupSharedFullH = 704,
     setupAdvancedFullH = 860,
     setupFullH   = 820,
     reviewFullH  = 820,

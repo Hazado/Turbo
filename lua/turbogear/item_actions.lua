@@ -302,19 +302,20 @@ local function close_item_inspect_windows()
     end)
 end
 
-function M.inspect_item(name)
+function M.inspect_item(name, id)
     name = trim(name)
+    id = tonumber(id) or 0
     local now = os.clock()
     if (now - last_inspect_at) < INSPECT_DEBOUNCE_S then
         M.status_msg = "Inspect cooldown - wait a moment."
         return false
     end
-    local link = M.resolve_item_link(name)
+    local link = M.resolve_announce_link(name, nil, id)
     if link ~= "" then
         close_item_inspect_windows()
         mq.cmd("/executelink " .. link)
         last_inspect_at = now
-        M.status_msg = "Inspecting " .. name
+        M.status_msg = "Inspecting " .. (name ~= "" and name or ("id " .. tostring(id)))
         return true
     end
     M.status_msg = "No item link available for " .. (name ~= "" and name or "?")
@@ -914,7 +915,7 @@ function M.draw_context(name, id, suffix, opts)
     else
         ImGui.TextDisabled("View on Alla")
     end
-    if ImGui.Selectable("Inspect in-game##tgctx_inspect_" .. suffix) then M.inspect_item(name) end
+    if ImGui.Selectable("Inspect in-game##tgctx_inspect_" .. suffix) then M.inspect_item(name, id) end
     if ImGui.IsItemHovered and ImGui.IsItemHovered() and ImGui.SetTooltip then
         ImGui.SetTooltip("Opens EQ item window (closes any prior inspect first). For a stable view, use View on Alla.")
     end
@@ -961,6 +962,16 @@ end
 -- inline) permanently shifts the layout. Stamp an expiry the first time a given
 -- message is seen and return "" once it lapses, so callers get self-clearing text.
 M.STATUS_TTL = 4.0
+
+--- Set status with an explicit TTL (seconds). Use for Dry Even / Dry Collect so
+--- the header band keeps the summary longer than the default 4s blink.
+function M.set_status(msg, ttl)
+    M.status_msg = tostring(msg or "")
+    M._status_seen = M.status_msg
+    local life = tonumber(ttl)
+    if not life or life <= 0 then life = tonumber(M.STATUS_TTL) or 4.0 end
+    M._status_until = os.clock() + life
+end
 
 function M.status()
     local msg = M.status_msg or ""

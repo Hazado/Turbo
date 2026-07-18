@@ -1,7 +1,7 @@
 --[[
-  Turbo View — Actions Tab
+  Turbo View -- Actions Tab
   ------------------------
-  @version lua/Turbo/ui/views/actions.lua 1.3.0
+  @version lua/Turbo/ui/views/actions.lua 1.4.1
 
   Full-GUI Actions tab renderer: TurboLoot/TurboGive/Currency button grids,
   cursor-hand panel, status message. All colors via Theme.col; all button
@@ -9,6 +9,18 @@
 ]]
 
 local ImGui = require('ImGui')
+local RunAsPill
+do
+    local modName = 'Turbo.ui.run_as_pill'
+    local WANT = 1
+    RunAsPill = require(modName)
+    -- Hot-reload shim: retry once per session if a stale cached module is older
+    -- than WANT. Never re-require every frame.
+    if type(RunAsPill) ~= 'table' or (tonumber(RunAsPill.VERSION) or 0) < WANT then
+        package.loaded[modName] = nil
+        RunAsPill = require(modName)
+    end
+end
 
 local M = {}
 
@@ -61,7 +73,6 @@ function M.render(state, actions)
 
     local broadcastMode = runMode ~= 'self'
     local warnRgb = {145, 105, 45}
-    local warnText = {0.95, 0.76, 0.42, 1.0}
     local GRID_GAP = 4
     local MIN_ACTION_W = 78
     local MIN_TOOL_W = 82
@@ -116,80 +127,91 @@ function M.render(state, actions)
         return out
     end
 
-    local function modeButton(label, mode, w, tooltip)
-        local active = runMode == mode
-        local variant = active and 'primaryButton' or 'secondaryButton'
-        local locked = mode ~= 'self' and not canSharedWrite
-        if locked then ImGui.BeginDisabled() end
-        if actions.Ui.buttonVariant(label .. '##runmode_' .. mode, variant, w, 24) then
-            setRunMode(mode)
-        end
-        if locked then ImGui.EndDisabled() end
-        actions.tip(locked and ('Take Turbo control to use ' .. label .. ' scope.') or tooltip)
-    end
-
-    local function targetChip(name, width)
-        local active = g.actionRunTargets[name] == true
-        local variant = active and 'primaryButton' or 'secondaryButton'
-        local label = actions.Ui.fitLabel(name .. '##action_target_' .. name, name:sub(1, 6), width or 82)
-        if actions.Ui.buttonVariant(label, variant, width, 24) then
-            g.actionRunTargets[name] = not active or nil
-            if selectedCount() > 0 then setRunMode('multi') end
-        end
-        actions.tip(name)
-    end
-
     local function drawRunAsPanel()
-        local avail = ImGui.GetContentRegionAvail()
-        local cols, modeW, gap = actions.Ui.adaptiveColumns(4, 58, GRID_GAP, math.min(avail, 360))
-
-        ImGui.TextColored(broadcastMode and warnText[1] or 0.66, broadcastMode and warnText[2] or 0.70,
-            broadcastMode and warnText[3] or 0.78, 1.0, 'Run as:')
-        ImGui.SameLine()
-        local scopeText = 'self: ' .. meName
-        if runMode == 'multi' then
-            scopeText = string.format('picks: %d', selectedCount())
-        elseif runMode == 'group' then
-            scopeText = string.format('group: %d bots', #botTargets)
-        elseif runMode == 'all' then
-            scopeText = 'all zone'
-        end
-        ImGui.TextColored(broadcastMode and warnText[1] or 0.45, broadcastMode and warnText[2] or 0.48,
-            broadcastMode and warnText[3] or 0.52, 1.0, scopeText)
-        actions.Ui.gridSameLine(1, cols, gap)
-        modeButton('Self', 'self', modeW, 'This character only.')
-        actions.Ui.gridSameLine(2, cols, gap)
-        modeButton('Picks', 'multi', modeW, 'Picked targets only.')
-        actions.Ui.gridSameLine(3, cols, gap)
-        modeButton('Group', 'group', modeW, 'Current group.')
-        actions.Ui.gridSameLine(4, cols, gap)
-        modeButton('All', 'all', modeW, 'All E3 bots in zone.')
-
-        local pickCols, pickW, pickGap = actions.Ui.adaptiveColumns(4, 74, GRID_GAP)
-        local rows = math.max(1, math.ceil(math.max(#botTargets, 1) / math.max(1, pickCols)))
-        local detailH = math.max(82, math.min(118, 22 + (rows * 28)))
-        if ImGui.BeginChild('##actions_runas_detail', 0, detailH, false) then
-            if runMode == 'multi' then
-                ImGui.TextColored(0.55, 0.58, 0.65, 1.0, 'Targets')
-                if #botTargets == 0 then
-                    ImGui.SameLine()
-                    ImGui.TextColored(0.55, 0.58, 0.65, 1.0, 'No bots found')
+        if type(g.actionSavedPicks) ~= 'table' then g.actionSavedPicks = {} end
+        if type(RunAsPill) ~= 'table' or type(RunAsPill.draw) ~= 'function' then return end
+        -- Refresh runMode from g each draw so the pill api sees setRunMode results.
+        runMode = g.actionRunMode or 'self'
+        broadcastMode = runMode ~= 'self'
+        RunAsPill.draw({ height = 24 }, {
+            me_name = meName,
+            run_mode = runMode,
+            bot_targets = botTargets,
+            members = g.members,
+            can_shared_write = canSharedWrite,
+            set_run_mode = function(mode)
+                setRunMode(mode)
+                runMode = g.actionRunMode or mode
+                broadcastMode = runMode ~= 'self'
+            end,
+            get_pick_map = function()
+                return g.actionRunTargets
+            end,
+            set_pick = function(name, on)
+                if on then
+                    g.actionRunTargets[name] = true
+                    if (g.actionRunMode or 'self') ~= 'multi' then setRunMode('multi') end
                 else
-                    for i, name in ipairs(botTargets) do
-                        actions.Ui.gridSameLine(i, pickCols, pickGap)
-                        targetChip(name, pickW)
+                    g.actionRunTargets[name] = nil
+                end
+            end,
+            get_saved_picks = function()
+                return g.actionSavedPicks
+            end,
+            set_saved_picks = function(list)
+                g.actionSavedPicks = type(list) == 'table' and list or {}
+            end,
+            save_pick_set = function(name, members)
+                name = tostring(name or ''):match('^%s*(.-)%s*$') or ''
+                if name == '' or type(members) ~= 'table' or #members == 0 then return false end
+                local list = g.actionSavedPicks
+                local replaced = false
+                for _, rec in ipairs(list) do
+                    if tostring(rec.name or ''):lower() == name:lower() then
+                        rec.name = name
+                        rec.members = members
+                        replaced = true
+                        break
                     end
                 end
-            elseif runMode == 'group' then
-                ImGui.TextColored(warnText[1], warnText[2], warnText[3], 1.0,
-                    string.format('Targets: group bots (%d)', #botTargets))
-            elseif runMode == 'all' then
-                ImGui.TextColored(warnText[1], warnText[2], warnText[3], 1.0, 'Targets: all E3 bots in zone')
-            else
-                ImGui.TextColored(0.55, 0.58, 0.65, 1.0, 'Targets: this character')
-            end
-        end
-        ImGui.EndChild()
+                if not replaced then
+                    list[#list + 1] = { name = name, members = members }
+                end
+                g.statusMessage = string.format('Saved pick set "%s" (%d).', name, #members)
+                return true
+            end,
+            apply_pick_set = function(members)
+                if type(members) ~= 'table' then return false end
+                if not canSharedWrite then
+                    g.statusMessage = 'Take Turbo control to use Picks scope.'
+                    return false
+                end
+                g.actionRunTargets = {}
+                for _, name in ipairs(members) do
+                    if name and tostring(name) ~= '' then
+                        g.actionRunTargets[tostring(name)] = true
+                    end
+                end
+                setRunMode('multi')
+                runMode = 'multi'
+                broadcastMode = true
+                g.statusMessage = string.format('Picks loaded (%d).', selectedCount())
+                return true
+            end,
+            delete_pick_set = function(index)
+                index = tonumber(index) or 0
+                if index < 1 or index > #g.actionSavedPicks then return false end
+                local removed = table.remove(g.actionSavedPicks, index)
+                g.statusMessage = string.format('Deleted pick set "%s".', tostring(removed and removed.name or '?'))
+                return true
+            end,
+            save_settings = function()
+                if type(g.saveSettings) == 'function' then g.saveSettings() end
+            end,
+            on_locked = function(label)
+                g.statusMessage = 'Take Turbo control to use ' .. tostring(label or 'this') .. ' scope.'
+            end,
+        })
     end
 
     local function commandForMode(cmd, opts)
@@ -324,8 +346,142 @@ function M.render(state, actions)
         local cols, btnW, gap = actions.Ui.adaptiveColumns(desiredCols, minW or MIN_ACTION_W, GRID_GAP)
         for i, btn in ipairs(buttons) do
             actions.Ui.gridSameLine(i, cols, gap)
-            scopedButton(btn.label, btn.cmd, btn.color, btn.tooltip, btnW, height or ACTION_BTN_H, btn.opts)
+            if type(btn.onClick) == 'function' then
+                -- Local UI actions (e.g. open TurboGear Stock Up) — not broadcast.
+                local buttonColor = btn.color
+                actions.actionButton(btn.label, nil, buttonColor, nil, nil, nil, btnW, height or ACTION_BTN_H, btn.onClick)
+                if btn.tooltip then actions.tip(btn.tooltip) end
+            else
+                scopedButton(btn.label, btn.cmd, btn.color, btn.tooltip, btnW, height or ACTION_BTN_H, btn.opts)
+            end
             if btn.after then btn.after() end
+        end
+    end
+
+    -- Manual dropdown panel (same pattern as TG List pill): _G open-state,
+    -- themed buttons (not Selectable), click-away / re-click / pick closes.
+    -- Avoids OpenPopup which MQ ImGui can kill the next frame.
+    local function drawReclaimLottoPill(btnW, btnH)
+        local lottoOpts = { broadcast = true }
+        local enabled = (not broadcastMode) or lottoOpts.broadcast == true
+        if enabled and broadcastMode and not canSharedWrite then enabled = false end
+
+        local function panelIsOpen()
+            return rawget(_G, '__TurboLottoPillOpen') == true
+        end
+        local function setPanelOpen(v)
+            rawset(_G, '__TurboLottoPillOpen', v == true)
+        end
+
+        local function runLottoChoice(label, cmd)
+            if runMode == 'self' and luaScriptRunning('turbo_reclaim_lotto') then
+                g.statusMessage = 'Reclaim/Lotto already running on this character.'
+                setPanelOpen(false)
+                return
+            end
+            sendCommand(label, cmd, lottoOpts)
+            setPanelOpen(false)
+        end
+
+        -- Familiar name + ASCII menu affordance ("v"; MQ fonts turn ▾ into '?').
+        -- Single-button opens the panel. Green successButton = old identity,
+        -- distinct from Tribute/Currency gold.
+        local pillLabel = 'Reclaim + Lotto v##tl_reclaim_lotto_pill'
+        local buttonColor = broadcastMode and warnRgb or 'successButton'
+        if not enabled then ImGui.BeginDisabled() end
+        actions.actionButton(pillLabel, nil, buttonColor, nil, nil, nil, btnW, btnH, function()
+            setPanelOpen(not panelIsOpen())
+        end)
+        if not enabled then ImGui.EndDisabled() end
+
+        local pillHovered = ImGui.IsItemHovered and ImGui.IsItemHovered() or false
+        local bx, by2 = nil, nil
+        if ImGui.GetItemRectMin and ImGui.GetItemRectMax then
+            pcall(function()
+                local x1 = select(1, ImGui.GetItemRectMin())
+                local _, y2 = ImGui.GetItemRectMax()
+                bx, by2 = tonumber(x1), tonumber(y2)
+            end)
+        end
+        if enabled then
+            actions.tip('Menu: full pass, reclaim only, or open coins/tickets. Honors Run as.')
+        elseif ImGui.IsItemHovered((ImGuiHoveredFlags and ImGuiHoveredFlags.AllowWhenDisabled) or 128) then
+            ImGui.BeginTooltip()
+            ImGui.Text('Reclaim + Lotto')
+            local lockedTip = (broadcastMode and not canSharedWrite)
+                and ('Take Turbo control to use ' .. tostring(runMode) .. ' scope.')
+                or 'Self only.'
+            ImGui.TextColored(0.92, 0.45, 0.40, 1.0, lockedTip)
+            ImGui.EndTooltip()
+        end
+
+        if not panelIsOpen() or not ImGui.Begin then return end
+        if ImGui.SetNextWindowPos and bx and by2 then
+            pcall(ImGui.SetNextWindowPos, bx, by2 + 2)
+        end
+        local flags = 0
+        if ImGuiWindowFlags then
+            flags = (ImGuiWindowFlags.NoTitleBar or 0)
+                + (ImGuiWindowFlags.NoResize or 0)
+                + (ImGuiWindowFlags.AlwaysAutoResize or 0)
+                + (ImGuiWindowFlags.NoSavedSettings or 0)
+                + (ImGuiWindowFlags.NoCollapse or 0)
+        end
+        local a, b = ImGui.Begin('TurboLottoPill##panel', true, flags)
+        local shouldDraw = (b == nil) and a or b
+        local panelHovered = false
+        if shouldDraw then
+            if ImGui.IsWindowHovered then
+                local hf = 0
+                if ImGuiHoveredFlags then
+                    hf = (ImGuiHoveredFlags.RootAndChildWindows or 0)
+                        + (ImGuiHoveredFlags.AllowWhenBlockedByActiveItem or 0)
+                end
+                panelHovered = ImGui.IsWindowHovered(hf) or false
+            end
+            local rowW = math.max(tonumber(btnW) or 160, 220)
+            -- One full town pass (green), then reclaim-only + coin/ticket
+            -- subsets (steel). Lean "coins+tickets" stays CLI-only -- the
+            -- two menu rows read as the same action to most users.
+            -- Tooltips stay ASCII (em-dash becomes '?' in MQ fonts).
+            local choices = {
+                {
+                    label = 'Full: Reclaim + Open All##tl_lotto_full',
+                    cmd = '/lua run turbo_reclaim_lotto',
+                    intent = 'positive',
+                    tip = 'Full pass -- pauses bots, opens inventory, reclaim + coins/tickets/sacks/gems + reclaim again.',
+                },
+                {
+                    label = 'Reclaim##tl_lotto_reclaim',
+                    cmd = '/lua run turbo_reclaim_lotto reclaim',
+                    intent = 'neutral',
+                    tip = 'Reclaim only -- alt-currency notify clicks; pauses bots, opens inventory. No coins/tickets.',
+                },
+                {
+                    label = 'Open Coins##tl_lotto_coins',
+                    cmd = '/lua run turbo_reclaim_lotto coins',
+                    intent = 'neutral',
+                    tip = 'Coins only -- fast, no reclaim, safe mid-session.',
+                },
+                {
+                    label = 'Open Tickets##tl_lotto_tickets',
+                    cmd = '/lua run turbo_reclaim_lotto tickets',
+                    intent = 'neutral',
+                    tip = 'Tickets only -- guarded clickies (space, cursor, stalls); no reclaim.',
+                },
+            }
+            for _, choice in ipairs(choices) do
+                if actions.Ui.buttonIntent(choice.label, choice.intent or 'neutral', rowW, btnH) then
+                    if enabled then runLottoChoice(choice.label, choice.cmd) end
+                end
+                if choice.tip then actions.tip(choice.tip) end
+            end
+        end
+        ImGui.End()
+        if ImGui.IsMouseClicked and (ImGui.IsMouseClicked(0) or ImGui.IsMouseClicked(1)) then
+            if not panelHovered and not pillHovered then
+                setPanelOpen(false)
+            end
         end
     end
 
@@ -929,39 +1085,32 @@ function M.render(state, actions)
                 },
             },
         }, 3, MIN_ACTION_W, ACTION_BTN_H)
-        --- 1.1.3: Reclaim + Lotto now shares its row with PoT + GoD symbols
-        --- (two 50/50 buttons matching the gap from the grids above). Both
-        --- are "earn alt-currency rewards" workflows; the Symbols button
-        --- is intentionally `primaryButton` (blue) instead of green so the
-        --- two reads as distinct entries rather than a blob of green.
-        --- 1.2.0: bot selector can run both commands on one bot or all bots.
-        --- Reclaim + Lotto stays on `successButton` (the green Theme variant) —
-        --- it's not a loot rule, it's a separate workflow about acquiring
-        --- alt-currency rewards. Green reads as "earn/keep" which matches.
-        drawScopedGrid({
-            {
-                label = 'Reclaim + Lotto##tlreclaimlotto',
-                cmd = '/lua run turbo_reclaim_lotto',
-                color = 'successButton',
-                tooltip = 'Reclaim alt-currency, open coins/tickets/sacks, reclaim again (lua/turbo_reclaim_lotto.lua).',
-                opts = { broadcast = true },
-            },
+        --- 1.3.1: "Reclaim + Lotto v" green pill (manual panel, not OpenPopup)
+        --- shares the row with PoT + GoD. Full first (green); Reclaim / Open
+        --- Coins / Open Tickets steel. Menu picks go through sendCommand /
+        --- Run as. Self-only blocks if the helper is already running locally.
         --- PoT + GoD: opens TurboHandins (PoT/GoD symbols).
-        --- Was previously buried under Tools popup; promoted to the action row in init.lua 3.8.55
-        --- because PoK/Tower turn-ins are a routine end-of-loop workflow, not a one-off tool.
-            {
-                label = 'PoT + GoD##tlhandins',
-                cmd = '/lua run Turbo/handins',
-                color = 'primaryButton',
-                tooltip = 'Open TurboHandins: PoT and GoD symbols in Plane of Knowledge. Includes per-character Exclusions list.',
-                opts = { broadcast = true },
-            },
-        }, 2, 128, ACTION_BTN_H)
+        do
+            local cols, cellW, gap = actions.Ui.adaptiveColumns(2, 128, GRID_GAP)
+            actions.Ui.gridSameLine(1, cols, gap)
+            drawReclaimLottoPill(cellW, ACTION_BTN_H)
+            actions.Ui.gridSameLine(2, cols, gap)
+            scopedButton(
+                'PoT + GoD##tlhandins',
+                '/lua run Turbo/handins',
+                'primaryButton',
+                'Open TurboHandins: PoT and GoD symbols in Plane of Knowledge. Includes per-character Exclusions list.',
+                cellW,
+                ACTION_BTN_H,
+                { broadcast = true }
+            )
+        end
         drawFieldToolsRow()
     end
 
     if not g.slimGUI then
         actions.thinSep('turbogive', 'TurboGive')
+        local gearRunningStock = luaScriptRunning({ 'turbogear', 'TurboGear' })
         drawScopedGrid({
             {
                 label = 'Give##tg_give',
@@ -1014,7 +1163,21 @@ function M.render(state, actions)
                     localModes = { group = true, all = true },
                 },
             },
-        }, 3, MIN_ACTION_W, ACTION_BTN_H)
+            {
+                label = 'Stock Up##tg_stock',
+                color = gearRunningStock and {55, 140, 150} or {55, 120, 135},
+                tooltip = 'Open TurboGear Stock Up (Collect / Even Out). Starts TurboGear UI + bg if needed.',
+                onClick = function()
+                    if luaScriptRunning({ 'turbogear', 'TurboGear' }) then
+                        actions.mq.cmd('/tgear stock')
+                        g.statusMessage = 'Opened TurboGear Stock Up.'
+                    else
+                        actions.mq.cmd('/lua run turbogear stock')
+                        g.statusMessage = 'Launching TurboGear Stock Up.'
+                    end
+                end,
+            },
+        }, 4, MIN_ACTION_W, ACTION_BTN_H)
     end
 
     if not g.slimGUI then

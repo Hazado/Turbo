@@ -1,7 +1,8 @@
 --[[
   TurboWares - docked merchant sidecar (Turbo-themed ImGui merchant window)
-  @version lua/Turbo/ui/wares_sidecar.lua 1.7.3
-  Draws only while MerchantWnd is open and Turbo hub is running
+  @version lua/Turbo/ui/wares_sidecar.lua 1.7.4
+  Draws only while MerchantWnd is open. Hosted by Turbo hub or standalone
+  /lua run turbowares companion (same setup(env)+render(g) API).
 ]]
 
 local mq = require('mq')
@@ -384,9 +385,12 @@ local function drawIniHeader(g)
                 local key = name:lower()
                 if seen[key] then return end
                 seen[key] = true
-                if ImGui.Selectable(name .. '##wares_ini_' .. key, preview:lower() == key) then
-                    local path = Wares.resolveIniPath(name)
-                    pendingIniChange = function() onIniTargetChanged(g, name, path) end
+                local iniSelected = preview:lower() == key
+                if ImGui.Selectable(name .. '##wares_ini_' .. key, iniSelected) then
+                    if not iniSelected then
+                        local path = Wares.resolveIniPath(name)
+                        pendingIniChange = function() onIniTargetChanged(g, name, path) end
+                    end
                 end
             end
             addProfile(preview)
@@ -1043,7 +1047,7 @@ local function drawMyItemsTab(g, iniPath)
             ImGui.TableSetColumnIndex(1)
             local selected = g.waresSelectedKey == row.key
             if ImGui.Selectable(row.name .. '##' .. row.key .. '##wares_inv_sel', selected) then
-                g.waresSelectedKey = row.key
+                if not selected then g.waresSelectedKey = row.key end
             end
             attachRowInteractions(g, {
                 kind = 'bag',
@@ -1208,7 +1212,7 @@ local function drawMerchantTab(g, iniPath, watchedHits)
             if watched then label = label .. ' *' end
             local selected = g.waresMerchantSelectedKey == row.key
             if ImGui.Selectable(label .. '##wares_m_sel', selected) then
-                g.waresMerchantSelectedKey = row.key
+                if not selected then g.waresMerchantSelectedKey = row.key end
             end
             attachRowInteractions(g, {
                 kind = 'merchant',

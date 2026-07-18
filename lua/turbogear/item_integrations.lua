@@ -412,6 +412,59 @@ function M.give_now_command(item_id, source, recipient)
     return cmd
 end
 
+--- Exact-qty stack send (Stock Up Even Out). Prefers exact name (FindItem[=]),
+--- then id — board/rule ids can be wrong/stale while the display name is right.
+--- Remote sources: transport target template (e3bct / dgga tell / …).
+function M.send_stack_command(item_id, item_name, qty, source, recipient)
+    item_id = math.floor(tonumber(item_id) or 0)
+    item_name = trim(item_name)
+    qty = math.floor(tonumber(qty) or 0)
+    source, recipient = trim(source), trim(recipient)
+    if qty <= 0 then return "", "Qty must be > 0." end
+    if recipient == "" then return "", "No recipient selected." end
+    if source == "" then return "", "No source character." end
+    local inner
+    if item_name ~= "" then
+        inner = string.format("mac turbogive send %s %d %s", recipient, qty, item_name)
+    elseif item_id > 0 then
+        inner = string.format("mac turbogive _sendstack %s %d %d", recipient, item_id, qty)
+    else
+        return "", "No item id or name."
+    end
+    if clean_name(source) == me_clean() then
+        return "/" .. inner
+    end
+    local cmd = cfg.transport_command("target", inner, source)
+    if cmd == "" then
+        return "", "Active broadcast transport has no targeted-send option."
+    end
+    return cmd
+end
+
+function M.send_stack(item_name, item_id, qty, source, recipient, opts)
+    opts = type(opts) == "table" and opts or {}
+    item_name = trim(item_name)
+    source, recipient = trim(source), trim(recipient)
+    qty = math.floor(tonumber(qty) or 0)
+    local cmd, err = M.send_stack_command(item_id, item_name, qty, source, recipient)
+    if cmd == "" then return false, err end
+    mq.cmd(cmd)
+    transfers.record({
+        item = item_name ~= "" and item_name or ("id " .. tostring(math.floor(tonumber(item_id) or 0))),
+        id = item_id,
+        from = source,
+        to = recipient,
+        qty = qty,
+        location = trim(opts.sourceLocation),
+        at = os.time(),
+        status = "send-stack",
+    })
+    return true, string.format("Send %dx %s: %s -> %s",
+        qty,
+        item_name ~= "" and item_name or ("id " .. tostring(item_id)),
+        source, recipient)
+end
+
 function M.bank_give_now_command(item_id, source, recipient)
     item_id = math.floor(tonumber(item_id) or 0)
     source, recipient = trim(source), trim(recipient)
@@ -659,10 +712,9 @@ end
 
 function M.open_stock_view()
     Settings.mainTab = "gear"
-    Settings.gearTab = "inventory"
-    Settings.inventoryViewMode = "stock"
+    Settings.gearTab = "stock"
     SaveSettings()
-    return true, "Opening Inventory Stock view."
+    return true, "Opening Stock Up."
 end
 
 function M.open_transfers_view()

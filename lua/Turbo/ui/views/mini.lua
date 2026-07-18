@@ -1,15 +1,183 @@
 --[[
-  Turbo View — Mini Bar
-  ---------------------
-  @version lua/Turbo/ui/views/mini.lua 1.0.1
+  Turbo View -- Mini Bar
+  ----------------------
+  @version lua/Turbo/ui/views/mini.lua 1.1.1
 
   Compact floating bar: Turbo toggle, active looter picker, Loot button,
-  skip chip, expand-to-full. Shows the quick-roster editor popup.
+  skip chip, tool-icon cluster, expand-to-full. Shows the quick-roster editor.
 ]]
 
 local ImGui = require('ImGui')
+local mq = require('mq')
 
 local M = {}
+
+-- Data-driven mini-bar tool cluster (left of '+'). Hub art lives under
+-- Turbo/icons/; TurboGear's own mini icon (icon_turbogear.png) is separate.
+-- `short` = compact Setup checkbox label (one-row layout).
+M.TOOLS = {
+    {
+        key = 'turbogear',
+        label = 'TurboGear',
+        short = 'Gear',
+        icon = 'Turbo/icons/turbogear.png',
+        script = 'turbogear',
+        launch = '/lua run turbogear',
+        toggle = '/tgear toggle',
+        fallback = 'TG',
+    },
+    {
+        key = 'turborolls',
+        label = 'TurboRolls',
+        short = 'Rolls',
+        icon = 'Turbo/icons/turborolls.png',
+        script = 'TurboRolls',
+        launch = '/lua run TurboRolls',
+        toggle = '/troll togglefull',
+        fallback = 'TR',
+    },
+    {
+        key = 'turbomobs',
+        label = 'TurboMobs',
+        short = 'Mobs',
+        icon = 'Turbo/icons/turbomobs.png',
+        script = 'TurboMobs',
+        launch = '/lua run TurboMobs',
+        toggle = '/tmobs togglefull',
+        fallback = 'TM',
+    },
+    {
+        key = 'turbogains',
+        label = 'TurboGains',
+        short = 'Gains',
+        icon = 'Turbo/icons/turbogains.png',
+        script = 'Turbo/gains',
+        launch = '/lua run Turbo/gains',
+        -- Engine = Turbo/gains; UI = hub Gains window via /turbogainswin
+        -- (must not expand full Turbo — see activate_tool).
+        toggle = '/turbogainswin',
+        open = '/turbogainsopen',
+        fallback = 'TG$',
+    },
+}
+
+function M.default_mini_tools()
+    return {
+        turbogear = true,
+        turborolls = false,
+        turbomobs = false,
+        turbogains = false,
+    }
+end
+
+function M.normalize_mini_tools(tbl)
+    local out = M.default_mini_tools()
+    if type(tbl) ~= 'table' then return out end
+    for _, tool in ipairs(M.TOOLS) do
+        local v = tbl[tool.key]
+        if v ~= nil then out[tool.key] = v == true end
+    end
+    return out
+end
+
+function M.tool_enabled(settings, key)
+    local mt = type(settings) == 'table' and settings.miniTools or nil
+    if type(mt) ~= 'table' then
+        return key == 'turbogear'
+    end
+    if mt[key] == nil then
+        return key == 'turbogear'
+    end
+    return mt[key] == true
+end
+
+local iconCache = {} -- key -> { tried=bool, tex=userdata|nil }
+
+local function load_tool_icon(tool)
+    local key = tool.key
+    local hit = iconCache[key]
+    if hit and hit.tried then return hit.tex end
+    local rec = { tried = true, tex = nil }
+    iconCache[key] = rec
+    local ok, tex = pcall(function()
+        return mq.CreateTexture(string.format('%s/%s', mq.luaDir, tool.icon))
+    end)
+    if ok and tex then rec.tex = tex end
+    return rec.tex
+end
+
+local function script_running(script)
+    script = tostring(script or '')
+    if script == '' then return false end
+    local ok, status = pcall(function()
+        return tostring(mq.TLO.Lua.Script(script).Status() or '')
+    end)
+    if not ok then return false end
+    status = status:lower()
+    if status:find('not', 1, true) or status:find('stop', 1, true)
+        or status:find('end', 1, true) then
+        return false
+    end
+    return status:find('running', 1, true) ~= nil or status == 'run'
+end
+
+local function activate_tool(tool)
+    -- Status checked only on click. Never /lua stop — toggle is window show/hide.
+    -- TurboGains: engine (Turbo/gains) is separate from the hub Gains ImGui
+    -- window. First click starts the engine + opens the window; later clicks
+    -- toggle the window only. Never expand the Turbo hub out of mini.
+    if tool.key == 'turbogains' then
+        if not script_running(tool.script) then
+            mq.cmd('/squelch ' .. tostring(tool.launch))
+            local openCmd = tostring(tool.open or '/turbogainsopen')
+            if openCmd ~= '' then mq.cmd(openCmd) end
+        else
+            local toggle = tostring(tool.toggle or '/turbogainswin')
+            if toggle ~= '' then mq.cmd(toggle) end
+        end
+        return
+    end
+    if script_running(tool.script) then
+        local toggle = tostring(tool.toggle or '')
+        if toggle ~= '' then
+            mq.cmd(toggle)
+        else
+            mq.cmd('/squelch ' .. tostring(tool.launch))
+        end
+    else
+        mq.cmd('/squelch ' .. tostring(tool.launch))
+    end
+end
+
+local function draw_tool_cluster(g, actions, miniButton, sp4)
+    local drawn = 0
+    for _, tool in ipairs(M.TOOLS) do
+        if M.tool_enabled(g, tool.key) then
+            sp4()
+            local clicked = false
+            local icon = load_tool_icon(tool)
+            if icon and ImGui.Image then
+                ImGui.Image(icon:GetTextureID(), ImVec2(22, 22))
+                clicked = (ImGui.IsItemClicked and ImGui.IsItemClicked(0)) == true
+            else
+                clicked = miniButton(
+                    string.format('%s##mini_tool_%s', tool.fallback, tool.key),
+                    'windowToggleButton', 34)
+            end
+            if clicked then activate_tool(tool) end
+            local tip = tool.toggle and tool.toggle ~= ''
+                and string.format(
+                    'Toggle the %s window (starts it if not running). Never stops the script.',
+                    tool.label)
+                or string.format(
+                    'Open %s (starts it if not running). No window-toggle bind yet.',
+                    tool.label)
+            actions.tip(tip)
+            drawn = drawn + 1
+        end
+    end
+    return drawn
+end
 
 local function drawLootSweepBorder(rt)
     if not (rt and rt.lootAnimationActive) then return end
@@ -198,6 +366,10 @@ function M.render(state, actions, ui)
                 and 'Toggle skipped item review.'
                 or 'No skipped items waiting for review.')
         end
+
+        -- Tool-icon cluster immediately left of '+'. Enabled tools reflow; '+'
+        -- stays the far-right expand control. Status checked only on click.
+        draw_tool_cluster(g, actions, miniButton, sp4)
 
         sp4()
         --- Keep '+' distinct from ImGui's native top-left collapse arrow.

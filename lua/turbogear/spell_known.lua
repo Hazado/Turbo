@@ -53,11 +53,34 @@ local function tlo_truthy(v)
     return true
 end
 
+local function gem_has(name)
+    -- Memorized gem backup when Book name lookup is flaky on some clients.
+    local maxGem = 12
+    pcall(function()
+        local n = tlo_number(mq.TLO.Me.NumGems)
+        if n > 0 then maxGem = n end
+    end)
+    for i = 1, maxGem do
+        local ok, gemName = pcall(function()
+            local g = mq.TLO.Me.Gem(i)
+            if not g then return nil end
+            if g.Name then return g.Name() end
+            local v = g()
+            return v and tostring(v) or nil
+        end)
+        if ok and gemName and trim(gemName) ~= '' and trim(gemName):lower() == name:lower() then
+            return true
+        end
+    end
+    return false
+end
+
 local function probe_one(name)
     if tlo_number(mq.TLO.Me.Book(name)) > 0 then return true end
     if tlo_number(mq.TLO.Me.CombatAbility(name)) > 0 then return true end
     -- Ranked scribed form (spells/songs); nil when not known.
     if tlo_truthy(mq.TLO.Me.Spell(name)) then return true end
+    if gem_has(name) then return true end
     return false
 end
 

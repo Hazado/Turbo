@@ -133,6 +133,23 @@ local function openTurboMobs()
     end
 end
 
+local function openStockUp()
+    if luaScriptRunning({ 'turbogear', 'TurboGear' }) then
+        mq.cmd('/tgear stock')
+    else
+        mq.cmd('/lua run turbogear stock')
+    end
+end
+
+local function runLootWhy()
+    -- /tlootwhy is bound on the Turbo hub; fall back to the doctor entrypoint.
+    if isTurboRunning() then
+        mq.cmd('/tlootwhy')
+    else
+        mq.cmd('/lua run Turbo doctor loot')
+    end
+end
+
 local function fileExists(path)
     local f = io.open(path, 'r')
     if f then f:close() return true end
@@ -258,7 +275,26 @@ end
 
 local function textMuted(text)
     ImGui.PushStyleColor(ImGuiCol.Text, IM_COL32(182, 196, 220, 255))
-    ImGui.TextWrapped(asciiText(text))
+    -- MQ ImGui often ignores TextWrapped unless wrap pos is set explicitly.
+    local wrapAt = 0
+    if ImGui.GetContentRegionAvail and ImGui.GetCursorPosX then
+        local avail = ImGui.GetContentRegionAvail()
+        local availX = 0
+        if type(avail) == 'table' then
+            availX = tonumber(avail.x or avail.X or avail[1]) or 0
+        else
+            availX = tonumber(avail) or select(1, avail) or 0
+            availX = tonumber(availX) or 0
+        end
+        if availX > 0 then wrapAt = (ImGui.GetCursorPosX() or 0) + availX end
+    end
+    if wrapAt > 0 and ImGui.PushTextWrapPos then
+        ImGui.PushTextWrapPos(wrapAt)
+        ImGui.TextWrapped(asciiText(text))
+        ImGui.PopTextWrapPos()
+    else
+        ImGui.TextWrapped(asciiText(text))
+    end
     ImGui.PopStyleColor()
 end
 
@@ -527,6 +563,14 @@ local function drawQuickStartPage()
         hoverTip('Creates turboloot.ini from the starter template when missing.')
     end
 
+    ImGui.Dummy(0, 2)
+    sectionTitle('Having trouble?')
+    textMuted('Prints a chat report of auto-loot gates (same as /tlootwhy).')
+    if button('Loot doctor##qs_tlootwhy', 'secondaryButton', 130, 26) then
+        runLootWhy()
+    end
+    hoverTip('Why did slain not start TurboLoot? Checks E3 hooks, looter route, radius, and related gates.')
+
     ImGui.Separator()
     drawRecommendedNext()
 
@@ -577,6 +621,14 @@ local function drawLearnMorePage()
         textMuted('TurboGear tracks worn gear, BiS lists, aug comparisons, custom lists, and who needs linked drops.')
         if button('Open TurboGear##qs_lm_gear', 'primaryButton', 150, 26) then openTurboGear() end
         hoverTip('Open or toggle TurboGear.')
+        ImGui.Dummy(0, 2)
+        textMuted('Stock Up (Gear tab): set Want counts per item, Collect surplus to one toon, then Even Out via TurboGive.')
+        textMuted('Also available from Actions as Stock Up.')
+        if button('Open Stock Up##qs_lm_stock', 'primaryButton', 150, 26) then openStockUp() end
+        hoverTip('Open TurboGear on Gear > Stock Up (starts TurboGear if needed).')
+        ImGui.SameLine()
+        if button('Open Actions##qs_lm_stock_actions', 'secondaryButton', 130, 26) then routeTurboTab('actions') end
+        hoverTip('Actions has a Stock Up button under TurboGive.')
     end
 
     ImGui.Separator()

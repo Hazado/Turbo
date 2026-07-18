@@ -1280,6 +1280,18 @@ function M.draw()
         if toggle_button(Settings.hideOrnament and "Empty Slots: skipping ornament/special (Type 20/30)" or "Empty Slots: showing every socket", not Settings.hideOrnament) then
             Settings.hideOrnament = not Settings.hideOrnament; SaveSettings(); empty_tab.invalidate()
         end
+        if toggle_button(Settings.miniIconSmall and "Mini icon: small (28px)" or "Mini icon: standard (48px)", not Settings.miniIconSmall) then
+            Settings.miniIconSmall = not Settings.miniIconSmall; SaveSettings()
+        end
+        if ImGui.IsItemHovered() and ImGui.SetTooltip then
+            ImGui.SetTooltip("Size of the minimized TG icon. Also available by right-clicking the icon.")
+        end
+        if toggle_button(Settings.miniHideWhenTurboMini and "Mini icon: hidden while Turbo hub runs" or "Mini icon: always shown when minimized", not Settings.miniHideWhenTurboMini) then
+            Settings.miniHideWhenTurboMini = not Settings.miniHideWhenTurboMini; SaveSettings()
+        end
+        if ImGui.IsItemHovered() and ImGui.SetTooltip then
+            ImGui.SetTooltip("Opt-in: while the Turbo hub is running, its mini bar carries a TG chip,\nso the standalone TG icon stays hidden. It returns automatically if Turbo stops.")
+        end
         ImGui.Spacing()
         col_text(Theme.dim, "Settings: " .. cfg.SettingsFile)
         col_text(Theme.dim, "Shared: " .. cfg.SharedSettingsFile)

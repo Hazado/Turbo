@@ -237,23 +237,30 @@ local adapters = {
     bis = make_roster_adapter(
         "bisRosterScope", "bisViewKey", "bisViewSelectedChars", "bis",
         {}, "Source + columns + teams drive this BiS roster"),
+    -- Live Peers / All Known: never set include_offline_cache on these adapters.
+    -- That flag forces offline cache rows into the "online" (Live Peers) scope,
+    -- making Live Peers identical to All Known. All Known already includes
+    -- everyone via scope == "all".
     spells = make_roster_adapter(
         "spellsRosterScope", "spellsViewKey", "spellsViewSelectedChars", "spells",
-        { include_offline_cache = true }, "Source + columns + teams drive this Spells roster"),
+        {}, "Source + columns + teams drive this Spells roster"),
     lockouts = make_roster_adapter(
         "lockoutsRosterScope", "lockoutsViewKey", "lockoutsViewSelectedChars", "lockouts",
-        { include_offline_cache = true }, "Source + columns + teams drive this Lockouts roster"),
+        {}, "Source + columns + teams drive this Lockouts roster"),
     stats_search = make_roster_adapter(
         "statsSearchScope", "statsSearchViewKey", "statsSearchSelectedChars", "stats_search",
-        { include_offline_cache = true }, "Source + columns drive Stats Search"),
+        {}, "Source + columns drive Stats Search"),
     suggestions = make_primary_adapter(
         "suggestSourceScope", "suggestTargetKey", "suggestions",
         {}, "Source + character drive Upgrade Suggestions", "all"),
     inventory = make_primary_adapter(
         "inventoryRosterScope", "inventoryViewKey", "inventory",
-        { include_offline_cache = true },
+        {},
         "Source = Slot Across Characters; Character = inventory view",
         "online", force_inventory_single),
+    stock = make_roster_adapter(
+        "stockRosterScope", "stockViewKey", "stockViewSelectedChars", "stock",
+        {}, "Source + columns + teams drive Stock Up"),
     worn = make_picker_adapter(
         "augsViewKey", "Pick who Worn Augs shows", force_augs_single),
     stored = make_picker_adapter(

@@ -7,7 +7,27 @@ package.preload["mq"] = function()
     return {
         configDir = ".",
         TLO = {
-            Me = { CleanName = function() return "Tester" end },
+            Me = {
+                CleanName = function() return "Tester" end,
+                -- Same signal as /echo Book?=${Me.Book[Shroud of the Accursed]} → 4
+                Book = function(name)
+                    if name == "Shroud of the Accursed" then return 4 end
+                    return nil
+                end,
+                CombatAbility = function() return nil end,
+                Spell = function() return nil end,
+                Gem = function() return nil end,
+                NumGems = function() return 8 end,
+            },
+            Spell = function(id)
+                if tonumber(id) == 10251 then
+                    return {
+                        Name = function() return "Shroud of the Accursed" end,
+                        RankName = function() return nil end,
+                    }
+                end
+                return nil
+            end,
             MacroQuest = { Server = function() return "Srv" end },
             FindItem = function() return nil end,
         },
@@ -138,6 +158,26 @@ check(r10.have == true, "Sha's: both scrolls clear")
 local gear = { item = "Some Random Sword", ids = { 999999 }, names = { "Some Random Sword" } }
 local handled = select(1, DS.try_match(gear, snap_with({})))
 check(handled == false, "non-catalog entry is not claimed by don_spells")
+
+-- BiS tab path: bis.evaluate (not evaluate_entry) must live-check Me.Book
+-- for the local toon when the pack/scroll is gone but the spell is scribed.
+local shroud = {
+    item = "Spell Pack: Shroud of the Accursed",
+    ids = { 82808 },
+    names = { "Spell Pack: Shroud of the Accursed" },
+    spells = { "Shroud of the Accursed" },
+    spell_ids = { 10251 },
+}
+local empty_local = snap_with({})
+empty_local.class = "Shadow Knight"
+local r11 = bis.evaluate_entry(shroud, empty_local, { skip_live = true })
+check(r11.have ~= true, "Shroud: snap-only missing without scroll/book in snap")
+local _, _, liveStatus = DS.try_live_match(shroud)
+check(liveStatus == "known", "Shroud: try_live_match uses Me.Book")
+local list = { entries = { shroud } }
+local rows = bis.evaluate(list, empty_local)
+check(rows[1] and rows[1].have == true and rows[1].status == "known",
+    "Shroud: bis.evaluate (BiS tab) marks owned via Me.Book")
 
 print(string.format("don_spells: %d passed, %d failed", passed, failed))
 os.exit(failed == 0 and 0 or 1)

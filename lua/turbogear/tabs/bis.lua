@@ -922,8 +922,11 @@ local function toggle_compact_full_names()
     SaveSettings()
 end
 
--- Missing Only. Drawn on the pill row (ui.lua chrome), right of the List pill.
+-- Missing Only (+ Anguish/DSK focus controls when that catalog is active).
+-- Drawn on the pill row (ui.lua chrome), right of the List pill.
 -- Compact/Full view moved into the List pill (VIEW section) in v1.2.40.
+-- Catalog focus widgets are appended in draw_quick_toggles_focus below
+-- (after the dsk_type12 helpers exist as locals).
 function M.draw_quick_toggles()
     local missing_only = Settings.bisShowMissingOnly and true or false
     if not ImGui.Checkbox then return end
@@ -939,6 +942,15 @@ function M.draw_quick_toggles()
         roster_cache.key = nil
         SaveSettings()
     end
+    if M.draw_quick_toggles_focus then
+        M.draw_quick_toggles_focus()
+    end
+end
+
+-- Called from ui.lua at the start of BiS chrome each frame so dropdown-open
+-- guards are cleared before the chrome combo draws (body runs after chrome).
+function M.prep_chrome()
+    bis_dropdown_open = false
 end
 
 local function row_color(row)
@@ -1500,6 +1512,49 @@ local function dsk_type12_effect_options()
         end
     end
     return out
+end
+
+-- Anguish/DSK: DSK Focus combo + Armor Class Priority on the pill row
+-- (right of Missing Only) so those catalogs don't add an extra toolbar row.
+function M.draw_quick_toggles_focus()
+    if Settings.bisListMode == "user" then return end
+    local catalog_id = selected_catalog_id()
+    if not REF_LISTS_FOCUS[catalog_id] and not REF_LISTS_PRIORITY[catalog_id] then
+        return
+    end
+
+    if REF_LISTS_FOCUS[catalog_id] then
+        ImGui.SameLine(0, 10)
+        local cur = dsk_type12_filter()
+        local label = dsk_type12_combo_label(cur, catalog_id)
+        local changed = false
+        ImGui.SetNextItemWidth(220.0)
+        if ImGui.BeginCombo("##bis_dsk_type12_focus_filter", label) then
+            bis_dropdown_open = true
+            for _, opt in ipairs(dsk_type12_effect_options()) do
+                if ImGui.Selectable(
+                    tostring(opt.label) .. "##bis_dsk_focus_" .. tostring(opt.key),
+                    cur == opt.key
+                ) then
+                    cur = opt.key
+                    changed = true
+                end
+            end
+            ImGui.EndCombo()
+        end
+        if changed then
+            dsk_type12_set_filter(cur)
+            roster_cache.key = nil
+        end
+    end
+
+    if REF_LISTS_PRIORITY[catalog_id] then
+        ImGui.SameLine(0, 8)
+        local armor_label = "Armor Class Priority"
+        if toggle_button(armor_label .. "##bis_armor_pri", show_armor_priority) then
+            show_armor_priority = not show_armor_priority
+        end
+    end
 end
 
 local function reset_anguish_reference_toggles(catalog_id)
@@ -2294,55 +2349,10 @@ local function draw_bis_toolbar(catalog_id)
         end
     end
 
-    -- Missing Only + Compact/Full Names live on the pill row (ui.lua chrome,
-    -- M.draw_quick_toggles). Copy to Custom List lives in the List pill.
+    -- Missing Only + Anguish/DSK focus controls live on the pill row
+    -- (ui.lua chrome, M.draw_quick_toggles). Copy to Custom List is in the List pill.
 
-    if REF_LISTS_FOCUS[catalog_id] then
-        toolbar[#toolbar + 1] = {
-            width = 230,
-            height = COMBO_ROW_H,
-            draw = function()
-                local cur = dsk_type12_filter()
-                local label = dsk_type12_combo_label(cur, catalog_id)
-                local changed = false
-    
-                ImGui.SetNextItemWidth(220.0)
-    
-                if ImGui.BeginCombo("##bis_dsk_type12_focus_filter", label) then
-                    bis_dropdown_open = true
-                    for _, opt in ipairs(dsk_type12_effect_options()) do
-                        if ImGui.Selectable(
-                            tostring(opt.label) .. "##bis_dsk_focus_" .. tostring(opt.key),
-                            cur == opt.key
-                        ) then
-                            cur = opt.key
-                            changed = true
-                        end
-                    end
-    
-                    ImGui.EndCombo()
-                end
-    
-                if changed then
-                    dsk_type12_set_filter(cur)
-                    roster_cache.key = nil
-                end
-            end,
-        }
-    end
-
-    if REF_LISTS_PRIORITY[catalog_id] then
-        local armor_label = "Armor Class Priority"
-        toolbar[#toolbar + 1] = {
-            width = button_text_width(armor_label),
-            draw = function()
-                if toggle_button(armor_label .. "##bis_armor_pri", show_armor_priority) then
-                    show_armor_priority = not show_armor_priority
-                end
-            end,
-        }
-    end
-
+    if #toolbar == 0 then return view_key end
     if not draw_fixed_control_row(toolbar) then
         draw_wrapped_controls(toolbar)
     end
@@ -2353,7 +2363,7 @@ local function draw_bis_toolbar(catalog_id)
 end
 
 local function draw_bis_body()
-    bis_dropdown_open = false
+    -- bis_dropdown_open is cleared in M.prep_chrome (chrome draws before body).
     elsewhere_budget_until = os.clock() + 0.0025
     ensure_density_defaults()
     ensure_visible_catalog()

@@ -418,6 +418,8 @@ end
 --- Uses ASCII-only copy (MQ fonts often lack Unicode arrows).
 --- Single row (no BeginChild) to avoid extra padding / scrollbar quirks.
 --- Hub grows the window by BANNER_WINDOW_RESERVE while this is visible.
+--- v1.2.41 look: one amber button carries the whole version story, plus the
+--- same 22px 'x' dismiss the mini bar uses (consistent compact pattern).
 function M.draw_banner(g, opts)
     opts = opts or {}
     if not g or g.turboUpdateAvailable ~= true then return false end
@@ -425,23 +427,20 @@ function M.draw_banner(g, opts)
     local remoteV = state.remoteVersion or g.remoteTurboVersion or '?'
     local frameH = (ImGui.GetFrameHeight and ImGui.GetFrameHeight()) or 22
 
-    ImGui.TextColored(1.0, 0.84, 0.36, 1.0, 'Turbo update')
-    ImGui.SameLine(0, 8)
-    ImGui.TextColored(0.78, 0.72, 0.58, 1.0, string.format('v%s -> v%s', localV, remoteV))
-    ImGui.SameLine(0, 12)
-    if banner_button('Update Now##turbo_update_go', 'amberButton', 96, frameH) then
+    local label = string.format('Update v%s -> v%s##turbo_update_go', localV, remoteV)
+    if banner_button(label, 'amberButton', 0, frameH) then
         if type(opts.onUpdate) == 'function' then opts.onUpdate() end
     end
     if ImGui.IsItemHovered() and ImGui.SetTooltip then
         ImGui.SetTooltip('Open TurboPatcher and apply this suite update.')
     end
-    ImGui.SameLine(0, 6)
-    if banner_button('Later##turbo_update_dismiss', 'secondaryButton', 56, frameH) then
+    ImGui.SameLine(0, 4)
+    if banner_button('x##turbo_update_dismiss', 'secondaryButton', 22, frameH) then
         M.dismiss(g)
         if type(opts.onDismiss) == 'function' then opts.onDismiss() end
     end
     if ImGui.IsItemHovered() and ImGui.SetTooltip then
-        ImGui.SetTooltip('Hide until the next Turbo version.')
+        ImGui.SetTooltip('Hide this update notice until the next Turbo version.')
     end
     ImGui.Dummy(0, 4)
     return true

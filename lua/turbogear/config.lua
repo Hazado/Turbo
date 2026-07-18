@@ -35,7 +35,7 @@ M.CFG = {
     script_name  = 'TurboGear',    -- display/settings/cache name
     lua_name     = 'turbogear',     -- folder/module name used by /lua run and /lua stop
     bg_lua_name  = 'turbogear_bg',  -- wrapper responder name; leaves /lua run turbogear free for UI
-    version      = '1.2.42',
+    version      = '1.2.63',
     mailbox      = 'turbogear',     -- shared actor mailbox name across all boxes
     proto        = 1,              -- snapshot protocol version (guards mismatched boxes)
     frame_round  = 5.0,
@@ -68,6 +68,10 @@ M.CFG = {
         "turbo_bank_all", "turbo_collect_cash", "turbo_collect_dc", "turbo_reclaim_lotto",
     },
     save_every_bg_s = 30.0,        -- debounce bg cache writes; actors carry live updates without disk stalls
+    -- After inventory content_version bumps (put/delta), flush sooner so the UI
+    -- BiS sheet can reload without waiting for save_every_bg_s. Debounced: each
+    -- change restarts the window (loot trains → one write). 0 disables.
+    save_content_coalesce_s = 1.5,
     save_every_heavy_ui_s = 120.0, -- avoid disk-pickle hitches while Inventory/TurboBiS are open
     save_every_minimized_s = 30.0, -- slower disk writes when minimized
     request_cooldown_s = 10.0,     -- min gap between background roster refresh requests
@@ -275,6 +279,10 @@ M.Settings = {
     inventoryViewMode = "table",
     inventoryScope = "single",
     inventoryRosterScope = "online",
+    stockRosterScope = "online",
+    stockViewKey = "__all__",
+    stockViewSelectedChars = {},
+    stockDefaultsSeeded = false,
     inventoryLocationFilter = "all",
     inventorySearch = "",
     inventoryShowAugs = true,
@@ -321,6 +329,8 @@ M.Settings = {
     suggestAugSocketType = 0,
     suggestAugSlotId = 2,
     miniWindowPos = nil,           -- { x, y } last mini-icon position (persisted)
+    miniIconSmall = false,         -- mini TG icon at 28px instead of 48px
+    miniHideWhenTurboMini = false, -- hide TG mini while the Turbo hub runs (use its TG chip instead)
     inspectDockEnabled = false,    -- reposition native inspect beside TG (off: less window weirdness)
     globalSearch = "",
 }
@@ -456,8 +466,25 @@ function M.sanitize_ui_settings()
         M.Settings.upgradeTab = "empty"
         M.Settings.gearTab = "inventory"
     end
-    local valid_gear = { inventory = true, worn = true, stored = true }
+    local valid_gear = { inventory = true, worn = true, stored = true, stock = true }
     if not valid_gear[tostring(M.Settings.gearTab or "")] then M.Settings.gearTab = "inventory" end
+    -- Migrate nested Inventory > Stock into Gear > Stock Up.
+    if tostring(M.Settings.inventoryViewMode or "") == "stock" then
+        M.Settings.gearTab = "stock"
+        M.Settings.inventoryViewMode = "table"
+    end
+    local stock_roster = tostring(M.Settings.stockRosterScope or "online")
+    if stock_roster ~= "online" and stock_roster ~= "group" and stock_roster ~= "e3" and stock_roster ~= "all"
+        and not stock_roster:match("^set:[%w_%-]+$") then
+        stock_roster = "online"
+    end
+    M.Settings.stockRosterScope = stock_roster
+    if type(M.Settings.stockViewSelectedChars) ~= "table" then
+        M.Settings.stockViewSelectedChars = {}
+    end
+    if tostring(M.Settings.stockViewKey or "") == "" then
+        M.Settings.stockViewKey = "__all__"
+    end
     local valid_inspect = { stats = true, focus = true, live = true }
     if not valid_inspect[tostring(M.Settings.inspectTab or "")] then M.Settings.inspectTab = "stats" end
     local valid_upgrade = { suggestions = true, compare = true, empty = true }
@@ -675,6 +702,7 @@ function M.apply_linked_roster_scope(scope, source)
     if source ~= "live_stats" then M.Settings.liveStatsRosterScope = scope end
     if source ~= "suggestions" then M.Settings.suggestSourceScope = scope end
     if source ~= "inventory" then M.Settings.inventoryRosterScope = scope end
+    if source ~= "stock" then M.Settings.stockRosterScope = scope end
     if source ~= "worn" then M.Settings.augsRosterScope = scope end
     if source ~= "stored" then M.Settings.storedRosterScope = scope end
     if source ~= "stats_search" then M.Settings.statsSearchScope = scope end
@@ -705,6 +733,10 @@ function M.reset_ui_settings()
     M.Settings.inventoryViewMode = "table"
     M.Settings.inventoryScope = "single"
     M.Settings.inventoryRosterScope = "online"
+    M.Settings.stockRosterScope = "online"
+    M.Settings.stockViewKey = "__all__"
+    M.Settings.stockViewSelectedChars = {}
+    M.Settings.stockDefaultsSeeded = false
     M.Settings.augsViewMode = "single"
     M.Settings.augsViewKey = "__self__"
     M.Settings.augsRosterScope = "online"

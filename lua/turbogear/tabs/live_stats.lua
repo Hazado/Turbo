@@ -87,7 +87,10 @@ local function scoped_keys()
             keys[#keys + 1] = key
         end
     end
-    for _, key in ipairs(views.scoped_source_keys(current_scope(), { include_offline_cache = true }) or {}) do add(key) end
+    local scope = current_scope()
+    for _, key in ipairs(views.scoped_source_keys(scope, {
+        include_offline_cache = scope == "all",
+    }) or {}) do add(key) end
     -- Keep the picker usable even when a scope ages a peer out between frames.
     for _, key in ipairs(views.source_keys(true) or {}) do add(key) end
     if #keys == 0 then add("__self__") end

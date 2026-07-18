@@ -1,8 +1,13 @@
 --[[
-  turbo_reclaim_lotto.lua - Reclaim alt-currency, open Lazarus lotto items,
-  then reclaim again.
-  @version lua/turbo_reclaim_lotto.lua 1.0.0
-  Usage: /lua run turbo_reclaim_lotto
+  turbo_reclaim_lotto.lua - Reclaim alt-currency and/or open Lazarus lotto items.
+  @version lua/turbo_reclaim_lotto.lua 1.1.0
+  Usage: /lua run turbo_reclaim_lotto [reclaim|coins|tickets|both|full]
+    reclaim - alt-currency reclaim only (bot_pause around inventory notifies)
+    coins   - Lucky Coins only, fast path (no reclaim, no bot_pause)
+    tickets - A Lucky Ticket only, guarded clicky path (no reclaim)
+    both    - coins then tickets only (no reclaim, no sacks/gems)
+    full    - multi-pass reclaim + coins/tickets/sacks/gems + final reclaim
+              (default when no arg; hub "Full: Reclaim + Open All")
 ]]
 
 local mq = require('mq')
@@ -31,6 +36,14 @@ local STACKABLE_PRIZES = {
     'Resplendent Coin',
     'Glimmering Coin',
     'Tarnished Coin',
+}
+
+local MODE_LABELS = {
+    reclaim = 'Reclaim Currency',
+    coins = 'Open Coins',
+    tickets = 'Open Tickets',
+    both = 'Open Coins + Tickets',
+    full = 'Full: Reclaim + Open All',
 }
 
 local function now_ms()
@@ -98,6 +111,14 @@ end
 
 local function window_open(name)
     return safe_bool(function() return mq.TLO.Window(name).Open() end)
+end
+
+local function parse_mode(arg)
+    local m = tostring(arg or ''):lower():match('^%s*(%S*)') or ''
+    if m == '' or m == 'full' or m == 'all' then return 'full' end
+    if m == 'reclaim' or m == 'coins' or m == 'tickets' or m == 'both' then return m end
+    out('\ayUnknown mode "%s"; using full.\ax', m)
+    return 'full'
 end
 
 local function clear_cursor(context, timeout_ms)
@@ -212,22 +233,30 @@ local function reclaim_alt_currency()
     return clicks
 end
 
-local function use_lucky_coins()
+-- Fast coin path: prize-space once up front, re-check only when FreeInventory <= 3.
+-- One FindItemCount per loop; pacing from ItemReady (no fixed 250ms success pad).
+local function use_lucky_coins_fast()
     local opened = 0
     local stalls = 0
-    while item_count('Lucky Coin', true) > 0 do
+    if not ensure_prize_space('using Lucky Coin') then return opened, false end
+
+    while true do
+        local before = item_count('Lucky Coin', true)
+        if before <= 0 then break end
+
         if cursor_id() > 0 and not clear_cursor('starting Lucky Coin') then return opened, false end
-        if not ensure_prize_space('using Lucky Coin') then return opened, false end
-        if not has_item('Lucky Coin', true) then break end
+        if free_inventory() <= 3 and not ensure_prize_space('using Lucky Coin') then
+            return opened, false
+        end
+
         if not wait_ready('Lucky Coin', 6000) then
             stalls = stalls + 1
             if stalls >= MAX_STALLS then
                 out('\ayStopping Lucky Coins:\ax Lucky Coin did not become ready after %d waits.', stalls)
                 return opened, false
             end
-            mq.delay(500)
+            mq.delay(200)
         else
-            local before = item_count('Lucky Coin', true)
             mq.cmd('/useitem "Lucky Coin"')
             mq.delay(750, function()
                 return cursor_id() > 0 or item_count('Lucky Coin', true) < before
@@ -238,14 +267,13 @@ local function use_lucky_coins()
             if after < before then
                 opened = opened + (before - after)
                 stalls = 0
-                mq.delay(250)
             else
                 stalls = stalls + 1
                 if stalls >= MAX_STALLS then
                     out('\ayStopping Lucky Coins:\ax count did not decrease after %d attempts.', stalls)
                     return opened, false
                 end
-                mq.delay(500)
+                mq.delay(300)
             end
         end
     end
@@ -309,7 +337,7 @@ local function has_lotto_work()
         or item_count('Bag of Gems', true) > 0
 end
 
-local function record_gains_history(summary)
+local function record_gains_history(summary, mode)
     local ok, history = pcall(require, 'Turbo.gains_history')
     if not ok or type(history) ~= 'table' or type(history.append_event) ~= 'function' then
         out('\ayHistory skipped:\ax TurboGains history helper unavailable.')
@@ -323,7 +351,8 @@ local function record_gains_history(summary)
     local wrote, err = history.append_event({
         kind = 'reclaim_lotto',
         source = 'turbo_reclaim_lotto',
-        label = 'Reclaim + Lotto',
+        mode = tostring(mode or 'full'),
+        label = MODE_LABELS[mode] or 'Reclaim + Lotto',
         passes = tonumber(summary.passes) or 0,
         reclaim = tonumber(summary.reclaim) or 0,
         coins = tonumber(summary.coins) or 0,
@@ -337,8 +366,80 @@ local function record_gains_history(summary)
     end
 end
 
-local function main()
-    out('Starting Reclaim + Lotto.')
+local function run_reclaim_only(summary)
+    summary.passes = 1
+    summary.reclaim = reclaim_alt_currency()
+    return true
+end
+
+local function run_coins_only(summary)
+    summary.passes = 1
+    local coins, ok = use_lucky_coins_fast()
+    summary.coins = coins
+    return ok
+end
+
+local function run_tickets_only(summary)
+    summary.passes = 1
+    local tickets, ok = use_guarded_clickies('A Lucky Ticket', 'Lucky Tickets')
+    summary.tickets = tickets
+    return ok
+end
+
+-- Lean coins + tickets (no reclaim, sacks, or gems). Hub menu row
+-- "Open Coins + Tickets"; full town pass is run_full / mode full.
+local function run_coins_and_tickets(summary)
+    summary.passes = 1
+    local coins, coins_ok = use_lucky_coins_fast()
+    summary.coins = coins
+    if not coins_ok then return false end
+    local tickets, tickets_ok = use_guarded_clickies('A Lucky Ticket', 'Lucky Tickets')
+    summary.tickets = tickets
+    return tickets_ok
+end
+
+local function run_full(summary)
+    for pass = 1, MAX_PASSES do
+        summary.passes = pass
+        local progress = 0
+
+        local reclaimed = reclaim_alt_currency()
+        summary.reclaim = summary.reclaim + reclaimed
+        progress = progress + reclaimed
+
+        local coins, coins_ok = use_lucky_coins_fast()
+        summary.coins = summary.coins + coins
+        progress = progress + coins
+        if not coins_ok then return false end
+
+        local tickets, tickets_ok = use_guarded_clickies('A Lucky Ticket', 'Lucky Tickets')
+        summary.tickets = summary.tickets + tickets
+        progress = progress + tickets
+        if not tickets_ok then return false end
+
+        local sacks, sacks_ok = use_guarded_clickies("Spelunker's Supply Sack", 'Supply Sacks')
+        summary.sacks = summary.sacks + sacks
+        progress = progress + sacks
+        if not sacks_ok then return false end
+
+        local gems, gems_ok = use_guarded_clickies('Bag of Gems', 'Gem Bags')
+        summary.gems = summary.gems + gems
+        progress = progress + gems
+        if not gems_ok then return false end
+
+        if progress == 0 then break end
+        if not has_lotto_work() and not has_reclaim_currency() then break end
+        mq.delay(300)
+    end
+
+    local final_reclaim = reclaim_alt_currency()
+    summary.reclaim = summary.reclaim + final_reclaim
+    return true
+end
+
+local function main(...)
+    local mode = parse_mode(({ ... })[1])
+    out('Starting %s (%s).', MODE_LABELS[mode] or mode, mode)
 
     local server = tostring(safe_call('', function() return mq.TLO.EverQuest.Server() end) or '')
     if server ~= 'Project Lazarus' then
@@ -360,46 +461,25 @@ local function main()
         passes = 0,
     }
 
-    for pass = 1, MAX_PASSES do
-        summary.passes = pass
-        local progress = 0
-
-        local reclaimed = reclaim_alt_currency()
-        summary.reclaim = summary.reclaim + reclaimed
-        progress = progress + reclaimed
-
-        local coins, coins_ok = use_lucky_coins()
-        summary.coins = summary.coins + coins
-        progress = progress + coins
-        if not coins_ok then break end
-
-        local tickets, tickets_ok = use_guarded_clickies('A Lucky Ticket', 'Lucky Tickets')
-        summary.tickets = summary.tickets + tickets
-        progress = progress + tickets
-        if not tickets_ok then break end
-
-        local sacks, sacks_ok = use_guarded_clickies("Spelunker's Supply Sack", 'Supply Sacks')
-        summary.sacks = summary.sacks + sacks
-        progress = progress + sacks
-        if not sacks_ok then break end
-
-        local gems, gems_ok = use_guarded_clickies('Bag of Gems', 'Gem Bags')
-        summary.gems = summary.gems + gems
-        progress = progress + gems
-        if not gems_ok then break end
-
-        if progress == 0 then break end
-        if not has_lotto_work() and not has_reclaim_currency() then break end
-        mq.delay(300)
+    if mode == 'reclaim' then
+        run_reclaim_only(summary)
+    elseif mode == 'coins' then
+        run_coins_only(summary)
+    elseif mode == 'tickets' then
+        run_tickets_only(summary)
+    elseif mode == 'both' then
+        run_coins_and_tickets(summary)
+    else
+        run_full(summary)
     end
 
-    local final_reclaim = reclaim_alt_currency()
-    summary.reclaim = summary.reclaim + final_reclaim
-
     clear_cursor('finishing', 4000)
-    close_inventory()
+    if mode == 'reclaim' or mode == 'full' then
+        close_inventory()
+    end
 
-    out('\agDone.\ax Passes: \ay%d\ax. Reclaim clicks: \ag%d\ax. Lotto opened: \ag%d\ax (coins \ay%d\ax, tickets \ay%d\ax, sacks \ay%d\ax, gems \ay%d\ax).',
+    out('\agDone.\ax Mode: \ay%s\ax. Passes: \ay%d\ax. Reclaim clicks: \ag%d\ax. Lotto opened: \ag%d\ax (coins \ay%d\ax, tickets \ay%d\ax, sacks \ay%d\ax, gems \ay%d\ax).',
+        mode,
         summary.passes,
         summary.reclaim,
         summary.coins + summary.tickets + summary.sacks + summary.gems,
@@ -407,8 +487,8 @@ local function main()
         summary.tickets,
         summary.sacks,
         summary.gems)
-    record_gains_history(summary)
+    record_gains_history(summary, mode)
     return true
 end
 
-main()
+main(...)

@@ -7,7 +7,7 @@
 |                            \/              \/              \/
 |              https://www.github.com/drel-git/TurboLoot
 |                       TurboGive.mac v1.9.5 for TurboLoot 3.8
-| @version TurboGive.mac 1.9.5
+| @version TurboGive.mac 1.9.9
 | Companion to TurboLoot - item redistribution between characters
 |
 | =========================================================================================
@@ -18,6 +18,8 @@
 |        /mac TurboGive CHARNAME #      (give up to # total items to character)
 |        /mac TurboGive CHARNAME cash [#] (give plat; omit or 0 = all plat+gp+sp+cp; aliases: plat, pp)
 |        /mac TurboGive CHARNAME dc [#] (give Diamond Coin to character)
+|        /mac TurboGive send CHAR QTY Item Name...   (give QTY of item to CHAR from my bags)
+|        /mac TurboGive send CHAR QTY id ITEMID      (same, by item id — preferred for scripting)
 |        /mac TurboGive hand COUNT      (pick up item, give COUNT to each group member)
 |        /mac TurboGive collect          (collect items from group)
 |        /mac TurboGive collect #        (collect up to # total items)
@@ -62,7 +64,10 @@
 | =====================================================================
 Sub SendDoneToOrchestrator
     | Echo theme: ${tgTag} then \ar[DONE]\ar / \ar[SIGNAL_DONE]\ar (red; names + -> plain for #event captures).
+    | Always /echo locally first: Stock Up / Collect DC on THIS box must see [DONE]
+    | even when /squelch /e3bc suppresses the sender's own e3bc line.
     /if (!${Defined[tgTag]}) /declare tgTag string local \at[turboGive]
+    /echo ${tgTag} \ar[DONE]\aw ${Me.Name}->LOCAL
     /if (${Me.Grouped} && ${Group.Leader.Name.Length} && !${Group.Leader.Name.Equal[NULL]} && !${Group.Leader.Name.Equal[${Me.Name}]}) {
         /squelch /e3bc /echo ${tgTag} \ar[DONE]\aw ${Me.Name}->${Group.Leader.Name}
         /squelch /e3bct ${Group.Leader.Name} /echo ${tgTag} \ar[SIGNAL_DONE]\aw ${Me.Name}
@@ -1427,6 +1432,78 @@ Sub Main(string modeIn, string argIn)
         /declare sendItemId int local 0
         /if (${Param2.Length} && ${Int[${Param2}]} > 0) /varset sendItemId ${Int[${Param2}]}
         /call SendMyItem "${arg}" ${sendItemId}
+        /call SendDoneToOrchestrator
+        /return
+    }
+
+    | ---- INTERNAL: _SENDSTACK (source pushes QTY of item id to recipient) ----
+    | /mac turbogive _sendstack <recipient> <itemID> <qty>
+    | /mac turbogive _sendstack <recipient> <qty> id <itemID>   (same order as send)
+    | Param indexing: mode=Param0, recipient=arg/Param1, then Param2+.
+    /if (${modeUpper.Equal[_SENDSTACK]}) {
+        /declare sendStackId int local 0
+        /declare sendStackQty int local 0
+        /if (${Param2.Length} && ${Param2.Upper.Equal[ID]} && ${Param3.Length} && ${Int[${Param3}]} > 0) {
+            | _sendstack CHAR id ITEMID QTY  (rare)
+            /varset sendStackId ${Int[${Param3}]}
+            /if (${Param4.Length} && ${Int[${Param4}]} > 0) /varset sendStackQty ${Int[${Param4}]}
+        } else /if (${Param3.Length} && ${Param3.Upper.Equal[ID]} && ${Param4.Length} && ${Int[${Param4}]} > 0) {
+            | _sendstack CHAR QTY id ITEMID  (mirrors send)
+            /if (${Param2.Length} && ${Int[${Param2}]} > 0) /varset sendStackQty ${Int[${Param2}]}
+            /varset sendStackId ${Int[${Param4}]}
+        } else {
+            | _sendstack CHAR ITEMID QTY
+            /if (${Param2.Length} && ${Int[${Param2}]} > 0) /varset sendStackId ${Int[${Param2}]}
+            /if (${Param3.Length} && ${Int[${Param3}]} > 0) /varset sendStackQty ${Int[${Param3}]}
+        }
+        /if (${sendStackId} <= 0 || ${sendStackQty} <= 0) {
+            /echo ${tgTag} \arUsage: /mac turbogive _sendstack CHAR ITEMID QTY\ax
+            /echo ${tgTag} \ar   or: /mac turbogive _sendstack CHAR QTY id ITEMID\ax
+            /return
+        }
+        /call SendMyStack "${arg}" ${sendStackId} ${sendStackQty}
+        /call SendDoneToOrchestrator
+        /return
+    }
+
+    | ---- SEND: /mac turbogive send <recipient> <qty> <item name...>
+    |      or   /mac turbogive send <recipient> <qty> id <itemID>
+    /if (${modeUpper.Equal[SEND]}) {
+        /declare sendTo string local ${arg}
+        /declare sendQty int local 0
+        /declare sendItemName string local
+        /declare sendById int local 0
+        /declare sendPi int local
+        /if (!${sendTo.Length} || ${sendTo.Equal[NULL]}) {
+            /echo ${tgTag} \arUsage: /mac turbogive send CHAR QTY Item Name\ax
+            /echo ${tgTag} \ar   or: /mac turbogive send CHAR QTY id ITEMID\ax
+            /return
+        }
+        /if (${Param2.Length} && ${Int[${Param2}]} > 0) /varset sendQty ${Int[${Param2}]}
+        /if (${sendQty} <= 0) {
+            /echo ${tgTag} \ar[SEND]\aw Qty must be > 0.
+            /return
+        }
+        /if (${Param3.Length} && ${Param3.Upper.Equal[ID]} && ${Param4.Length} && ${Int[${Param4}]} > 0) {
+            /varset sendById ${Int[${Param4}]}
+            /call SendMyStack "${sendTo}" ${sendById} ${sendQty}
+            /call SendDoneToOrchestrator
+            /return
+        }
+        /for sendPi 3 to 15
+            /if (${Param${sendPi}.Length} && !${Param${sendPi}.Equal[NULL]}) {
+                /if (${sendItemName.Length}) {
+                    /varset sendItemName ${sendItemName} ${Param${sendPi}}
+                } else {
+                    /varset sendItemName ${Param${sendPi}}
+                }
+            }
+        /next sendPi
+        /if (!${sendItemName.Length}) {
+            /echo ${tgTag} \ar[SEND]\aw Missing item name. Example: send Krel 5 Draught of Fleeting Fortitude I
+            /return
+        }
+        /call SendMyStackByName "${sendTo}" "${sendItemName}" ${sendQty}
         /call SendDoneToOrchestrator
         /return
     }
@@ -5111,11 +5188,13 @@ Sub SendMyDC(string collectorName, int maxAmount)
 | the button (defense in depth).
 | =====================================================================
 Sub RequestTurboGearTradeSync(string recipientName)
-    | Keep TurboGear's dashboard from showing stale post-trade ownership. The
-    | autostart helper is idempotent: starts bg when absent, noops when healthy.
+    | Keep TurboGear's dashboard from showing stale post-trade ownership.
+    | Force a local publish (not just autostart noop) so Stock counts refresh.
     /squelch /timed 5 /lua run turbogear_autostart
+    /squelch /timed 8 /tgearbg publish
     /if (${recipientName.Length} && !${recipientName.Equal[NULL]} && !${recipientName.Equal[${Me.Name}]}) {
         /squelch /e3bct ${recipientName} /squelch /lua run turbogear_autostart
+        /squelch /e3bct ${recipientName} /squelch /timed 8 /tgearbg publish
     }
 /return
 
@@ -5507,6 +5586,209 @@ Sub SendMyItem(string recipientName, int wantItemId)
     /call Announce "${announceMethod}" "${tgTag} \ag[SEND ITEM]\aw Gave ${siName} to ${recipientName}."
     /call RequestTurboGearTradeSync "${recipientName}"
     /if (${wasFollowingSI}) /squelch /afollow unpause
+/return
+
+| =====================================================================
+| SEND STACK — give exactly QTY of an item (by id or name) to one recipient.
+| Uses PickupExactItemCount (QuantityWnd fail-closed) + the same trade finalize
+| as SendMyItem / hand. Opens bag containers once up front so partial splits
+| pop reliably. CLI:
+|   /mac turbogive send CHAR QTY Item Name...
+|   /mac turbogive send CHAR QTY id ITEMID
+|   /mac turbogive _sendstack CHAR ITEMID QTY
+| =====================================================================
+| OPEN packs only (never toggle-close). rightmouseup on an already-open pack
+| closes it — that was causing Stock Even Out Have=0 / pickup fails mid-queue.
+Sub OpenMyBagsOnce
+    /declare ombPack int local
+    /for ombPack 1 to 10
+        /if (${Me.Inventory[pack${ombPack}].ID} && ${Me.Inventory[pack${ombPack}].Container} > 0) {
+            /if (!${Window[pack${ombPack}].Open}) {
+                /nomodkey /itemnotify pack${ombPack} rightmouseup
+                /delay 1 ${Window[pack${ombPack}].Open}
+            }
+        }
+    /next ombPack
+    /delay 2
+/return
+
+| Back-compat alias — same open-only behavior (do not toggle).
+Sub ToggleMyBagsOnce
+    /call OpenMyBagsOnce
+/return
+
+Sub SendMyStackByName(string recipientName, string itemName, int wantQty)
+    /if (!${itemName.Length} || ${itemName.Equal[NULL]}) {
+        /echo ${tgTag} \ar[SEND]\aw Missing item name.
+        /return
+    }
+    /declare smsFindId int local ${FindItem[=${itemName}].ID}
+    /if (${smsFindId} <= 0) {
+        /echo ${tgTag} \ar[SEND]\aw ${itemName} not found on ${Me.Name}.
+        /return
+    }
+    /call SendMyStack "${recipientName}" ${smsFindId} ${wantQty}
+/return
+
+Sub SendMyStack(string recipientName, int wantItemId, int wantQty)
+    /if (!${recipientName.Length} || ${recipientName.Equal[NULL]} || ${recipientName.Equal[${Me.Name}]}) {
+        /echo ${tgTag} \ar[SEND]\aw Invalid recipient '${recipientName}'.
+        /return
+    }
+    /if (${wantItemId} <= 0) {
+        /echo ${tgTag} \ar[SEND]\aw Invalid item id.
+        /return
+    }
+    /if (${wantQty} <= 0) {
+        /echo ${tgTag} \ar[SEND]\aw Qty must be > 0.
+        /return
+    }
+    /if (${Cursor.ID}) {
+        /echo ${tgTag} \ar[SEND]\aw Cursor is occupied (${Cursor.Name}) - aborting.
+        /return
+    }
+    /if (${Me.Feigning}) {
+        /echo ${tgTag} \ar[SEND]\aw Cannot trade while feigned.
+        /return
+    }
+
+    | Open packs before resolve/pickup (open-only; never toggle-close).
+    /call OpenMyBagsOnce
+
+    | Resolve a movable bag copy. Prefer pack scan; fall back to FindItem by id
+    | (same id path as `send ... id`) so Param-order mistakes are clearer and
+    | top-level bag items still resolve.
+    /declare smsName string local
+    /declare smsPack int local
+    /declare smsSlot int local
+    /declare smsMax int local
+    /for smsPack 1 to 10
+        /varset smsMax ${Me.Inventory[pack${smsPack}].Container}
+        /if (${smsMax} == 0) /continue
+        /for smsSlot 1 to ${smsMax}
+            /if (!${Me.Inventory[pack${smsPack}].Item[${smsSlot}].ID}) /continue
+            /if (${Me.Inventory[pack${smsPack}].Item[${smsSlot}].ID} != ${wantItemId}) /continue
+            /if (${Me.Inventory[pack${smsPack}].Item[${smsSlot}].NoDrop}) {
+                /echo ${tgTag} \ar[SEND]\aw ${Me.Inventory[pack${smsPack}].Item[${smsSlot}].Name} is NO-DROP - cannot trade.
+                /return
+            }
+            /varset smsName ${Me.Inventory[pack${smsPack}].Item[${smsSlot}].Name}
+            /goto :smsHaveName
+        /next smsSlot
+    /next smsPack
+    /if (${FindItem[${wantItemId}].ID}) {
+        /if (${FindItem[${wantItemId}].NoDrop}) {
+            /echo ${tgTag} \ar[SEND]\aw ${FindItem[${wantItemId}].Name} is NO-DROP - cannot trade.
+            /return
+        }
+        /varset smsName ${FindItem[${wantItemId}].Name}
+        /goto :smsHaveName
+    }
+    /if (${FindItemBank[${wantItemId}].ID} || ${FindItemBankCount[${wantItemId}]} > 0) {
+        /echo ${tgTag} \ar[SEND]\aw Item id ${wantItemId} is in the BANK on ${Me.Name} - move to bags first (Stock counts bank; send does not).
+        /return
+    }
+    /echo ${tgTag} \ar[SEND]\aw Item id ${wantItemId} not on ${Me.Name} (bags/inventory). Have=${FindItemCount[${wantItemId}]}
+    /return
+
+:smsHaveName
+
+    /declare wasFollowingSMS bool local FALSE
+    /if (${AdvPath.Following}) {
+        /varset wasFollowingSMS TRUE
+        /squelch /afollow pause
+    }
+
+    /call AcquireTradeTarget "${recipientName}"
+    /if (!${_tradeTargetID}) {
+        /echo ${tgTag} \ar[SEND]\aw Cannot target ${recipientName}.
+        /if (${wasFollowingSMS}) /squelch /afollow unpause
+        /return
+    }
+    /if (${Target.Distance} > 15) {
+        /call NavToIDWithDoorsAndNudges ${_tradeTargetID} 10 300
+    }
+    /face fast
+    /delay 2
+
+    /call RemotePauseBot "${recipientName}"
+
+    /call OpenMyBagsOnce
+    /call PickupExactItemCount "${smsName}" ${wantQty}
+    /if (!${Macro.Return.Equal[TRUE]}) {
+        /echo ${tgTag} \ar[SEND]\aw Could not pick up ${wantQty}x ${smsName}.
+        /if (${Cursor.ID}) {
+            /autoinventory
+            /delay 5 !${Cursor.ID}
+            /if (${Cursor.ID}) /call ForceClearCursor
+        }
+        /call RemoteResumeBot "${recipientName}"
+        /if (${wasFollowingSMS}) /squelch /afollow unpause
+        /return
+    }
+    /if (${Cursor.ID} != ${wantItemId} || ${Cursor.Stack} != ${wantQty}) {
+        /echo ${tgTag} \ar[SEND]\aw Cursor mismatch (have ${Cursor.Stack}x ${Cursor.Name}, wanted ${wantQty}x id ${wantItemId}).
+        /autoinventory
+        /delay 5 !${Cursor.ID}
+        /if (${Cursor.ID}) /call ForceClearCursor
+        /call RemoteResumeBot "${recipientName}"
+        /if (${wasFollowingSMS}) /squelch /afollow unpause
+        /return
+    }
+
+    /call VerifyTradeTarget "${recipientName}"
+    /if (!${Macro.Return.Equal[TRUE]}) {
+        /echo ${tgTag} \ay[SEND]\aw Target drift - returning stack.
+        /autoinventory
+        /delay 5 !${Cursor.ID}
+        /if (${Cursor.ID}) /call ForceClearCursor
+        /call RemoteResumeBot "${recipientName}"
+        /if (${wasFollowingSMS}) /squelch /afollow unpause
+        /return
+    }
+
+    /notify TargetWindow Target_HP leftmouseup
+    /delay 10 !${Cursor.ID} || ${Window[TradeWnd].Open}
+    /if (${Cursor.ID} && !${Window[TradeWnd].Open}) {
+        /click left target
+        /delay 10 !${Cursor.ID} || ${Window[TradeWnd].Open}
+    }
+    /if (!${Window[TradeWnd].Open} || ${Cursor.ID}) {
+        /echo ${tgTag} \ar[SEND]\aw Trade did not accept the stack - returning.
+        /if (${Cursor.ID}) {
+            /autoinventory
+            /delay 5 !${Cursor.ID}
+            /if (${Cursor.ID}) /call ForceClearCursor
+        }
+        /if (${Window[TradeWnd].Open}) {
+            /notify TradeWnd TRDW_Cancel_Button leftmouseup
+            /delay 10 !${Window[TradeWnd].Open}
+        }
+        /call RemoteResumeBot "${recipientName}"
+        /if (${wasFollowingSMS}) /squelch /afollow unpause
+        /return
+    }
+
+    /delay 5
+    /if (${Window[TradeWnd].Open} && !${Cursor.ID}) /notify TradeWnd TRDW_Trade_Button leftmouseup
+    /squelch /e3bct ${recipientName} /notify TradeWnd TRDW_Trade_Button LeftMouseUp
+    /delay 40 !${Window[TradeWnd].Open}
+    /if (${Window[TradeWnd].Open}) {
+        /squelch /e3bct ${recipientName} /notify TradeWnd TRDW_Trade_Button LeftMouseUp
+        /delay 30 !${Window[TradeWnd].Open}
+    }
+    /if (${Window[TradeWnd].Open}) {
+        /echo ${tgTag} \ar[SEND]\ay Trade stuck - cancelling.
+        /notify TradeWnd TRDW_Cancel_Button leftmouseup
+        /delay 10 !${Window[TradeWnd].Open}
+    } else {
+        /echo ${tgTag} \ag[SEND]\aw Gave ${wantQty}x ${smsName} to ${recipientName}.
+        /call Announce "${announceMethod}" "${tgTag} \ag[SEND]\aw Gave ${wantQty}x ${smsName} to ${recipientName}."
+        /call RequestTurboGearTradeSync "${recipientName}"
+    }
+
+    /call RemoteResumeBot "${recipientName}"
+    /if (${wasFollowingSMS}) /squelch /afollow unpause
 /return
 
 | =====================================================================

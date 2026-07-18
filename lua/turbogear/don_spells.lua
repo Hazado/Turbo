@@ -173,12 +173,15 @@ function M.try_match(entry, snap)
     return true, nil, 'missing'
 end
 
-local SpellKnown = nil
-local function ensure_spell_known()
-    if SpellKnown ~= nil then return SpellKnown end
-    local ok, mod = pcall(require, 'spell_known')
-    SpellKnown = ok and mod or false
-    return SpellKnown
+--- True if item_id is a DoN scroll/tome/single/pack learn item (scribe consume).
+function M.is_learn_item_id(item_id)
+    item_id = tonumber(item_id)
+    if not item_id or item_id <= 0 then return false end
+    if not ensure_index() then return false end
+    if by_scroll_id[item_id] or by_single_id[item_id] or by_pack_id[item_id] then
+        return true
+    end
+    return false
 end
 
 local function live_has_item(item_id)
@@ -193,14 +196,24 @@ local function live_has_item(item_id)
     return ok and (cnt or 0) > 0
 end
 
+-- Live ownership = Me.Book / Me.CombatAbility (via spell_known), same as
+-- /echo Book?=${Me.Book[Name]}. Cache is a positive accelerator only.
 local function live_knows(ability_or_row)
-    local mod = ensure_spell_known()
-    if not mod then return false end
     local sid = tonumber(ability_or_row.spell_id)
-    if sid and sid > 0 and mod.live_id and mod.live_id(sid) then return true end
-    local name = trim(ability_or_row.ability)
-    if name ~= '' and mod.live and mod.live(name) then return true end
-    return false
+    local name = trim(ability_or_row.ability or ability_or_row.name)
+    local ok, mod = pcall(require, 'spell_known')
+    if not ok or not mod then return false end
+    local known = false
+    if sid and sid > 0 and mod.live_id and mod.live_id(sid) then known = true end
+    if not known and name ~= '' and mod.live and mod.live(name) then known = true end
+    if known then
+        pcall(function()
+            local SC = require('spell_cache')
+            if sid and sid > 0 and SC.probe_id then SC.probe_id(sid) end
+            if name ~= '' and SC.probe_name then SC.probe_name(name) end
+        end)
+    end
+    return known
 end
 
 --- Live match (FindItem + Book/CombatAbility). Same return shape as try_match.

@@ -438,7 +438,8 @@ local function scope_label()
     return "Live Peers"
 end
 
-local SCOPE_OPTS = { include_offline_cache = true }
+-- No include_offline_cache: that flag makes Live Peers include offline rows.
+local SCOPE_OPTS = {}
 
 local function selected_keys_for_scope()
     return views.scoped_source_keys(Settings.lockoutsRosterScope or "online", SCOPE_OPTS)

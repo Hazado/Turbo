@@ -83,7 +83,8 @@ local function refresh_catalog_warning()
     if #warns > 0 then catalog_warning = table.concat(warns, " ") end
 end
 
-local SCOPE_OPTS = { include_offline_cache = true }
+-- No include_offline_cache: that flag makes Live Peers include offline rows.
+local SCOPE_OPTS = {}
 
 -- Snapshot resolver shared with the index: self reads the local snapshot
 -- cache; peers read the Store snapshot.
@@ -137,10 +138,14 @@ end
 
 local function run_refresh_network()
     -- Local spell book for the __self__ column (stays in the snapshot cache).
-    snapshot_mod.gather({ force = true, depth = "lite", includeSpells = true })
+    pcall(function() require('spell_cache').rebuild() end)
+    local snap = snapshot_mod.gather({ force = true, depth = "lite", includeSpells = true })
     if Engine.ok then
         Engine.publish(true, "lite", { includeSpells = true })
         Engine.request_all(true, { includeSpells = true, depth = "lite" })
+        pcall(function()
+            require('spell_cache').mark_published(snap and snap.spells_sig)
+        end)
     else
         -- Static roles: the UI has no actor mailbox; the bg responder runs the
         -- publish + peer request round trip. Peer books arrive via the shared

@@ -75,8 +75,9 @@ function M.row_hint(row)
         return "Upgrade · Suggest"
     end
     if tab == "gear" then
-        if sub == "worn" then return "Gear · Worn" end
-        if sub == "stored" then return "Gear · Stored" end
+        if sub == "worn" then return "Gear · Worn Augs" end
+        if sub == "stored" then return "Gear · Stored Augs" end
+        if sub == "stock" then return "Gear · Stock Up" end
         if sub == "empty" then return "Gear · Empty" end
         return "Gear · Inventory"
     end

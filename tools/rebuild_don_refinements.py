@@ -271,83 +271,39 @@ CLASS_ORDER = [
     "Wizard",
 ]
 
-# Copied from prior DoN plan (DSK Hideous Hex → Cryptic Clutch; skip Companion)
+# All Cryptic Clutch foci for every class; only Prowess is class-gated.
+SHARED_FOCI = [
+    "Benevolent Efficiency",
+    "Benevolent Extension",
+    "Benevolent Alacrity",
+    "Malevolent Efficiency",
+    "Malevolent Extension",
+    "Malevolent Alacrity",
+    "Arcane Demise",
+    "Fiery Demise",
+    "Chilling Demise",
+    "Noxious Demise",
+    "Festering Demise",
+    "Merciful Mending",
+    "Expanded Reach",
+    "Nimble Elusion",
+    "Adept Guard",
+    "Visceral Malice",
+    "Wanton Assault",
+    "Lethal Barrage",
+]
+PHYSICAL_PROWESS_CLASSES = {
+    "Warrior", "Paladin", "Ranger", "Shadow Knight", "Monk",
+    "Bard", "Rogue", "Beastlord", "Berserker",
+}
 FOCI_BY_CLASS = {
-    "Warrior": [
-        "Benevolent Extension", "Fiery Demise", "Noxious Demise", "Nimble Elusion",
-        "Adept Guard", "Visceral Malice", "Wanton Assault", "Physical Prowess",
-    ],
-    "Shadow Knight": [
-        "Benevolent Extension", "Malevolent Extension", "Noxious Demise", "Arcane Demise",
-        "Festering Demise", "Expanded Reach", "Nimble Elusion", "Adept Guard",
-        "Visceral Malice", "Wanton Assault", "Physical Prowess",
-    ],
-    "Paladin": [
-        "Benevolent Efficiency", "Benevolent Extension", "Arcane Demise", "Expanded Reach",
-        "Merciful Mending", "Nimble Elusion", "Adept Guard", "Visceral Malice",
-        "Wanton Assault", "Physical Prowess",
-    ],
-    "Cleric": [
-        "Benevolent Efficiency", "Benevolent Extension", "Benevolent Alacrity",
-        "Malevolent Efficiency", "Malevolent Extension", "Malevolent Alacrity",
-        "Arcane Demise", "Expanded Reach", "Merciful Mending", "Nimble Elusion", "Mental Prowess",
-    ],
-    "Shaman": [
-        "Benevolent Efficiency", "Benevolent Extension", "Benevolent Alacrity",
-        "Malevolent Efficiency", "Malevolent Extension", "Malevolent Alacrity",
-        "Noxious Demise", "Festering Demise", "Expanded Reach", "Merciful Mending",
-        "Nimble Elusion", "Mental Prowess",
-    ],
-    "Druid": [
-        "Benevolent Efficiency", "Benevolent Extension", "Benevolent Alacrity",
-        "Malevolent Efficiency", "Malevolent Extension", "Malevolent Alacrity",
-        "Fiery Demise", "Arcane Demise", "Expanded Reach", "Merciful Mending",
-        "Nimble Elusion", "Mental Prowess",
-    ],
-    "Monk": [
-        "Benevolent Extension", "Noxious Demise", "Nimble Elusion", "Adept Guard",
-        "Visceral Malice", "Wanton Assault", "Physical Prowess",
-    ],
-    "Rogue": [
-        "Benevolent Extension", "Malevolent Extension", "Noxious Demise", "Nimble Elusion",
-        "Adept Guard", "Visceral Malice", "Wanton Assault", "Physical Prowess",
-    ],
-    "Berserker": [
-        "Benevolent Extension", "Malevolent Extension", "Noxious Demise", "Nimble Elusion",
-        "Adept Guard", "Visceral Malice", "Wanton Assault", "Lethal Barrage", "Physical Prowess",
-    ],
-    "Bard": [
-        "Benevolent Extension", "Malevolent Efficiency", "Expanded Reach", "Nimble Elusion",
-        "Adept Guard", "Visceral Malice", "Wanton Assault", "Physical Prowess",
-    ],
-    "Ranger": [
-        "Benevolent Extension", "Malevolent Efficiency", "Malevolent Extension", "Fiery Demise",
-        "Arcane Demise", "Expanded Reach", "Merciful Mending", "Nimble Elusion", "Adept Guard",
-        "Visceral Malice", "Wanton Assault", "Lethal Barrage",
-    ],
-    "Beastlord": [
-        "Benevolent Extension", "Malevolent Efficiency", "Malevolent Extension", "Noxious Demise",
-        "Festering Demise", "Merciful Mending", "Nimble Elusion", "Adept Guard", "Visceral Malice",
-        "Wanton Assault", "Chilling Demise", "Physical Prowess",
-    ],
-    "Wizard": [
-        "Benevolent Extension", "Malevolent Efficiency", "Malevolent Extension", "Malevolent Alacrity",
-        "Fiery Demise", "Arcane Demise", "Expanded Reach", "Nimble Elusion", "Mental Prowess",
-    ],
-    "Magician": [
-        "Benevolent Extension", "Benevolent Alacrity", "Malevolent Efficiency", "Malevolent Extension",
-        "Malevolent Alacrity", "Fiery Demise", "Expanded Reach", "Nimble Elusion", "Mental Prowess",
-    ],
-    "Enchanter": [
-        "Benevolent Efficiency", "Benevolent Extension", "Benevolent Alacrity",
-        "Malevolent Efficiency", "Malevolent Extension", "Malevolent Alacrity",
-        "Arcane Demise", "Expanded Reach", "Nimble Elusion", "Mental Prowess",
-    ],
-    "Necromancer": [
-        "Benevolent Extension", "Benevolent Alacrity", "Malevolent Efficiency", "Malevolent Extension",
-        "Malevolent Alacrity", "Fiery Demise", "Noxious Demise", "Arcane Demise", "Festering Demise",
-        "Expanded Reach", "Nimble Elusion", "Mental Prowess",
-    ],
+    c: SHARED_FOCI
+    + (
+        ["Physical Prowess"]
+        if c in PHYSICAL_PROWESS_CLASSES
+        else ["Mental Prowess"]
+    )
+    for c in CLASS_ORDER
 }
 
 
@@ -636,8 +592,6 @@ def main() -> None:
     lines.append(f"\t\t\t\t{{Name='Spells', Slots={{{pack_lua},}}}},")
     glyph_lua = ",".join(f"'{s}'" for s in glyph_slots)
     lines.append(f"\t\t\t\t{{Name='Glyphs', Slots={{{glyph_lua},}}}},")
-    aug_lua = ",".join(f"'{s}'" for s in aug_slots)
-    lines.append(f"\t\t\t\t{{Name='Cryptic Clutch Foci Augs', Slots={{{aug_lua},}}}},")
     lines.append("\t\t\t\t{Name='Clickies', Slots={'Clicky',}},")
     lines.append(
         "\t\t\t\t{Name='Shadow', Slots={'Materium1','Materium2','Materium3','Shadow',}},"
@@ -645,6 +599,8 @@ def main() -> None:
     lines.append(
         "\t\t\t\t{Name='Misc', Slots={'Misc1','Misc2','Misc3','Misc4','Misc5',}},"
     )
+    aug_lua = ",".join(f"'{s}'" for s in aug_slots)
+    lines.append(f"\t\t\t\t{{Name='Cryptic Clutch Foci', Slots={{{aug_lua},}}}},")
     lines.append("\t\t\t},")
     lines.append("\t\t},")
     lines.append("\t\t['Template'] = {")

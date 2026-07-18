@@ -13,10 +13,12 @@ local views = require('views')
 local item_actions = require('item_actions')
 local keep_qty = require('keep_qty')
 local transfers = require('turbogive_transfers')
+local integrations = require('item_integrations')
 local ui_table = require('ui_table')
 local diag = require('diagnostics')
 local Engine = require('engine').Engine
 local characters = require('characters')
+local Store = require('store')
 local okShell, ShellOpen = pcall(require, 'Turbo.shell_open')
 if not okShell then ShellOpen = nil end
 
@@ -25,15 +27,39 @@ local M = {}
 local EQ_ICON_OFFSET = 500
 local ICON_SIZE = 26.0
 local GRID_CELL = 46.0
+-- After a donor signals [DONE], pause briefly before the next send (like
+-- turbo_collect_dc's inter-sender delay). Avoid fire-and-forget macro overlap.
+local STOCK_SEND_GAP_S = 1.0
+local STOCK_AWAIT_TIMEOUT_S = 45.0
+local STOCK_LOCAL_GRACE_S = 2.0 -- after local /mac, Macro.Name may be empty briefly
+local STOCK_DRY_TTL_S = 60.0
+local STOCK_DRY_MAX_LINES = 14
 
 local anim_items
 local rows_key, rows_cache, rows_meta = nil, {}, {}
-local stock_rows_key, stock_rows_cache = nil, {}
+local stock_rows_key, stock_rows_cache, stock_board_index = nil, {}, nil
 local scope_cache = { key = nil, at = 0, keys = nil }
+local stock_job = {
+    running = false,
+    queue = {},
+    next_at = 0,
+    total = 0,
+    done = 0,
+    label = "Even Out",
+    phase = "idle", -- idle | await | gap
+    awaiting = nil,
+    await_until = 0,
+    await_started = 0,
+    await_done = false,
+    await_local = false,
+    events_on = false,
+}
+local stock_dry = { label = "", lines = {}, total = 0 }
 
 characters.set_on_changed(function()
     rows_key = nil
     stock_rows_key = nil
+    stock_board_index = nil
     scope_cache = { key = nil, at = 0, keys = nil }
 end, "inventory")
 
@@ -64,7 +90,8 @@ local SLOT_LAYOUT = {
 local function ensure_defaults()
     Settings.inventoryViewKey = views.validate_source_key(Settings.inventoryViewKey or "__self__")
     local mode = tostring(Settings.inventoryViewMode or "table")
-    if mode ~= "table" and mode ~= "bags" and mode ~= "stock" and mode ~= "transfers" then mode = "table" end
+    if mode == "stock" then mode = "table" end -- migrated to Gear > Stock Up
+    if mode ~= "table" and mode ~= "bags" and mode ~= "transfers" then mode = "table" end
     Settings.inventoryViewMode = mode
     local scope = tostring(Settings.inventoryScope or "single")
     if scope ~= "single" and scope ~= "online" and scope ~= "group" and scope ~= "e3" and scope ~= "all" then scope = "single" end
@@ -412,14 +439,15 @@ local function visible_rows(records)
     end)
 end
 
-local function stock_rows_for_scope(scope)
-    local records = source_records_for_scope(scope)
+local function stock_rows_for_records(records)
     local key = table.concat({
-        tostring(scope or "all"),
         records_signature(records),
+        tostring(Store and Store.content_version or 0),
         tostring(Settings.inventoryShowAugs),
     }, "\1")
-    if stock_rows_key == key then return stock_rows_cache end
+    if stock_rows_key == key and stock_board_index then
+        return stock_rows_cache, stock_board_index
+    end
 
     local flat = {}
     for _, rec in ipairs(records or {}) do
@@ -429,7 +457,8 @@ local function stock_rows_for_scope(scope)
     ui_table.stable_sort(flat, ui_table.stable_row_less)
     stock_rows_key = key
     stock_rows_cache = flat
-    return stock_rows_cache
+    stock_board_index = keep_qty.build_board_index(flat)
+    return stock_rows_cache, stock_board_index
 end
 
 local function selected_slot_label()
@@ -554,11 +583,6 @@ local function draw_filters()
             Settings.inventoryBagSubview = all_contents and "container" or "all"
             SaveSettings()
         end
-    end
-    ImGui.SameLine()
-    if toggle_button("Stock##inv_mode_stock", Settings.inventoryViewMode == "stock", 66, 0) then
-        Settings.inventoryViewMode = "stock"
-        SaveSettings()
     end
     ImGui.SameLine()
     if toggle_button("Transfers##inv_mode_transfers", Settings.inventoryViewMode == "transfers", 92, 0) then
@@ -742,112 +766,580 @@ local function draw_item_table(rows, show_owner)
     end)
 end
 
+local function stock_search_needle()
+    local g = tostring(Settings.globalSearch or ""):lower():gsub("^%s+", ""):gsub("%s+$", "")
+    if g ~= "" then return g end
+    return search_text()
+end
+
 local function stock_rule_matches_search(rule)
-    local needle = search_text()
+    local needle = stock_search_needle()
     if needle == "" then return true end
     local hay = table.concat({
         rule.name or "",
+        keep_qty.display_name(rule.name or ""),
         tostring(rule.id or ""),
+        tostring(rule.group or ""),
+        tostring(rule.resource or ""),
         tostring(rule.scope or ""),
+        keep_qty.hint_label(rule),
     }, " "):lower()
     return hay:find(needle, 1, true) ~= nil
 end
 
-local function stock_owner_summary(result)
-    local parts = {}
-    for i, rec in ipairs((result and result.owners) or {}) do
-        if i > 4 then
-            parts[#parts + 1] = "..."
-            break
-        end
-        local label = string.format("%s x%d", tostring(rec.owner or "?"), tonumber(rec.qty) or 0)
-        if rec.locations and rec.locations[1] then
-            label = label .. " (" .. tostring(rec.locations[1]) .. ")"
-        end
-        parts[#parts + 1] = label
+local function stock_roster_and_records()
+    -- Respect Characters pill scope (Live Peers vs All Known). Do not force
+    -- include_offline_cache — that leaked offline columns into Live Peers.
+    local keys = characters.active_keys("stock") or {}
+    local records = source_records_for_keys(keys)
+    local roster = {}
+    for _, rec in ipairs(records or {}) do
+        roster[#roster + 1] = {
+            name = source_owner(rec.key, rec.snap),
+            class = tostring(rec.snap and rec.snap.class or ""),
+            key = rec.key,
+            updated = tonumber(rec.snap and (rec.snap.inventoryUpdated or rec.snap.updated)) or 0,
+        }
     end
-    return #parts > 0 and table.concat(parts, " | ") or "-"
+    table.sort(roster, function(a, b)
+        return tostring(a.name or ""):lower() < tostring(b.name or ""):lower()
+    end)
+    return roster, records
 end
 
-local function draw_stock_scope_combo(index, scope)
-    scope = tostring(scope or "all")
-    ImGui.SetNextItemWidth(-1)
-    if ImGui.BeginCombo("##stock_scope_" .. tostring(index), scope_label_for(scope)) then
-        for _, opt in ipairs(SCOPE_OPTIONS) do
-            if ImGui.Selectable(opt.label .. "##stock_scope_" .. tostring(index) .. "_" .. opt.key, scope == opt.key) then
-                local ok, err = keep_qty.set_scope(index, opt.key)
-                item_actions.status_msg = ok and ("Stock scope: " .. opt.label .. ".") or tostring(err or "Could not save stock scope.")
-                stock_rows_key = nil
+local function stock_short_header(name)
+    name = tostring(name or "?")
+    if #name <= 5 then return name end
+    return name:sub(1, 5)
+end
+
+local function stock_cell_tooltip(cell, item_name)
+    ImGui.BeginTooltip()
+    ImGui.Text(tostring(item_name or ""))
+    ImGui.Text(string.format("%s (%s)", tostring(cell.owner or "?"),
+        keep_qty.class_abbrev(cell.class) ~= "" and keep_qty.class_abbrev(cell.class) or "?"))
+    if cell.eligible then
+        ImGui.TextColored(0.70, 0.76, 0.86, 1.0, string.format("Have %d / Want %d", cell.have or 0, cell.want or 0))
+    else
+        ImGui.TextDisabled(string.format("Have %d (not needed for this class)", cell.have or 0))
+    end
+    for _, loc in ipairs(cell.locations or {}) do
+        ImGui.TextDisabled(tostring(loc))
+    end
+    ImGui.EndTooltip()
+end
+
+local function stock_add_cursor_item()
+    local ok, name, id = pcall(function()
+        local cur = mq.TLO.Cursor
+        if not cur or not cur() then return nil, 0 end
+        return tostring(cur.Name() or ""), tonumber(cur.ID()) or 0
+    end)
+    if not ok or not name or name == "" then
+        item_actions.status_msg = "Put an item on your cursor, then click Add."
+        return
+    end
+    local saved, err = keep_qty.add_or_update(name, id, 5, "group")
+    item_actions.status_msg = saved and tostring(err or ("Added " .. name .. ".")) or tostring(err or "Could not add item.")
+    stock_rows_key = nil
+end
+
+local function stock_ensure_defaults()
+    if Settings.stockDefaultsSeeded == true then
+        keep_qty.load()
+        return
+    end
+    keep_qty.ensure_adventure_preset(5, "group")
+    Settings.stockDefaultsSeeded = true
+    if SaveSettings then SaveSettings() end
+    stock_rows_key = nil
+end
+
+local function stock_norm(s)
+    return tostring(s or ""):lower():gsub("^%s+", ""):gsub("%s+$", "")
+end
+
+local function stock_id_for_rule(rule)
+    local id = math.floor(tonumber(rule and rule.id) or 0)
+    if id > 0 then return id end
+    local want = stock_norm(rule and rule.name)
+    if want == "" then return 0 end
+    for _, row in ipairs(stock_rows_cache or {}) do
+        if stock_norm(row.name) == want then
+            local rid = math.floor(tonumber(row.id) or 0)
+            if rid > 0 then return rid end
+        end
+    end
+    return 0
+end
+
+local function stock_me_name()
+    local ok, name = pcall(function() return mq.TLO.Me.Name() end)
+    return (ok and tostring(name or "") or ""):match("^%s*(.-)%s*$") or ""
+end
+
+local function stock_append_plan(plan, rule, steps)
+    local id = stock_id_for_rule(rule)
+    for _, step in ipairs(steps or {}) do
+        plan[#plan + 1] = {
+            from = step.from,
+            to = step.to,
+            qty = step.qty,
+            item = rule.name ~= "" and rule.name or step.item,
+            id = id > 0 and id or (tonumber(step.id) or 0),
+        }
+    end
+end
+
+local function stock_build_even_plan(roster, board_index)
+    local plan = {}
+    for _, rule in ipairs(keep_qty.rules() or {}) do
+        if stock_rule_matches_search(rule) then
+            local board = keep_qty.evaluate_board_from_index(rule, board_index, roster)
+            stock_append_plan(plan, rule, keep_qty.plan_even_out(rule, board and board.cells))
+        end
+    end
+    return plan
+end
+
+local function stock_build_collect_plan(roster, board_index, collector)
+    collector = tostring(collector or stock_me_name())
+    local plan = {}
+    if collector == "" then return plan end
+    for _, rule in ipairs(keep_qty.rules() or {}) do
+        if stock_rule_matches_search(rule) then
+            local board = keep_qty.evaluate_board_from_index(rule, board_index, roster)
+            stock_append_plan(plan, rule, keep_qty.plan_collect(rule, board and board.cells, collector))
+        end
+    end
+    return plan
+end
+
+local function stock_clean_name(name)
+    return tostring(name or ""):lower():gsub("^%s+", ""):gsub("%s+$", "")
+end
+
+local function stock_summarize_plan(plan, label)
+    label = tostring(label or "Plan")
+    local n = #(plan or {})
+    if n == 0 then
+        if label == "Collect" then
+            return "Collect: nothing to pull (others hold none of these items)."
+        end
+        return "Even Out: nothing to move (everyone at Want, or no surplus)."
+    end
+    local units = 0
+    for _, step in ipairs(plan) do units = units + (tonumber(step.qty) or 0) end
+    local sample = plan[1]
+    local extra = n > 1 and string.format(" (+%d more)", n - 1) or ""
+    return string.format("%s: %d send%s / %d item%s. e.g. %s -> %s %dx %s%s",
+        label,
+        n, n == 1 and "" or "s",
+        units, units == 1 and "" or "s",
+        tostring(sample.from), tostring(sample.to), tonumber(sample.qty) or 0,
+        tostring(sample.item or "?"),
+        extra)
+end
+
+local function stock_set_dry_plan(plan, label)
+    label = tostring(label or "Plan")
+    stock_dry.label = label
+    stock_dry.total = #(plan or {})
+    stock_dry.lines = {}
+    for i, step in ipairs(plan or {}) do
+        if i > STOCK_DRY_MAX_LINES then break end
+        stock_dry.lines[#stock_dry.lines + 1] = string.format(
+            "%s -> %s  %dx %s",
+            tostring(step.from or "?"),
+            tostring(step.to or "?"),
+            tonumber(step.qty) or 0,
+            tostring(step.item or "?"))
+    end
+    local summary = stock_summarize_plan(plan, label)
+    if item_actions.set_status then
+        item_actions.set_status(summary, STOCK_DRY_TTL_S)
+    else
+        item_actions.status_msg = summary
+    end
+end
+
+local function stock_clear_dry_plan()
+    stock_dry.label = ""
+    stock_dry.lines = {}
+    stock_dry.total = 0
+end
+
+local function stock_on_done_signal(line, name)
+    name = stock_clean_name(name)
+    if name == "" then
+        -- Fallback: parse "Name->Dest" / "Name->LOCAL" when #1# missed (color codes).
+        local raw = tostring(line or ""):gsub("\a.", "")
+        local from = raw:match("%[DONE%]%s*(%w+)%s*%-%>")
+        name = stock_clean_name(from)
+    end
+    if name == "" or not stock_job.running then return end
+    if stock_job.phase == "await" and stock_clean_name(stock_job.awaiting) == name then
+        stock_job.await_done = true
+    end
+end
+
+--- True when no TurboGive macro is active on this client (local donor completion).
+local function stock_local_turbogive_idle()
+    local ok, running = pcall(function()
+        local m = mq.TLO.Macro
+        if not m then return false end
+        local name = m.Name and m.Name() or nil
+        if name == nil then return false end
+        name = tostring(name)
+        if name == "" or name == "NULL" then return false end
+        return name:lower():find("turbogive", 1, true) ~= nil
+    end)
+    if not ok then return false end
+    return not running
+end
+
+local function stock_ensure_done_events()
+    if stock_job.events_on then return end
+    pcall(function()
+        mq.event("tgStockDoneBC", "#*#[DONE]#*##1#->#2#", function(line, name)
+            stock_on_done_signal(line, name)
+        end)
+    end)
+    pcall(function()
+        mq.event("tgStockDoneSig", "#*#[SIGNAL_DONE]#*##1#", function(line, name)
+            stock_on_done_signal(line, name)
+        end)
+    end)
+    pcall(function()
+        mq.event("tgStockDoneAny", "#*#[DONE]#*#", function(line)
+            stock_on_done_signal(line, nil)
+        end)
+    end)
+    stock_job.events_on = true
+end
+
+local function stock_clear_done_events()
+    if not stock_job.events_on then return end
+    pcall(function() mq.unevent("tgStockDoneBC") end)
+    pcall(function() mq.unevent("tgStockDoneSig") end)
+    pcall(function() mq.unevent("tgStockDoneAny") end)
+    stock_job.events_on = false
+end
+
+local function stock_finish_job(msg)
+    stock_job.running = false
+    stock_job.phase = "idle"
+    stock_job.awaiting = nil
+    stock_job.await_done = false
+    stock_job.queue = {}
+    stock_clear_done_events()
+    if msg then item_actions.status_msg = msg end
+    stock_rows_key = nil
+    stock_board_index = nil
+end
+
+local function stock_start_job(plan, label)
+    label = tostring(label or "Job")
+    if stock_job.running then
+        item_actions.status_msg = (stock_job.label or "Job") .. " already running."
+        return
+    end
+    if type(plan) ~= "table" or #plan == 0 then
+        stock_set_dry_plan(plan, label)
+        return
+    end
+    stock_clear_dry_plan()
+    stock_job.queue = {}
+    for i, step in ipairs(plan) do stock_job.queue[i] = step end
+    stock_job.total = #plan
+    stock_job.done = 0
+    stock_job.running = true
+    stock_job.next_at = 0
+    stock_job.label = label
+    stock_job.phase = "gap"
+    stock_job.awaiting = nil
+    stock_job.await_done = false
+    stock_ensure_done_events()
+    item_actions.status_msg = string.format(
+        "%s started (%d sends). Waits for each turboGive [DONE] before the next.",
+        label, #plan)
+end
+
+local function stock_tick_job()
+    if not stock_job.running then return end
+    local now = os.clock()
+    local label = stock_job.label or "Job"
+
+    if stock_job.phase == "await" then
+        -- Same-box donor: /squelch e3bc DONE used to never reach this UI. Local
+        -- /echo is fixed in TurboGive 1.9.9; also treat TurboGive macro end as done.
+        if not stock_job.await_done and stock_job.await_local
+            and (now - (stock_job.await_started or 0)) >= STOCK_LOCAL_GRACE_S
+            and stock_local_turbogive_idle() then
+            stock_job.await_done = true
+        end
+        if stock_job.await_done or now >= (stock_job.await_until or 0) then
+            if not stock_job.await_done then
+                item_actions.status_msg = string.format(
+                    "[%d/%d] timed out waiting for %s [DONE] - continuing.",
+                    stock_job.done or 0, stock_job.total or 0,
+                    tostring(stock_job.awaiting or "?"))
+            end
+            stock_job.phase = "gap"
+            stock_job.next_at = now + STOCK_SEND_GAP_S
+            stock_job.awaiting = nil
+            stock_job.await_done = false
+            stock_job.await_local = false
+        end
+        return
+    end
+
+    if now < (stock_job.next_at or 0) then return end
+
+    local step = table.remove(stock_job.queue, 1)
+    if not step then
+        stock_finish_job(string.format("%s finished (%d sends).", label, stock_job.done or 0))
+        return
+    end
+
+    stock_ensure_done_events()
+    stock_job.await_done = false
+    stock_job.awaiting = step.from
+    stock_job.await_started = now
+    stock_job.await_until = now + STOCK_AWAIT_TIMEOUT_S
+    stock_job.await_local = stock_clean_name(step.from) == stock_clean_name(stock_me_name())
+    stock_job.phase = "await"
+
+    local ok, msg = integrations.send_stack(step.item, step.id, step.qty, step.from, step.to)
+    stock_job.done = (stock_job.done or 0) + 1
+    item_actions.status_msg = ok
+        and string.format("[%d/%d] %s (waiting DONE)", stock_job.done, stock_job.total, tostring(msg))
+        or string.format("[%d/%d] failed: %s", stock_job.done, stock_job.total, tostring(msg))
+    -- Command dispatch failed: do not block the queue on a DONE that will never come.
+    if not ok then
+        stock_job.phase = "gap"
+        stock_job.next_at = now + STOCK_SEND_GAP_S
+        stock_job.awaiting = nil
+        stock_job.await_done = false
+        stock_job.await_local = false
+    end
+end
+
+local function draw_stock_dry_preview()
+    if stock_job.running then return end
+    if not stock_dry.lines or #stock_dry.lines == 0 then return end
+    col_text(Theme.amber or Theme.gold, string.format("%s preview (no trades) - %d send%s:",
+        stock_dry.label ~= "" and stock_dry.label or "Plan",
+        stock_dry.total or #stock_dry.lines,
+        (stock_dry.total or 0) == 1 and "" or "s"))
+    for _, line in ipairs(stock_dry.lines) do
+        ImGui.TextDisabled(line)
+    end
+    local more = (stock_dry.total or 0) - #stock_dry.lines
+    if more > 0 then
+        ImGui.TextDisabled(string.format("... +%d more (run Even Out / Collect to execute)", more))
+    end
+end
+
+local function draw_stock_toolbar(roster, records, board_index)
+    stock_tick_job()
+    local me = stock_me_name()
+
+    if theme.themed_button("Refresh##inv_stock_refresh", Theme.steel, 72, 0) then
+        if Engine and Engine.request_all then
+            Engine.request_all(true)
+            if Engine.publish then Engine.publish(true, "full", { reason = "stock_refresh" }) end
+            item_actions.status_msg = "Requested fresh inventory publishes."
+        else
+            item_actions.status_msg = "Sync unavailable (engine offline)."
+        end
+        stock_rows_key = nil
+        stock_board_index = nil
+    end
+    if ImGui.IsItemHovered() and ImGui.SetTooltip then
+        ImGui.SetTooltip("Ask peers to republish inventory over the TurboGear bus.")
+    end
+    ImGui.SameLine()
+    if theme.themed_button("Add##inv_stock_add_cursor", Theme.steel, 52, 0) then
+        stock_add_cursor_item()
+    end
+    if ImGui.IsItemHovered() and ImGui.SetTooltip then
+        ImGui.SetTooltip("Add the cursor item as a stock rule (Want 5). Or right-click Keep Qty anywhere.")
+    end
+    ImGui.SameLine()
+    if theme.themed_button("Dry Even##inv_stock_dry_even", Theme.steel, 78, 0) then
+        stock_set_dry_plan(stock_build_even_plan(roster, board_index), "Even Out")
+    end
+    if ImGui.IsItemHovered() and ImGui.SetTooltip then
+        ImGui.SetTooltip("Preview Even Out: surplus -> short until Want (no trades). Stays listed below.")
+    end
+    ImGui.SameLine()
+    if theme.themed_button("Dry Collect##inv_stock_dry_collect", Theme.steel, 88, 0) then
+        stock_set_dry_plan(stock_build_collect_plan(roster, board_index, me), "Collect")
+    end
+    if ImGui.IsItemHovered() and ImGui.SetTooltip then
+        ImGui.SetTooltip("Preview Collect: everyone else sends all board items to you (no trades). Stays listed below.")
+    end
+    ImGui.SameLine()
+    if stock_job.running then
+        if theme.themed_button("Stop##inv_stock_stop", Theme.brick or Theme.steel, 56, 0) then
+            local label = stock_job.label or "Job"
+            local done, total = stock_job.done or 0, stock_job.total or 0
+            stock_finish_job(string.format("%s stopped (%d/%d).", label, done, total))
+        end
+        if ImGui.IsItemHovered() and ImGui.SetTooltip then
+            ImGui.SetTooltip("Cancel the remaining send queue (in-flight TurboGive may still finish).")
+        end
+    else
+        if theme.themed_button("Even Out##inv_stock_even", Theme.green or Theme.steel, 80, 0) then
+            stock_start_job(stock_build_even_plan(roster, board_index), "Even Out")
+        end
+        if ImGui.IsItemHovered() and ImGui.SetTooltip then
+            ImGui.SetTooltip("Donors TurboGive-send surplus to short toons one-at-a-time (waits [DONE]). Sync/Refresh first.")
+        end
+        ImGui.SameLine()
+        if theme.themed_button("Collect##inv_stock_collect", Theme.bag or Theme.blue or Theme.steel, 72, 0) then
+            if me == "" then
+                item_actions.status_msg = "Collect: could not resolve this character name."
+            else
+                stock_start_job(stock_build_collect_plan(roster, board_index, me), "Collect")
             end
         end
-        ImGui.EndCombo()
+        if ImGui.IsItemHovered() and ImGui.SetTooltip then
+            ImGui.SetTooltip(string.format(
+                "Pull all board items from other toons to %s via TurboGive send (serial, wait DONE). Then Even Out to redistribute.",
+                me ~= "" and me or "you"))
+        end
+    end
+
+    local oldest = nil
+    for _, rec in ipairs(records or {}) do
+        local u = tonumber(rec.snap and (rec.snap.inventoryUpdated or rec.snap.updated)) or 0
+        if u > 0 and (not oldest or u < oldest) then oldest = u end
+    end
+    local age = oldest and math.max(0, os.time() - oldest) or nil
+    ImGui.SameLine()
+    if stock_job.running then
+        local phase = stock_job.phase == "await"
+            and (" wait " .. tostring(stock_job.awaiting or "?"))
+            or ""
+        -- ASCII "..." only; MQ fonts turn unicode ellipsis into "?".
+        col_text(Theme.amber or Theme.gold, string.format("%s %d/%d%s ...",
+            stock_job.label or "Job", stock_job.done or 0, stock_job.total or 0, phase))
+    else
+        col_text(Theme.header or Theme.neutral, string.format("%d toon%s | %s",
+            #roster,
+            #roster == 1 and "" or "s",
+            age and ("oldest cache " .. format_age(age)) or "no cache yet"))
+    end
+end
+
+local function draw_stock_group_header(label, nCols)
+    ImGui.TableNextRow()
+    ImGui.TableSetColumnIndex(0)
+    theme.colored_text(tostring(label or ""), Theme.header or Theme.section or Theme.item)
+    for c = 1, (nCols or 1) - 1 do
+        ImGui.TableSetColumnIndex(c)
+        ImGui.Dummy(1, 1)
     end
 end
 
 local function draw_stock_view()
+    stock_ensure_defaults()
+    local roster, records = stock_roster_and_records()
+    local _, board_index = stock_rows_for_records(records)
+    draw_stock_toolbar(roster, records, board_index)
+    draw_stock_dry_preview()
+
     local rules = keep_qty.rules()
     if #rules == 0 then
-        col_text(Theme.placeholder or Theme.dim, "No Keep Qty rules yet. Right-click an item and choose Keep Qty.")
+        col_text(Theme.placeholder or Theme.dim, "No stock rules yet. Add from cursor, or right-click Keep Qty on an item.")
         return
     end
-
+    if #roster == 0 then
+        col_text(Theme.amber, "No characters selected. Open the Characters pill (Source + Show Columns), then Sync Now.")
+        return
+    end
+    local nChars = #roster
+    local nCols = 2 + nChars + 1 -- Item | chars... | Want | Edit
+    local char_w = nChars >= 7 and 42.0 or 48.0
     local shown = 0
-    if views.begin_scroll_table("InventoryStock", 8, views.scroll_table_flags(), 240.0, 420.0) then
-        ImGui.TableSetupColumn("Item", ImGuiTableColumnFlags.WidthStretch, 1.7)
-        ImGui.TableSetupColumn("Want", ImGuiTableColumnFlags.WidthFixed, 48.0)
-        ImGui.TableSetupColumn("Have", ImGuiTableColumnFlags.WidthFixed, 54.0)
-        ImGui.TableSetupColumn("Need", ImGuiTableColumnFlags.WidthFixed, 54.0)
-        ImGui.TableSetupColumn("Owners", ImGuiTableColumnFlags.WidthStretch, 2.1)
-        ImGui.TableSetupColumn("Scope", ImGuiTableColumnFlags.WidthFixed, 104.0)
-        ImGui.TableSetupColumn("Find", ImGuiTableColumnFlags.WidthFixed, 56.0)
-        ImGui.TableSetupColumn("Edit", ImGuiTableColumnFlags.WidthFixed, 112.0)
-        views.table_headers_centered({ "Item", "Want", "Have", "Need", "Owners", "Scope", "Find", "Edit" })
+    local last_group = nil
+    -- Fill remaining window height (small reserve for legend). Prior min_h=420
+    -- forced a tall table into a shorter region -> cut off + empty chrome below.
+    if views.begin_scroll_table("InventoryStockBoard", nCols, views.scroll_table_flags(), 22.0, 160.0) then
+        ImGui.TableSetupColumn("Item", ImGuiTableColumnFlags.WidthStretch, 1.4)
+        local headers = { "Item" }
+        for _, member in ipairs(roster) do
+            ImGui.TableSetupColumn(stock_short_header(member.name), ImGuiTableColumnFlags.WidthFixed, char_w)
+            headers[#headers + 1] = stock_short_header(member.name)
+        end
+        ImGui.TableSetupColumn("Want", ImGuiTableColumnFlags.WidthFixed, 52.0)
+        ImGui.TableSetupColumn("Edit", ImGuiTableColumnFlags.WidthFixed, 36.0)
+        headers[#headers + 1] = "Want"
+        headers[#headers + 1] = ""
+        views.setup_scroll_freeze("InventoryStockBoard", 1, 1)
+        views.table_headers_centered(headers)
+
         for i, rule in ipairs(rules) do
             if stock_rule_matches_search(rule) then
-                local rows = stock_rows_for_scope(rule.scope or "all")
-                local result = keep_qty.evaluate(rule, rows)
-                local need = result and result.need or 0
-                local have = result and result.total or 0
+                local group = tostring(rule.group or "")
+                if group == "" then group = "Other" end
+                if group ~= last_group then
+                    draw_stock_group_header(group, nCols)
+                    last_group = group
+                end
+
+                local board = keep_qty.evaluate_board_from_index(rule, board_index, roster)
+                local need = board and board.need or 0
                 shown = shown + 1
                 ImGui.TableNextRow()
                 ImGui.TableSetColumnIndex(0)
-                item_actions.draw_name(rule.name ~= "" and rule.name or ("item " .. tostring(rule.id)), need > 0 and (Theme.amber or Theme.item) or (Theme.green or Theme.item),
-                    "inv_stock_" .. tostring(i), rule.id)
-                ImGui.TableSetColumnIndex(1)
-                col_text(Theme.dim, tostring(rule.qty or 0))
-                ImGui.TableSetColumnIndex(2)
-                col_text(need > 0 and Theme.amber or (Theme.green or Theme.value), tostring(have))
-                ImGui.TableSetColumnIndex(3)
-                col_text(need > 0 and Theme.amber or Theme.dim, need > 0 and tostring(need) or "-")
-                ImGui.TableSetColumnIndex(4)
-                local owners = stock_owner_summary(result)
-                local _, clipped = views.col_text_fit(Theme.dim, owners, views.current_column_width())
-                if clipped and ImGui.IsItemHovered and ImGui.IsItemHovered() and ImGui.SetTooltip then ImGui.SetTooltip(owners) end
-                ImGui.TableSetColumnIndex(5)
-                draw_stock_scope_combo(i, rule.scope)
-                ImGui.TableSetColumnIndex(6)
-                if theme.themed_button("Find##inv_stock_find_" .. tostring(i), Theme.steel, 50, 0) then
-                    Settings.inventoryViewMode = "table"
-                    Settings.inventoryScope = rule.scope or "all"
-                    Settings.inventorySearch = rule.name ~= "" and rule.name or tostring(rule.id or "")
-                    Settings.inventoryShowAllRows = false
-                    rows_key = nil
-                    SaveSettings()
+                local full = rule.name ~= "" and rule.name or ("item " .. tostring(rule.id))
+                local label = keep_qty.display_name(full)
+                local hint = keep_qty.hint_label(rule)
+                local color = need > 0 and (Theme.amber or Theme.gold) or (Theme.item or Theme.cyan)
+                theme.colored_text(label, color)
+                if ImGui.IsItemHovered() and ImGui.SetTooltip then
+                    local tip = full
+                    if hint ~= "" then tip = tip .. "\n" .. hint end
+                    if need > 0 then tip = tip .. string.format("\nShort %d across roster", need) end
+                    ImGui.SetTooltip(tip)
                 end
-                ImGui.TableSetColumnIndex(7)
-                if theme.themed_button("-##inv_stock_dec_" .. tostring(i), Theme.steel, 28, 0) then
-                    local ok, err = keep_qty.set_qty(i, math.max(1, (tonumber(rule.qty) or 1) - 1))
-                    item_actions.status_msg = ok and "Stock target lowered." or tostring(err or "Could not save stock target.")
+                item_actions.draw_context(full, rule.id, "inv_stock_" .. tostring(i),
+                    item_actions.context_opts({}, { name = full, id = rule.id }))
+
+                for c, cell in ipairs((board and board.cells) or {}) do
+                    ImGui.TableSetColumnIndex(c)
+                    local text = tostring(cell.have or 0)
+                    if not cell.eligible then
+                        col_text(Theme.placeholder or Theme.dim, text)
+                    elseif (cell.short or 0) > 0 then
+                        col_text(Theme.amber or Theme.gold, text)
+                    else
+                        col_text(Theme.green or Theme.online, text)
+                    end
+                    if ImGui.IsItemHovered() then stock_cell_tooltip(cell, full) end
                 end
-                ImGui.SameLine()
-                if theme.themed_button("+##inv_stock_inc_" .. tostring(i), Theme.steel, 28, 0) then
-                    local ok, err = keep_qty.set_qty(i, (tonumber(rule.qty) or 1) + 1)
-                    item_actions.status_msg = ok and "Stock target raised." or tostring(err or "Could not save stock target.")
+
+                ImGui.TableSetColumnIndex(1 + nChars)
+                ImGui.SetNextItemWidth(-1)
+                local want_v = tonumber(rule.qty) or 0
+                if ImGui.InputInt then
+                    local next_v, changed = ImGui.InputInt("##stock_want_" .. tostring(i), want_v, 0)
+                    next_v = math.max(0, math.floor(tonumber(next_v) or want_v))
+                    if next_v ~= want_v and (changed == nil or changed) then
+                        local ok, err = keep_qty.set_qty(i, next_v)
+                        item_actions.status_msg = ok and "Stock Want updated." or tostring(err or "Could not save Want.")
+                    end
+                else
+                    col_text(Theme.dim, tostring(want_v))
                 end
-                ImGui.SameLine()
-                if theme.themed_button("X##inv_stock_remove_" .. tostring(i), Theme.steel, 32, 0) then
+
+                ImGui.TableSetColumnIndex(2 + nChars)
+                if theme.themed_button("X##inv_stock_remove_" .. tostring(i), Theme.steel, 28, 0) then
                     local ok, err = keep_qty.remove(i)
-                    item_actions.status_msg = ok and tostring(err or "Removed stock rule.") or tostring(err or "Could not remove stock rule.")
+                    item_actions.status_msg = ok and tostring(err or "Removed stock rule.") or tostring(err or "Could not remove.")
                     ImGui.EndTable()
                     return
                 end
@@ -857,8 +1349,12 @@ local function draw_stock_view()
     end
 
     if shown == 0 then
-        col_text(Theme.placeholder or Theme.dim, "No stock rules match the current search.")
+        col_text(Theme.placeholder or Theme.dim, "No stock rules match Search everywhere.")
+    else
+        col_text(Theme.muted or Theme.dim, "Grey = class does not want. Amber short / green met. Collect to you, then Even Out to Want.")
     end
+    local status = item_actions.status and item_actions.status() or ""
+    if status ~= "" then col_text(Theme.amber or Theme.item, status) end
 end
 
 local function file_label(path)
@@ -1408,7 +1904,7 @@ local function draw_inventory_content()
 
     local mode = tostring(Settings.inventoryViewMode or "table")
     local rows, meta = {}, { shown = 0, total = 0 }
-    if mode ~= "stock" and mode ~= "transfers" then
+    if mode ~= "transfers" then
         rows, meta = visible_rows(records)
     end
     local updated = tonumber(snap and (snap.inventoryUpdated or snap.updated)) or 0
@@ -1417,15 +1913,7 @@ local function draw_inventory_content()
     local scope = tostring(Settings.inventoryScope or "single")
     local scope_desc = scope == "single" and views.source_label(key) or string.format("%s scope (%d cached character%s)",
         scope_label(), #records, #records == 1 and "" or "s")
-    if mode == "stock" then
-        local rule_count = #keep_qty.rules()
-        col_text(Theme.dim, string.format("%s | %s cache | %d stock rule%s | %s",
-            scope_desc,
-            depth,
-            rule_count,
-            rule_count == 1 and "" or "s",
-            format_age(age)))
-    elseif mode == "transfers" then
+    if mode == "transfers" then
         local transfer_count = #transfers.entries()
         col_text(Theme.dim, string.format("%s | %s cache | %d TurboGive transfer%s | %s",
             scope_desc,
@@ -1456,8 +1944,6 @@ local function draw_inventory_content()
         ImGui.TableSetColumnIndex(1)
         if Settings.inventoryViewMode == "bags" then
             draw_bag_browser(records)
-        elseif Settings.inventoryViewMode == "stock" then
-            draw_stock_view()
         elseif Settings.inventoryViewMode == "transfers" then
             draw_transfers_view()
         else
@@ -1468,8 +1954,6 @@ local function draw_inventory_content()
         draw_equipped_grid(snap)
         if Settings.inventoryViewMode == "bags" then
             draw_bag_browser(records)
-        elseif Settings.inventoryViewMode == "stock" then
-            draw_stock_view()
         elseif Settings.inventoryViewMode == "transfers" then
             draw_transfers_view()
         else
@@ -1502,6 +1986,22 @@ end
 
 function M.draw()
     return diag.time("ui.inventory.draw", draw_inventory_body)
+end
+
+local function draw_stock_body()
+    ensure_defaults()
+    stock_ensure_defaults()
+    -- No nested scroll child: the board table owns ScrollY and fills avail height.
+    -- A wrapping BeginChild(0,0) left empty chrome under a min-height table.
+    local rule_count = #keep_qty.rules()
+    col_text(Theme.header or Theme.neutral, string.format(
+        "Stock Up · %d rule%s · Want = per eligible toon · Characters pill sets columns",
+        rule_count, rule_count == 1 and "" or "s"))
+    draw_stock_view()
+end
+
+function M.draw_stock()
+    return diag.time("ui.stock.draw", draw_stock_body)
 end
 
 return M

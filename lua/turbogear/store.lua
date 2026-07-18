@@ -30,6 +30,19 @@ local Store = {
     cache_last_reload_reason = "",
 }
 
+-- Debounced flush after live inventory content changes (put/delta). Lets the
+-- UI BiS/announce path see peer loot in ~seconds instead of waiting for the
+-- normal bg save_every (~30s). Cache reloads do not schedule this.
+local content_flush_due_at = nil
+
+local function schedule_content_flush()
+    local coalesce = tonumber(CFG.save_content_coalesce_s)
+    if coalesce == nil then coalesce = 1.5 end
+    if coalesce <= 0 then return end
+    -- Restart the window on every change so a loot train collapses to one write.
+    content_flush_due_at = os.clock() + coalesce
+end
+
 local function my_key()
     return (mq.TLO.MacroQuest.Server() or "?") .. "_" .. (mq.TLO.Me.CleanName() or "?")
 end
@@ -398,6 +411,7 @@ function Store.put(snap, kind)
             note_content_change("put", key, snap, Store.content_signatures[key], sig)
             Store.content_signatures[key] = sig
             Store.content_version = (Store.content_version or 0) + 1
+            schedule_content_flush()
         end
         Store.dirty = true
         Store.version = (Store.version or 0) + 1
@@ -451,6 +465,7 @@ function Store.apply_delta(delta, kind)
             note_content_change("delta", key, existing, Store.content_signatures[key], sig)
             Store.content_signatures[key] = sig
             Store.content_version = (Store.content_version or 0) + 1
+            schedule_content_flush()
         end
         Store.dirty = true
         Store.version = (Store.version or 0) + 1
@@ -590,10 +605,19 @@ function Store.tick()
             save_every = math.max(save_every, tonumber(CFG.save_every_heavy_ui_s) or 120.0)
         end
     end
-    if Store.dirty and (os.clock() - Store.last_save) > save_every then Store.save() end
+    local now = os.clock()
+    -- Content flush wins over the normal debounce so BiS/UI see inventory
+    -- changes promptly; still requires Store.dirty (put/delta already set it).
+    if content_flush_due_at and Store.dirty and now >= content_flush_due_at then
+        diag.count("store.content_flush")
+        Store.save()
+    elseif Store.dirty and (now - Store.last_save) > save_every then
+        Store.save()
+    end
 end
 
 function Store.save()
+    content_flush_due_at = nil
     Store.last_save = os.clock(); Store.dirty = false
     local source_count = 0
     for _ in pairs(Store.sources) do source_count = source_count + 1 end

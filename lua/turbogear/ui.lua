@@ -585,8 +585,46 @@ local function load_mini_icon()
     return iconImg
 end
 
+-- Throttled probe: is the Turbo hub script running? Used by the opt-in
+-- "hide mini while Turbo runs" mode (the hub's mini bar carries a TG chip).
+-- If Turbo stops, the probe flips false within ~5s and the mini auto-returns,
+-- so the user is never left without a TurboGear entry point.
+local turbo_hub_probe = { next_at = 0, running = false }
+local function turbo_hub_running()
+    local now = os.clock()
+    if now >= (turbo_hub_probe.next_at or 0) then
+        turbo_hub_probe.next_at = now + 5.0
+        local guard = require('runtime_guard')
+        turbo_hub_probe.running = guard.script_running(mq, 'Turbo')
+            or guard.script_running(mq, 'turbo')
+    end
+    return turbo_hub_probe.running == true
+end
+
+-- Settings checkbox tolerant of both MQ ImGui.Checkbox return conventions
+-- ((newValue, pressed) or just (newValue)); same pattern as bis.draw_quick_toggles.
+local function mini_settings_checkbox(label, key)
+    if not ImGui.Checkbox then return end
+    local cur = Settings[key] and true or false
+    local rv1, rv2 = ImGui.Checkbox(label, cur)
+    local new_val, apply = nil, false
+    if type(rv2) == "boolean" then
+        new_val, apply = rv1, rv2
+    elseif type(rv1) == "boolean" and rv1 ~= cur then
+        new_val, apply = rv1, true
+    end
+    if apply then
+        Settings[key] = new_val and true or false
+        SaveSettings()
+    end
+end
+
 local function draw_mini()
     return diag.time("ui.mini", function()
+    -- Opt-in dock mode: while the Turbo hub is up, its mini bar owns the TG
+    -- entry point; skip drawing our own icon. Auto-shows again if Turbo stops.
+    if Settings.miniHideWhenTurboMini and turbo_hub_running() then return end
+
     local flags =
         (ImGuiWindowFlags.AlwaysAutoResize or 0) +
         (ImGuiWindowFlags.NoTitleBar or 0) +
@@ -594,8 +632,9 @@ local function draw_mini()
 
     -- LazBiS-style mini: icon is clickable, but a generous padded border stays
     -- draggable (ImageButton consumed almost the whole window before).
-    local icon_draw_size = 48.0
-    local border_pad = 8.0
+    local small = Settings.miniIconSmall == true
+    local icon_draw_size = small and 28.0 or 48.0
+    local border_pad = small and 4.0 or 8.0
 
     local pos = Settings.miniWindowPos
     if pos and pos.x and pos.y and ImGui.SetNextWindowPos then
@@ -623,15 +662,26 @@ local function draw_mini()
                     state.show = not state.show
                 end
                 if ImGui.IsItemHovered and ImGui.IsItemHovered() and ImGui.SetTooltip then
-                    ImGui.SetTooltip("TurboGear is running.\nClick icon to open/close full view.\nDrag gold border to move.")
+                    ImGui.SetTooltip("TurboGear is running.\nClick icon to open/close full view.\nRight-click for icon options.\nDrag gold border to move.")
                 end
             else
                 if ImGui.Button("TG", icon_size) then
                     state.show = not state.show
                 end
                 if ImGui.IsItemHovered and ImGui.IsItemHovered() and ImGui.SetTooltip then
-                    ImGui.SetTooltip("TurboGear is running.\nClick to open/close full view.\nDrag gold border to move.")
+                    ImGui.SetTooltip("TurboGear is running.\nClick to open/close full view.\nRight-click for icon options.\nDrag gold border to move.")
                 end
+            end
+            if ImGui.IsItemClicked and ImGui.IsItemClicked(1) and ImGui.OpenPopup then
+                ImGui.OpenPopup("##tg_mini_ctx")
+            end
+            if ImGui.BeginPopup and ImGui.BeginPopup("##tg_mini_ctx") then
+                mini_settings_checkbox("Small icon##tg_mini_small", "miniIconSmall")
+                mini_settings_checkbox("Hide while Turbo hub runs##tg_mini_dock", "miniHideWhenTurboMini")
+                if ImGui.IsItemHovered and ImGui.IsItemHovered() and ImGui.SetTooltip then
+                    ImGui.SetTooltip("Use the TG chip on Turbo's mini bar instead.\nThis icon returns automatically if Turbo stops.")
+                end
+                ImGui.EndPopup()
             end
 
             if ImGui.IsWindowHovered and ImGui.IsWindowHovered()
@@ -844,6 +894,7 @@ local function characters_tab_for_main(main)
         local gear = tostring(Settings.gearTab or "inventory")
         if gear == "worn" then return "worn" end
         if gear == "stored" then return "stored" end
+        if gear == "stock" then return "stock" end
         return "inventory"
     end
     return nil
@@ -869,9 +920,12 @@ local function draw_characters_chrome(main)
     end
     -- List pill is global BiS mode chrome (not Link Scope). Shown even in Manage Lists.
     if tostring(main or "") == "bis" and bis.draw_list_pill then
+        -- Clear dropdown-open guard before chrome combos (DSK Focus) draw;
+        -- body runs after this and must not wipe the flag mid-frame.
+        if bis.prep_chrome then bis.prep_chrome() end
         if drew then ImGui.SameLine() end
         if bis.draw_list_pill({ height = 22 }) then drew = true end
-        -- Missing Only + Full Names/Compact live right of the pill (not in edit mode).
+        -- Missing Only + Anguish/DSK focus live right of the pill (not in edit mode).
         if tostring(Settings.bisListsTab or "catalog") ~= "edit" and bis.draw_quick_toggles then
             if drew then ImGui.SameLine() end
             bis.draw_quick_toggles()
@@ -885,7 +939,8 @@ local function draw_gear_chrome()
     cur = draw_tab_buttons({
         { key = "inventory", label = "Inventory" },
         { key = "worn", label = "Worn Augs" },
-        { key = "stored", label = "Stored" },
+        { key = "stored", label = "Stored Augs" },
+        { key = "stock", label = "Stock Up" },
     }, cur, "tg_gear", true, set_gear_tab)
     ImGui.Separator()
     return cur
@@ -896,6 +951,7 @@ local function draw_gear_body(cur)
     sync_current_view_if_needed()
     if cur == "worn" then diag.time("ui.gear.worn", worn.draw)
     elseif cur == "stored" then diag.time("ui.gear.stored", augbag.draw)
+    elseif cur == "stock" then diag.time("ui.gear.stock", inventory.draw_stock)
     else diag.time("ui.gear.inventory", inventory.draw) end
 end
 
@@ -1046,13 +1102,11 @@ local function begin_main_scroll_child()
 end
 
 local function draw_scroll_body_offline_note()
-    if Engine.ok then return end
+    -- Viewer mode (UI + local bg) is normal; do not burn a footer row for it
+    -- (that row alone pushed some tabs into a vertical scrollbar).
+    if Engine.ok or state.engine_claim_disabled then return end
     ImGui.Separator()
-    if state.engine_claim_disabled then
-        col_text(Theme.dim, "Viewer mode - using TurboGear bg/cache data.")
-    else
-        col_text(Theme.amber, "Sync offline - showing cached data only.")
-    end
+    col_text(Theme.amber, "Sync offline - showing cached data only.")
 end
 
 local function draw_main_body()

@@ -8,6 +8,7 @@ local tools = {
     turborolls = '/lua run TurboRolls',
     turbogains = '/lua run Turbo/gains_toggle start',
     turbomobs = '/lua run TurboMobs',
+    turbowares = '/lua run turbowares',
 }
 
 local delayStartDs = tonumber((select(1, ...))) or 100

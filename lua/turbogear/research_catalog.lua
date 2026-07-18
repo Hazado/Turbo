@@ -374,14 +374,21 @@ function M.spell_inventory_info(displayName, iniRaw, spellBook, allowLive)
         variants[#variants + 1] = scroll_label(alias)
     end
     local inBook = false
-    local SpellKnown = nil
     pcall(function()
-        local ok, mod = pcall(require, 'spell_known')
-        if ok then SpellKnown = mod end
-    end)
-    pcall(function()
+        local okC, SC = pcall(require, 'spell_cache')
         for _, variant in ipairs(variants) do
-            if SpellKnown and SpellKnown.live and SpellKnown.live(variant) then
+            if okC and SC then
+                if SC.building and SC.building() and SC.probe_name and SC.probe_name(variant) then
+                    inBook = true
+                    break
+                end
+                if SC.ready and SC.ready() and SC.is_known and SC.is_known(variant) then
+                    inBook = true
+                    break
+                end
+            end
+            local ok, mod = pcall(require, 'spell_known')
+            if ok and mod and mod.live and mod.live(variant) then
                 inBook = true
                 break
             end

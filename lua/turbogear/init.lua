@@ -49,6 +49,13 @@ state.bg     = FORCE_BG
 state.show   = not state.bg
     and not (SCRIPT_ARGS[1] == 'mini' or (cfg.Settings.startMinimized == true and SCRIPT_ARGS[1] ~= 'ui'))
 
+-- /lua run turbogear stock — open UI on Gear > Stock Up (starts bg via normal UI path).
+if not state.bg and tostring(SCRIPT_ARGS[1] or ''):lower() == 'stock' then
+    cfg.Settings.mainTab = 'gear'
+    cfg.Settings.gearTab = 'stock'
+    state.show = true
+end
+
 local store  = require('store')
 local Store, my_key = store.Store, store.my_key
 local Engine = require('engine').Engine
@@ -555,9 +562,13 @@ local function tgear_command(...)
             mq.cmd('/timed 5 /squelch /tgearbg spellsync')
             print("[TurboGear] spellsync: delegated to local bg responder")
         else
-            require('snapshot').gather({ force = true, depth = "lite", includeSpells = true })
+            pcall(function() require('spell_cache').rebuild() end)
+            local snap = require('snapshot').gather({ force = true, depth = "lite", includeSpells = true })
             Engine.publish(true, "lite", { includeSpells = true, reason = "spellsync" })
             Engine.request_all(true, { includeSpells = true, depth = "lite" })
+            pcall(function()
+                require('spell_cache').mark_published(snap and snap.spells_sig)
+            end)
             print("[TurboGear] spellsync: published spell book + requested peer spell books")
         end
     elseif arg == "launch" or arg == "launchpeers" then
@@ -710,6 +721,12 @@ local function tgear_command(...)
         state.show = false
     elseif arg == "toggle" then
         state.show = not state.show
+    elseif arg == "stock" or arg == "stockup" then
+        cfg.Settings.mainTab = "gear"
+        cfg.Settings.gearTab = "stock"
+        state.show = true
+        if not state.bg then request_local_bg_start("stock command") end
+        print("[TurboGear] opening Stock Up")
     elseif arg == "show" or arg == "open" or arg == "compare" then
         state.show = true
     else
@@ -983,6 +1000,7 @@ state.local_guard_scripts = guard.detect(mq, CFG)
 if state.bg then
     state.engine_claim_disabled = false
     init_engine_with_retry()
+    inventory_watch.startup_spell_cache()
 else
     state.engine_claim_disabled = true
     if state.local_guard_scripts.bg ~= true then

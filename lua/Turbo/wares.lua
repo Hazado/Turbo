@@ -1,6 +1,6 @@
 --[[
   TurboWares - data layer (merchant hustlin')
-  @version lua/Turbo/wares.lua 1.7.2
+  @version lua/Turbo/wares.lua 1.7.3
 ]]
 
 local mq = require('mq')
@@ -345,14 +345,17 @@ local function appendItem(rows, item, slotLabel, packNum, slotNum)
         key = string.format('%s#%d:%d', nameKey, pack, slot),
         nameKey = nameKey,
         name = name,
-        qty = item.StackCount() or 1,
+        -- Stack = count in THIS pack slot. StackCount = total across inventory
+        -- (that was duplicating totals on every stack row in the Bags tab).
+        qty = tonumber(item.Stack()) or tonumber(item.StackCount()) or 1,
         icon = item.Icon() or 500,
         itemId = item.ID() or 0,
         slotLabel = slotLabel or '',
         sellable = not item.NoDrop() and not item.NoRent(),
         packNum = packNum or 0,
         slotNum = slotNum or 0,
-        value = item.Value() or 0,
+        -- Value is unit copper; rowSellCopper multiplies by stack qty.
+        value = tonumber(item.Value()) or 0,
     }
 end
 

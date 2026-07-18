@@ -1804,7 +1804,17 @@ end
 
 local function activityLabel(row)
     row = type(row) == 'table' and row or {}
-    if row.kind == 'reclaim_lotto' then return 'Reclaim/Lotto' end
+    if row.kind == 'reclaim_lotto' then
+        local label = tostring(row.label or '')
+        if label ~= '' then return label end
+        local mode = tostring(row.mode or ''):lower()
+        if mode == 'reclaim' then return 'Reclaim Currency' end
+        if mode == 'coins' then return 'Open Coins' end
+        if mode == 'tickets' then return 'Open Tickets' end
+        if mode == 'both' then return 'Open Coins + Tickets' end
+        if mode == 'full' or mode == 'all' then return 'Full: Reclaim + Open All' end
+        return 'Reclaim/Lotto'
+    end
     return tostring(row.label or row.kind or 'Activity')
 end
 

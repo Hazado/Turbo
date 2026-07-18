@@ -1,3 +1,172 @@
+1.2.63
+- Review: shrink skip list by ~2 rows (higher chrome reserve) so Full Review
+  no longer needs the outer window scrollbar.
+
+1.2.62
+- Full shell height 680→704 (+ trim tab/mini Dummy) so Actions/Review/Setup/
+  More fit without the hairline outer scrollbar.
+
+1.2.61
+- Review list uses leftover window height (taller skip table).
+- Setup: Resync sits beside Scan Config (saves a row / helps kill scrollbar).
+- TurboWares Bags tab: use Item.Stack (this slot) not StackCount (inventory
+  total) so Qty/Val are per stack.
+- Startup tools: TurboWares toggle (/lua run turbowares) for non-hub boxes.
+
+1.2.60
+- Standalone TurboWares companion: /lua run turbowares shows the merchant
+  sidecar without the Turbo hub. Uses shared Turbo/ini_io.lua +
+  Turbo/turboloot_path.lua (active profile = E3 TurboLootIni / saved
+  settings, not a blind default). Tick calls processPendingActions so
+  SELL/BUY NOW work. Defers entirely when hub Turbo is running.
+- Sidecar Selectable rows guard if-not-selected (MQ selected=true spam).
+
+1.2.59
+- Mini Gains: /turbogainswin no longer expands the Turbo hub out of mini;
+  first click starts Turbo/gains + opens the Gains window, later clicks
+  toggle the window only.
+- Setup Mini bar tools: one row of short labels (Gear Rolls Mobs Gains).
+- Quick Start: Loot doctor button (/tlootwhy). Learn More: Stock Up guide
+  + open buttons under Gear and Needs.
+
+1.2.58
+- Turbo mini bar: data-driven tool-icon cluster left of "+" (TurboGear /
+  TurboRolls / TurboMobs / TurboGains). Setup → Mini bar tools checkboxes
+  (Settings.miniTools). Hub TG chip uses Turbo/icons/turbogear.png; click
+  show/hides the window and never /lua stops a tool. TurboGear's own mini
+  icon (icon_turbogear.png) unchanged.
+
+1.2.57
+- DoN Cryptic Clutch: all 18 shared foci show for every class; Physical Prowess
+  only WAR/PAL/RNG/SHD/MNK/BRD/ROG/BST/BER; Mental Prowess only
+  CLR/DRU/SHM/NEC/WIZ/MAG/ENC. Section order: Shadow + Misc above foci.
+  Header renamed to "Cryptic Clutch Foci".
+
+1.2.56
+- DoN BiS tab now live-checks Me.Book / Me.CombatAbility for the local toon
+  (same as Book?=N). evaluate() previously snap-only, so scribed Shroud stayed
+  missing despite Book?=4. Shroud pack also gets spell_id 10251 on LazBiS.
+
+1.2.55
+- DoN owned after memorize/scribe: cache miss no longer blocks live Book/Gem
+  probes (stale ready-cache made Shroud etc. flip to missing once the scroll
+  left bags). Inventory bg-poll + learned/scribed chat lines rebuild+publish
+  spells when scribe emits no destroy line.
+
+1.2.54
+- DoN / research spell-known: event-triggered shared cache (spell_cache.lua).
+  When a Spell:/Song:/Tome (or DoN learn-item id) leaves bags, rebuild known
+  via spell_known and publish includeSpells — no manual /tgear spellsync.
+  Startup + spellsync still force rebuild. Consumers (spell_snapshot, DoN live
+  match, research book probe) read the cache; probe still is spell_known only.
+
+1.2.53
+- Characters pills: Live Peers no longer leaks offline cache (Stock board was
+  forcing it; Spells/Lockouts/Stats Search/Inventory adapters too). All Known
+  still shows everyone. Live Peers = online/stale-visible.
+- Stock Up: "Quest" group header renamed to Orbs (Orb of Shadows).
+- Turbo Actions: Stock Up button under TurboGive opens Gear > Stock Up
+  (`/lua run turbogear stock` or `/tgear stock`); UI startup still starts bg.
+
+1.2.52
+- Stock Even Out stuck on "wait Drel": same-box [DONE] was swallowed by
+  `/squelch /e3bc` — TurboGive 1.9.9 also `/echo`s [DONE] locally; Stock treats
+  local TurboGive macro end as done.
+- Bag toggle bug: send was rightclick-toggling packs (closing open bags) then
+  reporting Have=0. Open-only now; bags stay open between queued sends.
+- Prefer send-by-name over id (stale/wrong rule ids were a Have=0 source).
+
+1.2.51
+- Stock Up: Dry Even/Collect keep a preview list under the toolbar (header
+  summary lasts ~60s). Job status uses ASCII "..." (MQ fonts turned "…" into "?").
+- Stock Up: serialize Even Out / Collect like Collect DC - wait for each
+  turboGive [DONE] before the next send (45s timeout). TurboGive 1.9.8: `send`
+  also emits [DONE]; clearer error when the item is only in the bank.
+- Stock Characters: Live Peers no longer includes offline cache (was identical
+  to All Known). Use All Known for offline columns.
+
+1.2.50
+- Stock Up: Collect (pull all board items to you) + Even Out (surplus to
+  Want). Dry Even / Dry Collect previews. Shared TurboGive send queue with
+  Stop. Typical flow: Sync → Collect → Even Out.
+
+1.2.49
+- Review: dismiss X is grey; Selectable no longer spans columns (fixes X
+  click not dismissing).
+- TurboGear: drop the always-on "Viewer mode" footer (was forcing a
+  scrollbar on short tabs). Still warn when sync is truly offline.
+- Stock Up: Dry run + Even Out — plans surplus→short sends and runs them
+  via TurboGive `_sendstack` / `send` on the donor box (e3bct when remote).
+
+1.2.48
+- Review: per-row dismiss (X next to Nav); Clear skips on the Hide/Show
+  corpses row; shorter list reserve so the outer window matches
+  Actions/Setup/More (no right-edge window scrollbar).
+- Stock Up: board count index (big FPS fix — was rescanning all inventory
+  rows per rule every frame); table fills remaining height; brighter
+  item/count colors; no wrapping empty scroll child.
+
+1.2.47
+- Stock Up is a Gear sibling tab (Inventory | Worn Augs | Stored Augs |
+  Stock Up). Characters pill uses BiS-style SOURCE + SHOW COLUMNS. Adventure
+  button removed; draughts I/II + Orb + Emerald seed once by default. Group
+  headers, I/II kept in labels, Want text + X only (no +/-). Inspect uses
+  full item name/id. Post-trade TurboGive publish refreshes board counts.
+- TurboGive 1.9.7: `_sendstack` accepts ITEMID QTY or QTY id ITEMID; FindItem
+  fallback; RequestTurboGearTradeSync forces /tgearbg publish.
+- Review (Full): a bit more list height so the outer window scrollbar is
+  less likely to appear.
+
+1.2.46
+- Stock board (now Gear > Stock Up): AdventureTime-style board. Columns are
+  Item + compact per-toon counts + Want + Edit. Want = each eligible
+  character (not group total). Green/amber/grey cells; hover shows bag/bank
+  detail. Counts from TurboGear cache; Top Up / Collect next.
+- keep_qty: resource/role/class hints, evaluate_board, Adventure preset,
+  Want may be 0.
+- TurboGive 1.9.6: `send CHAR QTY Item Name` / `send CHAR QTY id ITEMID` /
+  `_sendstack CHAR ITEMID QTY` — exact qty trade using PickupExactItemCount,
+  bag toggle, remote pause/resume.
+
+1.2.45
+- Actions: Run-as block is now a single scope-colored pill
+  (lua/Turbo/ui/run_as_pill.lua). Label shows Self/Picks/Group/All with
+  counts; Picks(0!) warns amber. Panel: MODE (pick closes), TARGETS
+  (checkboxes in Picks; read-only otherwise), SAVED PICKS (name + Save,
+  one-click load, delete). Manual panel (no OpenPopup); saved sets persist
+  in per-char settings.
+- Review (Full tab list): stop left/right jitter on row select / right-click.
+  Root cause was list height reading GetContentRegionAvail() width as Y
+  (MQ returns x,y), which chased the main scrollbar and button widths.
+  Also reserve Selected/Dismiss, AlwaysVerticalScrollbar on the list child,
+  and SizingStretchSame so columns do not reweight from hover/selection.
+
+1.2.44
+- Actions: "Reclaim + Lotto v" green menu pill (v = opens menu, not fire).
+  Panel: Full: Reclaim + Open All (green), then Reclaim / Open Coins /
+  Open Tickets (steel). All honor Run as; Self blocks if the helper is
+  already running locally.
+- turbo_reclaim_lotto 1.1.0: modes reclaim|coins|tickets|both|full
+  (default full); coins fast path; both = coins then tickets (CLI);
+  full = reclaim + coins/tickets/sacks/gems + reclaim. Gains per-mode.
+
+1.2.43
+- BiS + Lists: Anguish/DSK "DSK Focus" dropdown and "Armor Class Priority"
+  move onto the Characters/List/Missing Only chrome row (right of Missing
+  Only). Those catalogs no longer insert an extra toolbar row, so switching
+  away from Anguish/DSK no longer shifts the roster vertically.
+- Store: coalesced content flush (~1.5s) after live inventory put/delta so
+  the UI BiS sheet and announce path see loot/trades without waiting for the
+  ~30s bg save debounce. Cache reloads do not trigger it; loot trains
+  collapse to one write. CFG.save_content_coalesce_s (0 disables).
+- TG mini: optional small icon (28px) and "hide while Turbo hub runs" (hub
+  mini bar carries a TG chip; TG icon returns if Turbo stops). Right-click
+  the mini icon or use Setup toggles.
+- Turbo mini: TG chip left of '+' — toggles TG when running, starts it
+  otherwise.
+- Update banner: single amber "Update vX -> vY" button plus compact 'x'
+  dismiss (same pattern as the mini bar).
+
 1.2.42
 - RGMercs pause support (based on Hazado's contribution): when rgmercs is
   RUNNING, loot/give/reclaim use /rgl pause|unpause; otherwise /e3p on|off.

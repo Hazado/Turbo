@@ -44,6 +44,7 @@
         /turbotools               -- show More while the Turbo UI is already running
         /turboreview              -- show/hide Review while the Turbo UI is already running
         /turbowares               -- show/hide TurboWares sidecar at merchants
+        /lua run turbowares       -- standalone merchant companion (no hub UI)
 ]]
 
 local mq = require('mq')
@@ -60,6 +61,8 @@ local TG = {
     mq = mq,
     ImGui = ImGui,
     paths = require('Turbo.paths'),
+    iniIo = require('Turbo.ini_io'),
+    turbolootPath = require('Turbo.turboloot_path'),
     sharedControl = require('Turbo.control'),
     iniHealth = require('Turbo.ini_health'),
     windowOpen = true,
@@ -98,11 +101,14 @@ local TG = {
     lastCursorRuleUndo = nil,
     actionRunMode = 'self',
     actionRunTargets = {},
+    actionSavedPicks = {}, -- Actions Run-as pill: named pick sets { {name=, members={...}}, ... }
     actionConfirm = nil,
     lootPulseUntilMS = 0,
     cachedLootActive = false,
     cachedLootActiveExpiry = 0,
     miniLootAnimation = true,
+    -- Mini bar tool cluster (left of '+'). TurboGear on by default; others opt-in.
+    miniTools = { turbogear = true, turborolls = false, turbomobs = false, turbogains = false },
     selectedRulePack = nil,
     rulePackCache = nil,
     rulePackInfoCache = {},
@@ -359,6 +365,8 @@ TG.startupToolChoices = {
     { id = 'turborolls', label = 'TurboRolls', cmd = '/lua run TurboRolls',               tip = 'Starts TurboRolls.' },
     { id = 'turbogains', label = 'TurboGains', cmd = '/lua run Turbo/gains_toggle start', tip = 'Starts TurboGains tracking quietly.' },
     { id = 'turbomobs',  label = 'TurboMobs',  cmd = '/lua run TurboMobs',                tip = 'Starts TurboMobs.' },
+    { id = 'turbowares', label = 'TurboWares', cmd = '/lua run turbowares',
+      tip = 'Merchant sidecar without the full Turbo hub. Best on non-driver boxes; if Turbo hub is already running it draws nothing (no duplicate). Light idle loop (~150ms).' },
 }
 
 local cachedTurbo = nil
@@ -444,15 +452,7 @@ TG.clientInGame = function()
 end
 
 local function cleanProfileName(val)
-    if not val then return nil end
-    local s = tostring(val):match('^%s*(.-)%s*$') or ''
-    if s:sub(1, 1) == '"' and s:sub(-1) == '"' then
-        s = s:sub(2, -2)
-    end
-    if s == '' or s == 'NULL' or s == 'null' or s:match('^%$%b{}$') then
-        return nil
-    end
-    return s
+    return TG.turbolootPath.cleanProfileName(val)
 end
 
 local function getCurrentLooter()
@@ -1454,6 +1454,24 @@ saveSettings = function()
         if v then f:write(string.format('    [%q] = true,\n', k)) end
     end
     f:write('  },\n')
+    f:write('  actionSavedPicks = {\n')
+    for _, rec in ipairs(TG.actionSavedPicks or {}) do
+        local setName = tostring(rec and rec.name or ''):match('^%s*(.-)%s*$') or ''
+        if setName ~= '' and type(rec.members) == 'table' then
+            f:write(string.format('    { name = %q, members = {', setName))
+            local first = true
+            for _, member in ipairs(rec.members) do
+                local m = tostring(member or ''):match('^%s*(.-)%s*$') or ''
+                if m ~= '' then
+                    if not first then f:write(', ') end
+                    f:write(string.format('%q', m))
+                    first = false
+                end
+            end
+            f:write(' } },\n')
+        end
+    end
+    f:write('  },\n')
     -- Toggles
     f:write(string.format('  logFileOn = %s,\n', tostring(TG.logFileOn)))
     f:write(string.format('  skipReviewUseLinkDb = %s,\n', tostring(TG.skipReviewUseLinkDb)))
@@ -1479,6 +1497,16 @@ saveSettings = function()
     end
     f:write('  },\n')
     f:write(string.format('  miniLootAnimation = %s,\n', tostring(TG.miniLootAnimation ~= false)))
+    do
+        local mt = (MiniView and MiniView.normalize_mini_tools and MiniView.normalize_mini_tools(TG.miniTools))
+            or (TG.miniTools or {})
+        f:write('  miniTools = {\n')
+        f:write(string.format('    turbogear = %s,\n', tostring(mt.turbogear == true)))
+        f:write(string.format('    turborolls = %s,\n', tostring(mt.turborolls == true)))
+        f:write(string.format('    turbomobs = %s,\n', tostring(mt.turbomobs == true)))
+        f:write(string.format('    turbogains = %s,\n', tostring(mt.turbogains == true)))
+        f:write('  },\n')
+    end
     f:write(string.format('  waresAutoShow = %s,\n', tostring(TG.waresAutoShow ~= false)))
     if TG.waresIniTargetOverride and TG.waresIniTargetOverride ~= '' then
         f:write(string.format('  waresIniTargetOverride = %q,\n', tostring(TG.waresIniTargetOverride)))
@@ -1552,6 +1580,27 @@ local function applySettingsTable(tbl)
     if tbl.multiLootMode ~= nil then TG.multiLootMode = tbl.multiLootMode end
     if type(tbl.multiLooters) == 'table' then TG.multiLooters = tbl.multiLooters end
     if type(tbl.quickLootRoster) == 'table' then TG.quickLootRoster = tbl.quickLootRoster end
+    if type(tbl.actionSavedPicks) == 'table' then
+        TG.actionSavedPicks = {}
+        for _, rec in ipairs(tbl.actionSavedPicks) do
+            if type(rec) == 'table' then
+                local setName = tostring(rec.name or ''):match('^%s*(.-)%s*$') or ''
+                local members = {}
+                if type(rec.members) == 'table' then
+                    for _, member in ipairs(rec.members) do
+                        local m = tostring(member or ''):match('^%s*(.-)%s*$') or ''
+                        if m ~= '' then members[#members + 1] = m end
+                    end
+                end
+                if setName ~= '' and #members > 0 then
+                    TG.actionSavedPicks[#TG.actionSavedPicks + 1] = {
+                        name = setName,
+                        members = members,
+                    }
+                end
+            end
+        end
+    end
     if tbl.logFileOn ~= nil then TG.logFileOn = tbl.logFileOn end
     if tbl.confirmSingleReviewRules ~= nil then TG.confirmSingleReviewRules = tbl.confirmSingleReviewRules ~= false end
     if tbl.showReviewModeButtons ~= nil then TG.showReviewModeButtons = tbl.showReviewModeButtons ~= false end
@@ -1569,6 +1618,16 @@ local function applySettingsTable(tbl)
     if type(tbl.startupToolSelections) == 'table' then TG.startupToolSelections = tbl.startupToolSelections end
     if type(tbl.startupToolTargets) == 'table' then TG.startupToolTargets = tbl.startupToolTargets end
     if tbl.miniLootAnimation ~= nil then TG.miniLootAnimation = tbl.miniLootAnimation ~= false end
+    if MiniView and MiniView.normalize_mini_tools then
+        TG.miniTools = MiniView.normalize_mini_tools(tbl.miniTools)
+    elseif type(tbl.miniTools) == 'table' then
+        TG.miniTools = {
+            turbogear = tbl.miniTools.turbogear ~= false,
+            turborolls = tbl.miniTools.turborolls == true,
+            turbomobs = tbl.miniTools.turbomobs == true,
+            turbogains = tbl.miniTools.turbogains == true,
+        }
+    end
     if tbl.waresAutoShow ~= nil then TG.waresAutoShow = tbl.waresAutoShow ~= false end
     if type(tbl.waresIniTargetOverride) == 'string' and tbl.waresIniTargetOverride ~= '' then
         TG.waresIniTargetOverride = tbl.waresIniTargetOverride
@@ -2540,35 +2599,7 @@ local function getTurbolootIniPath()
 end
 
 local function resolveTurbolootIniPathForProfile(profile)
-    local function exists(path)
-        local f = io.open(path, 'r')
-        if f then f:close() return true end
-        return false
-    end
-    local mqPath = mq.TLO.MacroQuest.Path() or ''
-    if mqPath == '' then return nil, false end
-    profile = cleanProfileName(profile)
-    profile = (profile and profile ~= '' and profile ~= 'NULL') and profile or 'turboloot.ini'
-
-    local candidates = {
-        mqPath .. '\\Config\\' .. profile,
-        mqPath .. '\\Macros\\' .. profile,
-    }
-    for _, p in ipairs(candidates) do
-        if exists(p) then return p, true end
-    end
-
-    if profile ~= 'turboloot.ini' then
-        local fallbacks = {
-            mqPath .. '\\Config\\turboloot.ini',
-            mqPath .. '\\Macros\\turboloot.ini',
-        }
-        for _, p in ipairs(fallbacks) do
-            if exists(p) then return p, true end
-        end
-    end
-
-    return candidates[1], false
+    return TG.turbolootPath.resolveTurbolootIniPathForProfile(profile)
 end
 
 local function listTurbolootInisInFolder(dir)
@@ -2600,56 +2631,7 @@ local function listTurbolootInisInFolder(dir)
 end
 
 local function writeIniKey(filePath, section, key, value)
-    local lines = {}
-    local f = io.open(filePath, 'r')
-    if f then
-        for line in f:lines() do table.insert(lines, line) end
-        f:close()
-    end
-
-    local inSection = false
-    local keyWritten = false
-    local sectionFound = false
-    local result = {}
-
-    for _, line in ipairs(lines) do
-        local sec = line:match('^%[(.-)%]%s*$')
-        if sec then
-            if inSection and not keyWritten then
-                table.insert(result, key .. '=' .. value)
-                keyWritten = true
-            end
-            if sec == section and sectionFound then
-                inSection = true
-                goto nextline
-            end
-            inSection = (sec == section)
-            if inSection then sectionFound = true end
-        elseif inSection then
-            local k = line:match('^([^=]+)=')
-            if k and k:match('^%s*(.-)%s*$') == key then
-                table.insert(result, key .. '=' .. value)
-                keyWritten = true
-                goto nextline
-            end
-        end
-        table.insert(result, line)
-        ::nextline::
-    end
-
-    if not sectionFound then
-        table.insert(result, '')
-        table.insert(result, '[' .. section .. ']')
-        table.insert(result, key .. '=' .. value)
-    elseif not keyWritten then
-        table.insert(result, key .. '=' .. value)
-    end
-
-    f = io.open(filePath, 'w')
-    if not f then return false end
-    for _, line in ipairs(result) do f:write(line .. '\n') end
-    f:close()
-    return true
+    return TG.iniIo.writeIniKey(filePath, section, key, value)
 end
 
 --- Delete a key from an INI section entirely (1.1.0).
@@ -2658,38 +2640,7 @@ end
 --- skipTracker.init so apply_rule can clean up orphan rule keys (e.g.
 --- 'CrystallizedMarrow' left over from pre-Fix-B corrupted skip rows).
 local function deleteIniKey(filePath, section, key)
-    local f = io.open(filePath, 'r')
-    if not f then return false end
-
-    local lines = {}
-    local inSection = false
-    local deleted = false
-    for line in f:lines() do
-        local sec = line:match('^%[(.-)%]%s*$')
-        if sec then
-            inSection = (sec == section)
-            lines[#lines + 1] = line
-        elseif inSection then
-            local k = line:match('^([^=]+)=')
-            if k and k:match('^%s*(.-)%s*$') == key then
-                deleted = true
-                -- drop this line
-            else
-                lines[#lines + 1] = line
-            end
-        else
-            lines[#lines + 1] = line
-        end
-    end
-    f:close()
-
-    if not deleted then return false end
-
-    local wf = io.open(filePath, 'w')
-    if not wf then return false end
-    for _, line in ipairs(lines) do wf:write(line .. '\n') end
-    wf:close()
-    return true
+    return TG.iniIo.deleteIniKey(filePath, section, key)
 end
 
 --- Replace an entire INI section (removes duplicate headers) with new body lines.
@@ -2744,23 +2695,7 @@ local function replaceIniSection(filePath, section, bodyLines)
 end
 
 local function readIniKey(filePath, section, key)
-    local f = io.open(filePath, 'r')
-    if not f then return nil end
-    local inSection = false
-    for line in f:lines() do
-        local sec = line:match('^%[(.-)%]%s*$')
-        if sec then
-            inSection = (sec == section)
-        elseif inSection then
-            local k, v = line:match('^([^=]+)=(.*)')
-            if k and k:match('^%s*(.-)%s*$') == key then
-                f:close()
-                return v
-            end
-        end
-    end
-    f:close()
-    return nil
+    return TG.iniIo.readIniKey(filePath, section, key)
 end
 
 local function stripIniValueForDisplay(raw)
@@ -2770,29 +2705,7 @@ local function stripIniValueForDisplay(raw)
 end
 
 local function readIniSectionPairs(filePath, section)
-    local out = {}
-    local f = io.open(filePath, 'r')
-    if not f then return out end
-
-    local inSection = false
-    for line in f:lines() do
-        local sec = line:match('^%s*%[(.-)%]%s*$')
-        if sec then
-            if inSection then break end
-            inSection = (sec == section)
-        elseif inSection then
-            local k, v = line:match('^%s*([^;#][^=]-)%s*=%s*(.*)$')
-            if k then
-                table.insert(out, {
-                    key = k:match('^%s*(.-)%s*$'),
-                    value = stripIniValueForDisplay(v),
-                })
-            end
-        end
-    end
-
-    f:close()
-    return out
+    return TG.iniIo.readIniSectionPairs(filePath, section)
 end
 
 TG.rulePackSections = { 'ItemLimits', 'Wildcards' }
@@ -4827,9 +4740,21 @@ TG.renderStartupToolsSetupPanel = function(tip)
     tip('Choose which Turbo companion tools are written to selected characters\' E3 [Startup Commands].')
 
     local function wrappedMuted(text)
-        ImGui.PushTextWrapPos(ImGui.GetCursorPosX() + ImGui.GetContentRegionAvail())
-        ImGui.TextDisabled(tostring(text or ''))
-        ImGui.PopTextWrapPos()
+        local avail = ImGui.GetContentRegionAvail()
+        local availX = 0
+        if type(avail) == 'table' then
+            availX = tonumber(avail.x or avail.X or avail[1]) or 0
+        else
+            availX = tonumber(avail) or 0
+        end
+        local wrapAt = (ImGui.GetCursorPosX() or 0) + math.max(120, availX - 8)
+        if ImGui.PushTextWrapPos then
+            ImGui.PushTextWrapPos(wrapAt)
+            ImGui.TextDisabled(tostring(text or ''))
+            ImGui.PopTextWrapPos()
+        else
+            ImGui.TextDisabled(tostring(text or ''))
+        end
     end
 
     local enabled = TG.startupToolsEnabled == true
@@ -6366,10 +6291,8 @@ local function bindTurboRuntimeCommands()
                 TG.gainsWindowOpenReason = '/turbogainswin'
                 TG.gainsWindowOpenAt = os.time()
             end
+            -- Gains is its own ImGui window — do not leave mini/slim hub layout.
             TG.windowOpen = true
-            TG.minimizedGUI = false
-            TG.slimGUI = false
-            TG.slimWhenExpanded = false
             TG.statusMessage = TG.gainsWindowOpen and 'Turbo Gains opened.' or 'Turbo Gains hidden.'
             saveSettings()
         end)
@@ -6382,9 +6305,6 @@ local function bindTurboRuntimeCommands()
         mq.bind('/turbogainsopen', function()
             TG.openTurboGainsWindow('/turbogainsopen')
             TG.windowOpen = true
-            TG.minimizedGUI = false
-            TG.slimGUI = false
-            TG.slimWhenExpanded = false
             TG.statusMessage = 'Turbo Gains opened.'
             saveSettings()
         end)
@@ -6896,7 +6816,7 @@ local function renderToolsPopupBody(g)
     end
     --- 3.8.55: Symbol turn-ins selectable removed from this popup.
     --- It is now a primary action button next to Reclaim + Lotto in the Actions
-    --- tab (see actions.lua 1.1.3). PoK/Tower turn-ins are a routine end-of-loop
+    --- tab (see actions.lua). PoK/Tower turn-ins are a routine end-of-loop
     --- workflow, not a one-off tool, so they belong with the other action buttons.
     ImGui.Separator()
     sectionHeader('Backups', 0.70, 0.74, 0.92)
@@ -11212,9 +11132,9 @@ function TG.renderWindow()
                 g._updateBannerReservePx = nil
             end
         end)
-        ImGui.Dummy(0, 2)
+        ImGui.Dummy(0, 1)
         renderTabBar(g, viewState)
-        ImGui.Dummy(0, 4)
+        ImGui.Dummy(0, 2)
         --- MQ Next has repeatedly faulted inside EndChild for the outer
         --- ##turbo_content wrapper. Render tab content directly in the main
         --- window; inner lists/tables still provide their own scrolling.
@@ -11233,6 +11153,12 @@ function TG.renderWindow()
                     count or #g.profileList, (count or #g.profileList) == 1 and '' or 's', elapsed or 0)
             end
             tip('Scan Config and Macros for turboloot*.ini files and refresh the profile list.')
+            ImGui.SameLine()
+            if ImGui.SmallButton('Resync##syncprof') then
+                syncProfileAssignments()
+                if g.refreshActiveIniState then g.refreshActiveIniState(false) end
+            end
+            tip('Resend current INI assignments and refresh active INI settings.')
             local toolCols, toolW, toolGap = Ui.adaptiveColumns(4, 88, 4)
             if Ui.buttonVariant('Create##setup_ini_create', 'successButton', toolW, 0) then
                 g.iniToolMode = 'create'
@@ -11485,12 +11411,6 @@ function TG.renderWindow()
                 local assignTarget = g.selectedChar or ((currentLooter and currentLooter ~= 'NOBODY') and currentLooter) or 'selected character'
                 ImGui.TextColored(0.6, 0.65, 0.72, 1.0,
                     showAdvancedSetup and string.format('Assign INI to %s', assignTarget) or 'Shared INI')
-                ImGui.SameLine()
-                if ImGui.SmallButton('Resync##syncprof') then
-                    syncProfileAssignments()
-                    if g.refreshActiveIniState then g.refreshActiveIniState(false) end
-                end
-                tip('Resend current INI assignments and refresh active INI settings.')
 
                 activeProf = getActiveProfile()
                 local activeProfLc = activeProf:lower()
@@ -11722,6 +11642,35 @@ function TG.renderWindow()
                     g.statusMessage = string.format('Mini loot animation: %s', g.miniLootAnimation and 'ON' or 'OFF')
                 end
                 tip(((g.miniLootAnimation ~= false) and 'ON: ' or 'OFF: ') .. 'Shows the moving border sweep on the Mini window while TurboLoot is active.')
+
+                ImGui.Dummy(0, 1)
+                ImGui.TextColored(0.62, 0.70, 0.86, 1.0, 'Mini bar tools')
+                tip('Icons shown immediately left of + on the mini bar. Toggle off to hide; cluster reflows. Clicks show/hide the tool window (never /lua stop).')
+                if type(g.miniTools) ~= 'table' then
+                    g.miniTools = MiniView.normalize_mini_tools(nil)
+                end
+                do
+                    -- One row (Gear Rolls Mobs Gains) — keeps Setup height so the
+                    -- outer window scrollbar stays usable.
+                    local tools = (MiniView and MiniView.TOOLS) or {}
+                    local toolCols, _, toolGap = Ui.adaptiveColumns(4, 52, 2)
+                    for ti, tool in ipairs(tools) do
+                        Ui.gridSameLine(ti, toolCols, toolGap)
+                        local on = g.miniTools[tool.key] == true
+                        if tool.key == 'turbogear' and g.miniTools[tool.key] == nil then on = true end
+                        local short = tool.short or tool.label
+                        local nextOn = ImGui.Checkbox(
+                            string.format('%s##setup_mini_tool_%s', short, tool.key), on)
+                        if nextOn ~= on then
+                            g.miniTools[tool.key] = nextOn == true
+                            o.saveSettings()
+                            g.statusMessage = string.format('Mini bar %s: %s', tool.label, nextOn and 'ON' or 'OFF')
+                        end
+                        if ImGui.IsItemHovered() then
+                            tip(string.format('%s icon on the mini bar (left of +).', tool.label))
+                        end
+                    end
+                end
                 end
             end
             end
@@ -11902,21 +11851,29 @@ function TG.renderWindow()
                 end
 
                 local quickRowH = (Theme.layout and Theme.layout.rowH) or 22
-                local quickAvailY = ImGui.GetContentRegionAvail()
+                -- MQ GetContentRegionAvail returns (x, y). Using the first value
+                -- here treated width as height and chased the outer scrollbar.
+                local _, quickAvailY = ImGui.GetContentRegionAvail()
+                quickAvailY = tonumber(quickAvailY) or 0
+                -- Chrome below the list (target line, KEEP/SELL grid, Reloot,
+                -- Hide/Show/Clear). Reserve ~2 extra rows so the list does not
+                -- push the outer window into a hairline scrollbar.
                 local quickMinH = quickRowH * 8 + 8
-                local quickDesiredH = quickRowH * 11 + 8
-                local quickReserveH = g.slimGUI and 224 or 208
+                local quickReserveH = g.slimGUI and 212 or 202
                 local quickSpaceH = math.max(quickMinH, quickAvailY - quickReserveH)
-                local quickH = math.max(quickMinH, math.min(quickDesiredH, quickSpaceH))
-                if ImGui.BeginChild('##quick_review_results', 0, quickH, true) then
-                    local stretch = ImGuiTableFlags.SizingStretchProp or ImGuiTableFlags.SizingStretchSame
+                local quickMaxH = quickRowH * 18 + 8
+                local quickH = math.max(quickMinH, math.min(quickMaxH, quickSpaceH))
+                local quickChildFlags = (ImGuiWindowFlags and ImGuiWindowFlags.AlwaysVerticalScrollbar) or 0
+                local quickBorder = (ImGuiChildFlags and (ImGuiChildFlags.Borders or ImGuiChildFlags.Border)) or 1
+                if ImGui.BeginChild('##quick_review_results', 0, quickH, quickBorder, quickChildFlags) then
+                    local stretch = ImGuiTableFlags.SizingStretchSame or ImGuiTableFlags.SizingStretchProp
                     local flags = ImGuiTableFlags.RowBg + ImGuiTableFlags.BordersInnerV + stretch
                     local styleN = Ui.pushTableStyle()
                     if ImGui.BeginTable('##quick_review_table', 4, flags) then
-                        ImGui.TableSetupColumn('Item')
+                        ImGui.TableSetupColumn('Item', ImGuiTableColumnFlags.WidthStretch)
                         ImGui.TableSetupColumn('Reason', ImGuiTableColumnFlags.WidthFixed, 84)
                         ImGui.TableSetupColumn('Src', ImGuiTableColumnFlags.WidthFixed, 52)
-                        ImGui.TableSetupColumn('Nav', ImGuiTableColumnFlags.WidthFixed, 40)
+                        ImGui.TableSetupColumn('##quick_ops', ImGuiTableColumnFlags.WidthFixed, 78)
                         ImGui.TableHeadersRow()
                         local shown = math.min(#quickRows, 80)
                         for i = 1, shown do
@@ -11927,9 +11884,9 @@ function TG.renderWindow()
                                 ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, IM_COL32(42, 68, 104, 90))
                             end
                             ImGui.TableNextColumn()
-                            if ImGui.Selectable(tostring(row.nameDisplay or row.name or '') .. '##quick_review_row_' .. row.key, selected,
-                                ImGuiSelectableFlags and ImGuiSelectableFlags.SpanAllColumns or 0) then
-                                g.quickReviewSelectedKey = row.key
+                            -- No SpanAllColumns: it stole clicks from Nav/X in the ops column.
+                            if ImGui.Selectable(tostring(row.nameDisplay or row.name or '') .. '##quick_review_row_' .. row.key, selected) then
+                                if not selected then g.quickReviewSelectedKey = row.key end
                             end
                             if ImGui.IsItemHovered() then
                                 ImGui.BeginTooltip()
@@ -12006,6 +11963,20 @@ function TG.renderWindow()
                                 ImGui.Text(canNav and 'Target corpse and /nav target.' or 'No corpse ID saved for this row.')
                                 ImGui.EndTooltip()
                             end
+                            ImGui.SameLine(0, 4)
+                            ImGui.PushStyleColor(ImGuiCol.Button, IM_COL32(55, 58, 65, 255))
+                            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, IM_COL32(78, 82, 90, 255))
+                            ImGui.PushStyleColor(ImGuiCol.ButtonActive, IM_COL32(95, 98, 105, 255))
+                            ImGui.PushStyleColor(ImGuiCol.Text, IM_COL32(175, 180, 190, 255))
+                            if ImGui.SmallButton('X##quick_review_dismiss_' .. row.key) then
+                                quickDismissReviewRow(row)
+                            end
+                            ImGui.PopStyleColor(4)
+                            if ImGui.IsItemHovered() then
+                                ImGui.BeginTooltip()
+                                ImGui.Text('Dismiss this row without writing a rule.')
+                                ImGui.EndTooltip()
+                            end
                         end
                         ImGui.EndTable()
                     end
@@ -12028,20 +11999,16 @@ function TG.renderWindow()
                     ImGui.TextColored(0.92, 0.45, 0.40, 1.0, 'Select a Review row or put an item on your cursor first.')
                     ImGui.EndTooltip()
                 end
-                local quickTargetText = selectedRow and 'Selected: 1 item' or 'Selected: none'
+                -- Compact target line only (Dismiss is per-row X). Keeps Review
+                -- chrome height aligned with Actions / Setup / More.
                 if quickTargetMode == 'cursor' then
-                    quickTargetText = 'Cursor: ' .. tostring(cursorItem or '')
+                    ImGui.TextColored(0.62, 0.70, 0.82, 1.0, 'Cursor: ' .. tostring(cursorItem or ''))
+                elseif selectedRow then
+                    ImGui.TextColored(0.62, 0.70, 0.82, 1.0, 'Selected: ' .. tostring(selectedRow.nameDisplay or selectedRow.name or 'item'))
+                else
+                    ImGui.TextDisabled('Select a row (or put an item on cursor) to apply KEEP/SELL/...')
                 end
-                ImGui.TextColored(0.62, 0.70, 0.82, 1.0, quickTargetText)
-                if quickTargetMode == 'row' and selectedRow then
-                    ImGui.SameLine(0, 8)
-                    if Ui.buttonVariant('Dismiss##quick_review_dismiss_selected', 'secondaryButton', 82, ACTION_BTN_H) then
-                        quickDismissReviewRow(selectedRow)
-                    end
-                    tip('Hide this row without making a rule.')
-                end
-                ImGui.TextDisabled('Full Review has Qty / Undo / bulk tools')
-                ImGui.Dummy(0, 3)
+                ImGui.Dummy(0, 2)
                 local function quickApply(label)
                     if quickTargetMode == 'cursor' then
                         applyTurboKeyRule(label, { itemName = cursorItem })
@@ -12050,7 +12017,7 @@ function TG.renderWindow()
                     end
                 end
                 local TK = TurboKeyRGB or Theme.col.turboKeyRGB or {}
-                local qAvail = ImGui.GetContentRegionAvail()
+                local qAvail = Ui.availX(240)
                 local qSp = math.max(ImGui.GetStyle().ItemSpacing.x, 4)
                 local qW4 = math.max(64, math.floor((qAvail - qSp * 3) / 4))
                 local qW3 = math.max(72, math.floor((qAvail - qSp * 2) / 3))
@@ -12083,9 +12050,9 @@ function TG.renderWindow()
                 qBtn3('DESTROY', TK.destroy or {145, 60, 55}, false)
                 qBtn3('IGNORE', TK.skip or {55, 58, 65}, true)
                 qBtn3('ANNOUNCE', TK.announce or {55, 130, 140}, true)
-                ImGui.Dummy(0, 3)
+                ImGui.Dummy(0, 2)
                 local rMode = g.actionRunMode or 'self'
-                local relootAvail = ImGui.GetContentRegionAvail()
+                local relootAvail = Ui.availX(240)
                 local relootSp = math.max(ImGui.GetStyle().ItemSpacing.x, 4)
                 local relootW = math.max(54, math.floor((math.min(relootAvail, 300) - relootSp * 3) / 4))
                 ImGui.TextColored(0.62, 0.66, 0.74, 1.0, 'Reloot:')
@@ -12108,10 +12075,12 @@ function TG.renderWindow()
                     if g.relootNow then g.relootNow(g.actionRunMode or 'self') end
                 end
                 tip('Show hidden corpses for the selected Reloot scope, then run TurboLoot again.')
-                ImGui.Dummy(0, 3)
-                local corpseAvail = ImGui.GetContentRegionAvail()
+                ImGui.Dummy(0, 2)
+                local quickPendingN = tonumber(g.skipDisplayTotal or viewState.skipState.pendingCount or #rawRows) or 0
+                local corpseAvail = Ui.availX(240)
                 local corpseGap = math.max(ImGui.GetStyle().ItemSpacing.x, 4)
-                local corpseW = math.max(72, math.floor((corpseAvail - corpseGap * 2) / 3))
+                local corpseCols = quickPendingN > 0 and 4 or 3
+                local corpseW = math.max(64, math.floor((corpseAvail - corpseGap * (corpseCols - 1)) / corpseCols))
                 if Ui.buttonVariant('Hide all##quick_review_hide_all', 'secondaryButton', corpseW, ACTION_BTN_H) then
                     mq.cmd('/e3bcaa /hidecorpse all')
                     g.statusMessage = 'Hide all corpses sent to group.'
@@ -12130,12 +12099,11 @@ function TG.renderWindow()
                     g.statusMessage = 'Show corpses sent to group.'
                 end
                 tip('Show all corpses for the group.')
-                local quickPendingN = tonumber(g.skipDisplayTotal or viewState.skipState.pendingCount or #rawRows) or 0
                 if quickPendingN > 0 then
-                    ImGui.Dummy(0, 3)
+                    ImGui.SameLine(0, corpseGap)
                     ImGui.PushStyleColor(ImGuiCol.Button, IM_COL32(55, 45, 45, 255))
                     ImGui.PushStyleColor(ImGuiCol.ButtonHovered, IM_COL32(75, 55, 55, 255))
-                    if ImGui.Button('Clear All Skips##quick_review_clear_all', -1, ACTION_BTN_H) then
+                    if ImGui.Button('Clear skips##quick_review_clear_all', corpseW, ACTION_BTN_H) then
                         if g.confirmSingleReviewRules == false then
                             quickClearActionableSkips()
                         else

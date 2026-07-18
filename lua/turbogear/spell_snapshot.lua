@@ -25,16 +25,38 @@ local function spell_norm(name)
     return name
 end
 
-local SpellKnown = nil
+-- Prefer spell_cache hits; on miss fall through to spell_known (stale cache
+-- after scribe must not force book=0 into a published snap).
 local function probe_book(spellName)
-    if not SpellKnown then
-        local ok, mod = pcall(require, 'spell_known')
-        SpellKnown = ok and mod or nil
+    local okC, SC = pcall(require, 'spell_cache')
+    if okC and SC then
+        if SC.building and SC.building() and SC.probe_name then
+            return SC.probe_name(spellName) == true
+        end
+        if SC.ready and SC.ready() and SC.is_known and SC.is_known(spellName) then
+            return true
+        end
     end
-    if SpellKnown and SpellKnown.live then
-        return SpellKnown.live(spellName) == true
+    local ok, mod = pcall(require, 'spell_known')
+    local known = ok and mod and mod.live and mod.live(spellName) == true
+    if known and okC and SC and SC.probe_name then SC.probe_name(spellName) end
+    return known == true
+end
+
+local function probe_id(spell_id)
+    local okC, SC = pcall(require, 'spell_cache')
+    if okC and SC then
+        if SC.building and SC.building() and SC.probe_id then
+            return SC.probe_id(spell_id) == true
+        end
+        if SC.ready and SC.ready() and SC.is_known and SC.is_known(spell_id) then
+            return true
+        end
     end
-    return false
+    local ok, mod = pcall(require, 'spell_known')
+    local known = ok and mod and mod.live_id and mod.live_id(spell_id) == true
+    if known and okC and SC and SC.probe_id then SC.probe_id(spell_id) end
+    return known == true
 end
 
 local function merge_don_pack_spells(className, out, spell_ids_out)
@@ -44,18 +66,13 @@ local function merge_don_pack_spells(className, out, spell_ids_out)
     if type(list) ~= 'table' then return end
     local bucket = list.classes and list.classes[class_key(className)]
     if type(bucket) ~= 'table' then return end
-    local SpellKnown = nil
-    pcall(function()
-        local okm, mod = pcall(require, 'spell_known')
-        if okm then SpellKnown = mod end
-    end)
     for _, entry in pairs(bucket) do
         if type(entry) == 'table' then
             if type(entry.spell_ids) == 'table' then
                 for _, sid in ipairs(entry.spell_ids) do
                     sid = tonumber(sid)
                     if sid and sid > 0 then
-                        local known = SpellKnown and SpellKnown.live_id and SpellKnown.live_id(sid)
+                        local known = probe_id(sid)
                         if known then spell_ids_out[sid] = true end
                         local spellName = nil
                         pcall(function()
@@ -130,18 +147,7 @@ function M.gather(className)
     do
         local okDS, DS = pcall(require, 'don_spells')
         if okDS and DS and DS.merge_into_spell_maps then
-            local SpellKnownMod = nil
-            pcall(function()
-                local okm, mod = pcall(require, 'spell_known')
-                if okm then SpellKnownMod = mod end
-            end)
-            DS.merge_into_spell_maps(
-                className,
-                out,
-                spell_ids_out,
-                probe_book,
-                SpellKnownMod and SpellKnownMod.live_id or nil
-            )
+            DS.merge_into_spell_maps(className, out, spell_ids_out, probe_book, probe_id)
         end
     end
     return out, spell_ids_out

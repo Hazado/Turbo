@@ -729,10 +729,40 @@ function M.evaluate(list, snap)
         end
         return rows
     end
+    -- BiS tab uses evaluate() (not evaluate_entry). For the local toon, DoN /
+    -- spell-aware rows that are snap-missing still get a live Me.Book /
+    -- Me.CombatAbility check — same signal as Book?=4. Skip live FindItem for
+    -- ordinary gear (that path is evaluate_entry-only; too heavy per frame).
+    local local_live = is_local_eval_snap(snap)
+    local DS = local_live and ensure_don_spells() or nil
     for _, entry in ipairs(list.entries or {}) do
         local match, status
         match, status, entry = match_entry(entry, snap)
-        rows[#rows+1] = { entry = entry, have = match ~= nil, match = match, status = status }
+        if match == nil and status == "missing" and local_live then
+            if DS and DS.try_live_match then
+                local handled, liveMatch, liveStatus = DS.try_live_match(entry)
+                if handled then
+                    rows[#rows + 1] = {
+                        entry = entry,
+                        have = liveStatus ~= nil and liveStatus ~= "missing",
+                        match = liveMatch,
+                        status = liveStatus or "missing",
+                    }
+                    goto continue_eval
+                end
+            end
+            if live_spells_known(entry) then
+                rows[#rows + 1] = {
+                    entry = entry,
+                    have = true,
+                    match = entry.item,
+                    status = "known",
+                }
+                goto continue_eval
+            end
+        end
+        rows[#rows + 1] = { entry = entry, have = match ~= nil, match = match, status = status }
+        ::continue_eval::
     end
     return rows
 end

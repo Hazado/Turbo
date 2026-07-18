@@ -120,6 +120,59 @@ local function publish_snap_if_changed(snap, now, depth, bypass_cooldown, publis
     return false
 end
 
+-- True when a bag/equipped slot lost a spell-like item (scribe consume) or its
+-- stack qty dropped. Uses the delta baseline the watch already maintains.
+local function spell_like_removed(baseline, snap)
+    if type(baseline) ~= "table" or type(snap) ~= "table" then return false end
+    local okSC, SC = pcall(require, 'spell_cache')
+    if not okSC or not SC or not SC.is_spell_like_item then return false end
+    local okD, delta_mod = pcall(require, 'snapshot_delta')
+    if not okD or not delta_mod then return false end
+    local delta = select(1, delta_mod.diff_snapshot(baseline, snap, { include_bank = false }))
+    if type(delta) ~= "table" then return false end
+    for _, bucket in ipairs({ "bags", "equipped" }) do
+        local base_bucket = baseline[bucket]
+        if type(base_bucket) == "table" then
+            for _, key in ipairs((delta.removed and delta.removed[bucket]) or {}) do
+                local old = base_bucket[key]
+                if old and SC.is_spell_like_item(old.name, old.id) then
+                    return true
+                end
+            end
+            for _, item in ipairs((delta.changed and delta.changed[bucket]) or {}) do
+                local key = delta_mod.slot_key(item)
+                local old = key ~= "" and base_bucket[key] or nil
+                if old and SC.is_spell_like_item(old.name, old.id) then
+                    local old_id = tonumber(old.id) or 0
+                    local new_id = tonumber(item.id) or 0
+                    if old_id > 0 and old_id ~= new_id then
+                        return true
+                    end
+                    local old_qty = tonumber(old.qty or old.count) or 1
+                    local new_qty = tonumber(item.qty or item.count) or 1
+                    if new_qty < old_qty then
+                        return true
+                    end
+                end
+            end
+        end
+    end
+    return false
+end
+
+local function maybe_spell_republish(snap, baseline)
+    if not spell_like_removed(baseline, snap) then return false end
+    diag.count("inventory_watch.spell_like_removed")
+    local okSC, SC = pcall(require, 'spell_cache')
+    if not okSC or not SC then return false end
+    SC.rebuild(snap and snap.class)
+    local published = select(1, SC.publish_if_changed("inventory_spell_consume"))
+    if published then
+        diag.count("inventory_watch.spell_publish")
+    end
+    return published == true
+end
+
 local function flush_if_due()
     if not enabled() or not dirty_at then return false end
     local now = os.clock()
@@ -136,12 +189,20 @@ local function flush_if_due()
     -- Urgent changes (go-loot, equip/bank) bypass the publish cooldown and flush
     -- the shared cache so the announce UI can reload without waiting ~30s.
     if urgent then publish_opts.saveNow = true end
+    local baseline_before = delta_baseline
     local snap = snapshot.gather({
         force = true,
         depth = depth,
         skipLockouts = publish_opts and publish_opts.skipLockouts == true,
         skipLiveStats = publish_opts and publish_opts.skipLiveStats == true,
     })
+    -- Scribe path: scroll/tome removed → rebuild known-cache + spell publish.
+    -- Cheap name/id pre-check; full spell gather only on a positive match.
+    if maybe_spell_republish(snap, baseline_before) then
+        -- Spell publish already shipped inventory+spells; refresh local sig.
+        if snap then last_known_sig = snapshot.lite_signature(snap) end
+        return true
+    end
     return publish_snap_if_changed(snap, now, depth, urgent, publish_opts)
 end
 
@@ -164,6 +225,28 @@ local function bg_poll_if_due()
     local sig = snapshot.lite_signature(snap)
     if sig == last_known_sig then return end
 
+    -- Scribe/memorize often emits no watched chat line, so flush_if_due never
+    -- runs. On any inventory sig change, refresh known-cache; publish_if_changed
+    -- is a no-op when the known-set is unchanged.
+    local baseline_before = delta_baseline
+    if maybe_spell_republish(snap, baseline_before) then
+        last_known_sig = sig
+        return
+    end
+    -- No spell-like removal detected (or no baseline yet): still rebuild so a
+    -- silent scribe can't leave peers/UI on a pre-scribe known-set forever.
+    local published = false
+    pcall(function()
+        local SC = require('spell_cache')
+        SC.rebuild(snap and snap.class)
+        published = SC.publish_if_changed('inventory_watch_bg_poll') == true
+    end)
+    if published then
+        last_known_sig = sig
+        diag.count("inventory_watch.spell_publish")
+        return
+    end
+
     publish_snap_if_changed(snap, now, "lite", false, {
         skipLockouts = true,
         skipLiveStats = true,
@@ -184,6 +267,9 @@ function M.register()
     pcall(function() mq.event('tgearInvEquip', 'You equip #*#', on_gear_line, opts) end)
     pcall(function() mq.event('tgearInvRemove', 'You remove #*#', on_gear_line, opts) end)
     pcall(function() mq.event('tgearInvDestroy', 'You destroy #*#', on_inventory_line, opts) end)
+    -- Scribe/memorize: scroll vanishes; these lines are the usual tells.
+    pcall(function() mq.event('tgearInvScribe1', '#*#You have learned #*#', on_inventory_line, opts) end)
+    pcall(function() mq.event('tgearInvScribe2', '#*#You have scribed #*#', on_inventory_line, opts) end)
     M.registered = true
 end
 
@@ -199,6 +285,8 @@ function M.unregister()
     pcall(function() mq.unevent('tgearInvEquip') end)
     pcall(function() mq.unevent('tgearInvRemove') end)
     pcall(function() mq.unevent('tgearInvDestroy') end)
+    pcall(function() mq.unevent('tgearInvScribe1') end)
+    pcall(function() mq.unevent('tgearInvScribe2') end)
     M.registered = false
     dirty_at = nil
     dirty_urgent = false
@@ -217,6 +305,17 @@ end
 function M.seed_signature()
     local snap = snapshot.cached() or snapshot.gather({ force = false, depth = "lite" })
     if snap then last_known_sig = snapshot.lite_signature(snap) end
+end
+
+-- Call from bg startup after the actor mailbox is claimed. Builds the known
+-- cache once and publishes when the signature is new.
+function M.startup_spell_cache()
+    if state.bg ~= true then return end
+    pcall(function()
+        local SC = require('spell_cache')
+        SC.rebuild()
+        SC.publish_if_changed('startup')
+    end)
 end
 
 -- Explicit dirty mark for scripted loot / trade paths that may not emit the
