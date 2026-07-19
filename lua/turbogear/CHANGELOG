@@ -1,3 +1,9 @@
+1.2.64
+- RGMercs tip on Actions/Setup when Chase or Camp While Paused (RunMovePaused)
+  is ON: Turbo pauses mercs for loot/give, but that setting still lets
+  chase/camp run. Quick Start note + /rgl set runmovepaused false. No auto
+  tempset.
+
 1.2.63
 - Review: shrink skip list by ~2 rows (higher chrome reserve) so Full Review
   no longer needs the outer window scrollbar.

@@ -11135,6 +11135,41 @@ function TG.renderWindow()
         ImGui.Dummy(0, 1)
         renderTabBar(g, viewState)
         ImGui.Dummy(0, 2)
+        -- RGMercs tip: only when RUNNING and Chase/Camp While Paused is ON.
+        if g.activeTab == 'setup' or g.activeTab == 'actions' then
+            local nowMs = (mq.gettime and mq.gettime()) or ((os.clock() or 0) * 1000)
+            if not g._rgRunMoveWarnAt or (nowMs - (g._rgRunMoveWarnAt or 0)) > 2000 then
+                g._rgRunMoveWarnAt = nowMs
+                local okBp, warn = pcall(function()
+                    local bp = require('turbo_lib.bot_pause')
+                    return bp.run_move_paused and bp.run_move_paused() == true
+                end)
+                g._rgRunMoveWarn = okBp and warn == true
+                if g._rgRunMoveWarn then
+                    local okTip, tipText = pcall(function()
+                        return require('turbo_lib.bot_pause').RUN_MOVE_PAUSED_TIP
+                    end)
+                    g._rgRunMoveWarnText = (okTip and tipText) or nil
+                else
+                    g._rgRunMoveWarnText = nil
+                end
+            end
+            if g._rgRunMoveWarn and g._rgRunMoveWarnText then
+                local tip = tostring(g._rgRunMoveWarnText)
+                local avail = ImGui.GetContentRegionAvail()
+                local availX = 0
+                if type(avail) == 'table' then
+                    availX = tonumber(avail.x or avail.X or avail[1]) or 0
+                else
+                    availX = tonumber(avail) or 0
+                end
+                local wrapAt = (ImGui.GetCursorPosX() or 0) + math.max(160, availX - 8)
+                if ImGui.PushTextWrapPos then ImGui.PushTextWrapPos(wrapAt) end
+                ImGui.TextColored(1.0, 0.78, 0.38, 1.0, tip)
+                if ImGui.PopTextWrapPos then ImGui.PopTextWrapPos() end
+                ImGui.Dummy(0, 2)
+            end
+        end
         --- MQ Next has repeatedly faulted inside EndChild for the outer
         --- ##turbo_content wrapper. Render tab content directly in the main
         --- window; inner lists/tables still provide their own scrolling.

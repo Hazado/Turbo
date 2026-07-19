@@ -571,6 +571,10 @@ local function drawQuickStartPage()
     end
     hoverTip('Why did slain not start TurboLoot? Checks E3 hooks, looter route, radius, and related gates.')
 
+    ImGui.Dummy(0, 2)
+    sectionTitle('Using RGMercs?')
+    textMuted('Turbo pauses RGMercs during loot/give. If Chase or Camp While Paused is ON, RGMercs still chase/camp while paused and can pull you off corpses. Turn that off: /rgl set runmovepaused false (or /rgl search chase paused). The Turbo hub shows a tip on Actions/Setup when that setting is on.')
+
     ImGui.Separator()
     drawRecommendedNext()
 
